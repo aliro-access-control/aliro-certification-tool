@@ -90,11 +90,11 @@ printf "\n Updating: /etc/modules\n"
 grep -qxF "ip6table_filter" /etc/modules || echo "ip6table_filter" | sudo tee -a /etc/modules
 
 printf "\n\n**********"
-printf "\n*** Create System Service for Matter Test Harness ***\n"
-printf "\n Writing: /etc/systemd/system/matter-th.service"
-cat << EOF | sudo tee /etc/systemd/system/matter-th.service
+printf "\n*** Create System Service for Aliro Test Harness ***\n"
+printf "\n Writing: /etc/systemd/system/aliro-th.service"
+cat << EOF | sudo tee /etc/systemd/system/aliro-th.service
 [Unit]
-Description=Matter Test Harness
+Description=Aliro Test Harness
 After=network.target
 [Service]
 Type=oneshot
@@ -106,7 +106,7 @@ WantedBy=default.target
 EOF
 
 sudo systemctl daemon-reload
-sudo systemctl enable matter-th
+sudo systemctl enable aliro-th
 
 printf "\n\n**********"
 printf "\n*** Enable systemd-timesyncd ***\n"

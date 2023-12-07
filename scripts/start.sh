@@ -62,11 +62,11 @@ done
 docker-compose -f docker-compose.yml $DEV_COMPOSE_FILES up -d
 
 if [ "$FRONTEND_DEV" = true ] ; then
-    echo "!!!! Matter TH frontend started in development mode."
+    echo "!!!! Aliro TH frontend started in development mode."
     echo "!!!! Manually start frontend by connecting to the frontend container"
 fi
 
 if [ "$BACKEND_DEV" = true ] ; then
-    echo "!!!! Matter TH backend started in development mode."
+    echo "!!!! Aliro TH backend started in development mode."
     echo "!!!! Manually start backend by connecting to the backend container"
 fi
