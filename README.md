@@ -13,6 +13,29 @@ git clone git@github.com:csa-access-control/aliro-certification-tool.git
 CSA Test Harness setup guide:
 https://github.com/project-chip/certification-tool/blob/main/docs/Raspberry%20Pi-Setup.md
 
+After rebooting the device, wait several minutes for the TH to launch the first time.
+
+Logs from start on boot can be accesed via command:
+
+```sh
+journalctl -u aliro-th -b
+```
+
+Autostart on bootup can be disabled using
+```sh
+systemctl disable aliro-th
+```
+
+To manually stop TH run the command below in `aliro-certification-tool` folder 
+```sh
+./scritps/stop.sh
+```
+
+
+To manually start TH run the command below in `aliro-certification-tool` folder 
+```sh
+./scritps/start.sh
+```
 
 ## Authoring Test Scripts
 
