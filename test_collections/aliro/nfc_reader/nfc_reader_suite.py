@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2023 Project Aliro Authors
+# Copyright (c) 2023 Aliro Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,3 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+from app.test_engine.logger import test_engine_logger as logger
+from app.test_engine.models import TestSuite
+
+
+class NFCReaderSuite(TestSuite):
+    metadata = {
+        "public_id": "NFCReaderSuite",
+        "version": "1.2.3",
+        "title": "NFC Reader",
+        "description": "This is a test suite for NFC Readers",
+    }
+
+    async def setup(self) -> None:
+        logger.info("This is a test setup")
+
+    async def cleanup(self) -> None:
+        logger.info("This is a test cleanup")

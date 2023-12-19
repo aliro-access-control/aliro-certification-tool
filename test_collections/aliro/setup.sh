@@ -1,5 +1,7 @@
+#! /usr/bin/env bash
+
 #
-# Copyright (c) 2023 Project Aliro Authors
+# Copyright (c) 2023 Aliro Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,4 +14,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
+set -ex
+COLLECTION_PATH=$(realpath $(dirname "$0"))
+
+# This file is executed on Test Harness Setup.
+# Can be used to build depenencies or make configurations specific to the Aliro test collection.
+
+cd $COLLECTION_PATH/support/aliro_actuator
+./scripts/install_nfc.sh

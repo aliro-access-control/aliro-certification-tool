@@ -13,3 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from aliro_actuator import Global as ActuatorGlobal
+
+from app.test_engine.logger import test_engine_logger
+
+# Ensure Aliro Actuator is using test engine logger
+ActuatorGlobal.set_logger(test_engine_logger)

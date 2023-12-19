@@ -13,3 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from .rd_nfc_stdtxn_10 import RD_NFC_STDTXN_10

@@ -84,7 +84,8 @@ services:
       - SERVER_NAME=${DOMAIN?Variable not set}
       - SERVER_HOST=https://${DOMAIN?Variable not set}
       - BACKEND_FILEPATH_ON_HOST=${BACKEND_FILEPATH_ON_HOST}
-      - PYTHONPATH=/app:/app/test_collections/aliro/support/aliro_actuator
+      - PYTHONPATH=/app:/app/test_collections/aliro/support/aliro_actuator/src
+      
     privileged: true
     command: /start-reload.sh
     labels:
