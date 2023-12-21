@@ -48,3 +48,17 @@ cd $ROOT_DIR && \
     git checkout $ROOT_BRANCH && \
     git pull && \
     git submodule update --init --recursive
+
+
+
+echo "*** Setup Test Collections"
+cd $ROOT_DIR
+for dir in ./test_collections/*
+do
+    prestart=$dir/setup.sh
+    # Only run setup.sh if present/
+    [ -x $prestart ] && $prestart
+done
+
+# We echo "complete" to ensure this scripts last command has exit code 0.
+echo "Test Collection Setup Complete"
