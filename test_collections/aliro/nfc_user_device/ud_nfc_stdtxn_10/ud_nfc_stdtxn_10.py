@@ -1,7 +1,7 @@
-from acwg_actuator.access_protocol import TransportProtocol
-from acwg_actuator.access_protocol.apdu import TransactionCode
-from acwg_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
-from acwg_actuator.access_protocol.reader import Reader
+from aliro_actuator.access_protocol import TransportProtocol
+from aliro_actuator.access_protocol.apdu import TransactionCode
+from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
+from aliro_actuator.access_protocol.reader import Reader
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -18,13 +18,11 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
     }
 
     reader_ePuBK = bytes.fromhex(
-        "049696afe33de58b7d3253d1cba86d14147c16d455e8a27373b38d454af21b70e75e13ebc6d557"
-        "43ba6a6ffc4ed37a55515a9346fdae311f60be30421fa6dc61c5"
+        "049696afe33de58b7d3253d1cba86d14147c16d455e8"
+        "a27373b38d454af21b70e75e13ebc6d55743ba6a6ffc"
+        "4ed37a55515a9346fdae311f60be30421fa6dc61c5"
     )
     transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
-    reader_identifier = bytes.fromhex(
-        "00112233445566778899AABBCCDDEEFFFFEEDDCCBBAA99887766554433221100"
-    )
 
     @classmethod
     def pics(cls) -> set[str]:
@@ -48,9 +46,18 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
     async def execute(self) -> None:
         # Test step 1
+        # load parameters from project config
+        group_id = self.th_group_identifier()
+        sub_group_id = self.th_sub_group_identifier()
+        key = self.th_reader_keypair()
+
+        # Initialize Aliro NFC Reader
         reader = Reader(
-            transport_protocol=TransportProtocol.NFC, reader_key=None, reader_cert=None
-        )  # private key(none is automatic generated) #public key #reader group identifier #identifier sub
+            transport_protocol=TransportProtocol.NFC,
+            reader_group_identifier=group_id,
+            reader_group_sub_identifier=sub_group_id,
+            reader_key=key,
+        )
         self.next_step()
 
         # Test step 2
@@ -77,7 +84,7 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
             protocol_version=0x0100,
             reader_epubk=self.reader_ePuBK,
             transaction_identifier=self.transaction_identifier,
-            reader_identifier=self.reader_identifier,
+            reader_identifier=group_id + sub_group_id,
         )
         self.next_step()
 
