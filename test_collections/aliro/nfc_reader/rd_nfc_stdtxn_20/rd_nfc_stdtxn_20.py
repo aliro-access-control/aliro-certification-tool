@@ -19,32 +19,6 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
         "description": """Verify conformance of Reader UT in AUTH1 command.""",
     }
 
-    # Reader Device UT #1
-    reader_identifier_list_1 = [
-        bytes.fromhex(
-            "da5bec40670cfe227fe9947f091b419e5a0fc53977e414a6db5e5c7574d337a8"
-        )
-    ]
-    reader_public_key_1 = PublicKey(
-        bytes.fromhex(
-            "04fe592041499a537cdf32102d18148d6f3fcf3143bd28d7d1a33237b727ef7531e1054b6c"
-            "15ddad0ff5d5b3f014cba7db020c4c67b06d0b712d55514685e6b28e"
-        )
-    )
-
-    # Reader Device UT #2
-    reader_identifier_list_2 = [
-        bytes.fromhex(
-            "d0433f8f799ae90e9d00bfa6cd5cda61092701e4ef59d870dc5da262ed9d7de0"
-        )
-    ]
-    reader_public_key_2 = PublicKey(
-        bytes.fromhex(
-            "04eb26e9e125da3b959131aae5d5addea35770565aad26651dc638d46aa377b1ad207def42"
-            "3cc818e550dc6500a2c0c446ae22ecaa28ac294daff8c3917b5f627d"
-        )
-    )
-
     endpoint_ePuBK = bytes.fromhex(
         "045d75ab60136a2c54ff27b799ee157f3f3329435c0d"
         "f608de904c920ac29f72bd4274c2edc810a93e240bf5"
