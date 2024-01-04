@@ -1,5 +1,5 @@
 from aliro_actuator.access_protocol import TransportProtocol
-from aliro_actuator.access_protocol.apdu import Auth1Response, TransactionCode
+from aliro_actuator.access_protocol.apdu import TransactionCode
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair
@@ -44,7 +44,7 @@ class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step4: Send/Receive Select command/response"),
             TestStep("Step5: Send/Receive AUTH0 command/response"),
             TestStep("Step6: Send/Receive AUTH1 command/response"),
-            TestStep("Step7: Send/Receive CONTROL FLOW command/response"),
+            TestStep("Step7: Send/Receive CONTROL_FLOW command/response"),
         ]
 
     async def setup(self) -> None:
@@ -63,8 +63,7 @@ class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
             reader_group_identifier=group_id,
             reader_group_sub_identifier=sub_group_id,
             reader_key=key,
-            reader_cert=None,
-        )  # private key(none is automatic generated) #public key #reader group identifier #identifier sub
+        )
         self.next_step()
 
         # Test step 2
