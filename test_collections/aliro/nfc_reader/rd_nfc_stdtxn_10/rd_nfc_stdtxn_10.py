@@ -1,14 +1,14 @@
-from acwg_actuator.access_protocol import TransportProtocol
-from acwg_actuator.access_protocol.apdu import INS
-from acwg_actuator.access_protocol.defines import EXPEDITED_PHASE_AID, STEPUP_PHASE_AID
-from acwg_actuator.access_protocol.errors import (
+from aliro_actuator.access_protocol import TransportProtocol
+from aliro_actuator.access_protocol.apdu import INS
+from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID, STEPUP_PHASE_AID
+from aliro_actuator.access_protocol.errors import (
     InvalidCLAError,
     InvalidCommandError,
     InvalidParameterError,
 )
-from acwg_actuator.access_protocol.user_device import UserDevice
-from acwg_actuator.trust_framework.endpoint import Endpoint
-from acwg_actuator.trust_framework.key import KeyPair, PublicKey
+from aliro_actuator.access_protocol.user_device import UserDevice
+from aliro_actuator.trust_framework.endpoint import Endpoint
+from aliro_actuator.trust_framework.key import KeyPair, PublicKey
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -32,7 +32,8 @@ class RD_NFC_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
     ]
     reader_public_key_1 = PublicKey(
         bytes.fromhex(
-            "04fe592041499a537cdf32102d18148d6f3fcf3143bd28d7d1a33237b727ef7531e1054b6c15ddad0ff5d5b3f014cba7db020c4c67b06d0b712d55514685e6b28e"
+            "04fe592041499a537cdf32102d18148d6f3fcf3143bd28d7d1a33237b727ef7531e1054b6c"
+            "15ddad0ff5d5b3f014cba7db020c4c67b06d0b712d55514685e6b28e"
         )
     )
 
@@ -44,12 +45,14 @@ class RD_NFC_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
     ]
     reader_public_key_2 = PublicKey(
         bytes.fromhex(
-            "04eb26e9e125da3b959131aae5d5addea35770565aad26651dc638d46aa377b1ad207def423cc818e550dc6500a2c0c446ae22ecaa28ac294daff8c3917b5f627d"
+            "04eb26e9e125da3b959131aae5d5addea35770565aad26651dc638d46aa377b1ad207def42"
+            "3cc818e550dc6500a2c0c446ae22ecaa28ac294daff8c3917b5f627d"
         )
     )
 
     endpoint_ePuBK = bytes.fromhex(
-        "045d75ab60136a2c54ff27b799ee157f3f3329435c0df608de904c920ac29f72bd4274c2edc810a93e240bf5d6394a92c9766b690b2bf5128ae70d6e29257ea786"
+        "045d75ab60136a2c54ff27b799ee157f3f3329435c0df608de904c920ac29f72bd4274c2edc810"
+        "a93e240bf5d6394a92c9766b690b2bf5128ae70d6e29257ea786"
     )  # from Test Vector
 
     @classmethod
@@ -106,30 +109,29 @@ class RD_NFC_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         # Display pop-up to put the Test Harness on the Reader device Under Test
         await self.send_prompt_request(
             OptionsSelectPromptRequest(
-                prompt="Set Reader Device Under Test in NFC polling mode",
+                prompt="Bring Test Harness above Reader Device Under Test",
                 options={"OK": 1},
             )
         )
         self.next_step()
-        userdevice.transaction_initiation()  # up to RATS command/ ATS response
-        self.next_step()
 
         # Test step 4
+        userdevice.transaction_initiation()  # up to RATS command/ ATS response
         try:
             command = userdevice.wait_for_command()
-        except InvalidCommandError as error:
+        except (InvalidCommandError, InvalidCLAError, InvalidParameterError) as error:
             self.mark_step_failure(error)
-        except InvalidCLAError as error:
-            self.mark_step_failure(error)
-        except InvalidParameterError as error:
-            self.mark_step_failure(error)
+            return
 
         if command.ins != INS.SELECT:
             self.mark_step_failure("Command received is not a select command")
-        if command.aid == STEPUP_PHASE_AID:
+            return
+        elif command.aid == STEPUP_PHASE_AID:
             self.mark_step_failure("Received Stepup AID, expected Expedited AID")
+            return
         elif command.aid != EXPEDITED_PHASE_AID:
             self.mark_step_failure("Received unknown AID")
+            return
 
         userdevice.response_select(
             aid=EXPEDITED_PHASE_AID, type=0x0000, protocol_versions=[0x0100]

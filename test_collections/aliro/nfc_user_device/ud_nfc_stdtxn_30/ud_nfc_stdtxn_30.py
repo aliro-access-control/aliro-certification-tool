@@ -15,18 +15,18 @@ class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         "public_id": "UD-NFC-STDTXN-3.0",
         "version": "0.0.1",
         "title": "UD-NFC-STDTXN-3.0",
-        "description": """Verify conformance of User Device UT in CONTROL FLOW command.""",
+        "description": """Verify conformance of User Device UT in CONTROL_FLOW command.""",
     }
 
     reader_ePuBK = bytes.fromhex(
-        "049696afe33de58b7d3253d1cba86d14147c16d455e8a27373b38d454af21b70e75e13ebc6d55743ba6a6ffc4ed37a55515a9346fdae311f60be30421fa6dc61c5"
+        "049696afe33de58b7d3253d1cba86d14147c16d455e8"
+        "a27373b38d454af21b70e75e13ebc6d55743ba6a6ffc"
+        "4ed37a55515a9346fdae311f60be30421fa6dc61c5"
     )
     reader_ePrivK = bytes.fromhex(
         "3c0f74114cd2a021e8066efbaa31dbb97ef0054272192606fd96633a04f66214"
     )
     transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
-    reader_group_identifier = bytes.fromhex("00112233445566778899AABBCCDDEEFF")
-    reader_group__sub_identifier = bytes.fromhex("FFEEDDCCBBAA99887766554433221100")
 
     @classmethod
     def pics(cls) -> set[str]:
@@ -52,11 +52,17 @@ class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
 
     async def execute(self) -> None:
         # Test step 1
+        # load parameters from project config
+        group_id = self.th_group_identifier()
+        sub_group_id = self.th_sub_group_identifier()
+        key = self.th_reader_keypair()
+
+        # Initialize Aliro NFC Reader
         reader = Reader(
             transport_protocol=TransportProtocol.NFC,
-            reader_group_identifier=self.reader_group_identifier,
-            reader_group_sub_identifier=self.reader_group_sub_identifier,
-            reader_key=None,
+            reader_group_identifier=group_id,
+            reader_group_sub_identifier=sub_group_id,
+            reader_key=key,
             reader_cert=None,
         )  # private key(none is automatic generated) #public key #reader group identifier #identifier sub
         self.next_step()
