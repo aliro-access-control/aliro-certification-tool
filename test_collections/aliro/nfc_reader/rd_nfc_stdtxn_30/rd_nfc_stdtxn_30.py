@@ -12,12 +12,12 @@ from aliro_actuator.access_protocol.apdu import INS
 from ...support.aliro_test_case import AliroReaderTestCase
 
 
-class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
+class RD_NFC_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-STDTXN-2.0",
+        "public_id": "RD-NFC-STDTXN-3.0",
         "version": "0.0.1",
-        "title": "RD-NFC-STDTXN-2.0",
-        "description": """Verify conformance of Reader UT in AUTH1 command.""",
+        "title": "RD-NFC-STDTXN-3.0",
+        "description": """Verify conformance of Reader UT in CONTROL FLOW command.""",
     }
 
     # Reader Device UT #1
@@ -54,6 +54,7 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step4: Receive/Send Select command/response"),
             TestStep("Step5: Receive/Send AUTH0 command/response"),
             TestStep("Step6: Receive/Send AUTH1 command/response"),
+            TestStep("Step7: Receive/Send CONTROL FLOW command/response"),
         ]
 
     async def setup(self) -> None:
@@ -111,7 +112,7 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
                 cmds,
             )
         else:
-            return  # check with the group
+            return  # chekc with the group
         self.next_step()
 
         # Test step 5
@@ -134,5 +135,15 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
             return  # chekc with the group
         self.next_step()
 
+        # Test step 7
+        cmds_control_flow = userdevice.wait_for_command()
+        if cmds_control_flow.ins == INS.CONTROL_FLOW:
+            userdevice.handle_control_flow(
+                cmds_control_flow,
+            )
+        else:
+            return  # check with the group
+        self.next_step()
+
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_STDTXN_20 Cleanup")
+        logger.info("RD_NFC_STDTXN_30 Cleanup")
