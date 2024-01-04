@@ -46,15 +46,12 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
     )
 
     endpoint_ePuBK = bytes.fromhex(
-        "045d75ab60136a2c54ff27b799ee157f3f3329435c0df608de904c920ac29f72bd4274c2edc810"
-        "a93e240bf5d6394a92c9766b690b2bf5128ae70d6e29257ea786"
+        "045d75ab60136a2c54ff27b799ee157f3f3329435c0d"
+        "f608de904c920ac29f72bd4274c2edc810a93e240bf5"
+        "d6394a92c9766b690b2bf5128ae70d6e29257ea786"
     )  # from Test Vector
     endpoint_ePrivK = bytes.fromhex(
         "70637ee9b40cee568567c69589276888edca7128bb13fb531f9c4f502d8cc65e"
-    )  # from Test Vector
-    endpoint_public_key = bytes.fromhex(
-        "04ed1c8b8eb7e44c2842db98730717c75cc94c96ab9ae60f079879e756980b4003b38fb449203f"
-        "7237cb9f81077b8ac49c75c8115ed408312222eab61e18feca17"
     )  # from Test Vector
 
     @classmethod
@@ -80,21 +77,9 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
 
     async def execute(self) -> None:
         # Test step 1
-        endpoint_keypair = KeyPair()  # create endpoint key pair.
-        endpoints = [
-            Endpoint(
-                endpoint_keypair,
-                self.reader_public_key_1,
-                self.reader_identifier_list_1,
-            ),
-            Endpoint(
-                endpoint_keypair,
-                self.reader_public_key_2,
-                self.reader_identifier_list_2,
-            ),
-        ]  # set endpoint keypair + table to retrieve Reader public key using reader identifier
+        endpoint = self.reader_endpoint()
         userdevice = UserDevice(
-            transport_protocol=TransportProtocol.NFC, endpoints=endpoints, mailbox=0x20
+            transport_protocol=TransportProtocol.NFC, endpoints=[endpoint], mailbox=0x20
         )
         self.next_step()
 
@@ -130,7 +115,8 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
                 cmds_select,
             )
         else:
-            return  # check with the group
+            self.mark_step_failure("Command received is not a SELECT command")
+            return
         self.next_step()
 
         # Test step 5
@@ -140,7 +126,8 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
                 cmds_auth0,
             )
         else:
-            return  # check with the group
+            self.mark_step_failure("Command received is not a AUTH0 command")
+            return
         self.next_step()
 
         # Test step 6
@@ -150,7 +137,8 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
                 cmds_auth1,
             )
         else:
-            return  # check with the group
+            self.mark_step_failure("Command received is not a AUTH1 command")
+            return
         self.next_step()
 
     async def cleanup(self) -> None:
