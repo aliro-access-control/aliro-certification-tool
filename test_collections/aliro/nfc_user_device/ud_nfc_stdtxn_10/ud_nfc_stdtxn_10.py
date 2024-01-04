@@ -1,11 +1,10 @@
-from app.test_engine.logger import test_engine_logger as logger
-from app.test_engine.models import TestStep
-from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
-
-from acwg_actuator.access_protocol.reader import Reader
 from acwg_actuator.access_protocol import TransportProtocol
 from acwg_actuator.access_protocol.apdu import TransactionCode
 from acwg_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
+from acwg_actuator.access_protocol.reader import Reader
+from app.test_engine.logger import test_engine_logger as logger
+from app.test_engine.models import TestStep
+from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
 from ...support.aliro_test_case import AliroUserDeviceTestCase
 
@@ -19,10 +18,13 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
     }
 
     reader_ePuBK = bytes.fromhex(
-        "049696afe33de58b7d3253d1cba86d14147c16d455e8a27373b38d454af21b70e75e13ebc6d55743ba6a6ffc4ed37a55515a9346fdae311f60be30421fa6dc61c5"
+        "049696afe33de58b7d3253d1cba86d14147c16d455e8a27373b38d454af21b70e75e13ebc6d557"
+        "43ba6a6ffc4ed37a55515a9346fdae311f60be30421fa6dc61c5"
     )
     transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
-    reader_identifier = bytes.fromhex("00112233445566778899AABBCCDDEEFFFFEEDDCCBBAA99887766554433221100")
+    reader_identifier = bytes.fromhex(
+        "00112233445566778899AABBCCDDEEFFFFEEDDCCBBAA99887766554433221100"
+    )
 
     @classmethod
     def pics(cls) -> set[str]:

@@ -1,13 +1,11 @@
+from aliro_actuator.access_protocol import TransportProtocol
+from aliro_actuator.access_protocol.apdu import Auth1Response, TransactionCode
+from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
+from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
-
-from aliro_actuator.access_protocol.reader import Reader
-from aliro_actuator.access_protocol import TransportProtocol
-from aliro_actuator.access_protocol.apdu import TransactionCode
-from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
-from aliro_actuator.access_protocol.apdu import Auth1Response
-from aliro_actuator.trust_framework.key import KeyPair
 
 from ...support.aliro_test_case import AliroUserDeviceTestCase
 
@@ -21,7 +19,8 @@ class UD_NFC_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
     }
 
     reader_ePuBK = bytes.fromhex(
-        "049696afe33de58b7d3253d1cba86d14147c16d455e8a27373b38d454af21b70e75e13ebc6d55743ba6a6ffc4ed37a55515a9346fdae311f60be30421fa6dc61c5"
+        "049696afe33de58b7d3253d1cba86d14147c16d455e8a27373b38d454af21b70e75e13ebc6d557"
+        "43ba6a6ffc4ed37a55515a9346fdae311f60be30421fa6dc61c5"
     )
     reader_ePrivK = bytes.fromhex(
         "3c0f74114cd2a021e8066efbaa31dbb97ef0054272192606fd96633a04f66214"
