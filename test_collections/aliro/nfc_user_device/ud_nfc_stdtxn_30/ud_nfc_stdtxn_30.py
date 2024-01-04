@@ -26,66 +26,9 @@ class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
     reader_ePrivK = bytes.fromhex(
         "3c0f74114cd2a021e8066efbaa31dbb97ef0054272192606fd96633a04f66214"
     )
-    transaction_identifier = bytes(
-        [
-            0x41,
-            0x65,
-            0xA8,
-            0x36,
-            0x67,
-            0xAD,
-            0x0A,
-            0xF5,
-            0xAB,
-            0x11,
-            0x52,
-            0x47,
-            0x42,
-            0x48,
-            0x22,
-            0xE0,
-        ]
-    )
-    reader_group_identifier = bytes(
-        [
-            0x00,
-            0x11,
-            0x22,
-            0x33,
-            0x44,
-            0x55,
-            0x66,
-            0x77,
-            0x88,
-            0x99,
-            0xAA,
-            0xBB,
-            0xCC,
-            0xDD,
-            0xEE,
-            0xFF,
-        ]
-    )
-    reader_group__sub_identifier = bytes(
-        [
-            0xFF,
-            0xEE,
-            0xDD,
-            0xCC,
-            0xBB,
-            0xAA,
-            0x99,
-            0x88,
-            0x77,
-            0x66,
-            0x55,
-            0x44,
-            0x33,
-            0x22,
-            0x11,
-            0x00,
-        ]
-    )
+    transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
+    reader_group_identifier = bytes.fromhex("00112233445566778899AABBCCDDEEFF")
+    reader_group__sub_identifier = bytes.fromhex("FFEEDDCCBBAA99887766554433221100")
 
     @classmethod
     def pics(cls) -> set[str]:
