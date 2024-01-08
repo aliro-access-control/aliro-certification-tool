@@ -48,7 +48,7 @@ cd $ROOT_DIR && \
     git checkout $ROOT_BRANCH && \
     git pull && \
     git submodule update --init --recursive
-
+    
 echo "*** Download latest Docker images"
 cd $ROOT_DIR
 # Ensure .env exists
@@ -58,6 +58,18 @@ cd $ROOT_DIR
 # As this might be run during setup we use `newgrp` command to ensure 
 # docker works.
 newgrp docker << END
-# You can do more lines than just this./
+# You can do more lines than just this.
 docker compose pull
 END
+
+echo "*** Setup Test Collections"
+cd $ROOT_DIR
+for dir in ./test_collections/*
+do
+    prestart=$dir/setup.sh
+    # Only run setup.sh if present/
+    [ -x $prestart ] && $prestart
+done
+
+# We echo "complete" to ensure this scripts last command has exit code 0.
+echo "Test Collection Setup Complete"
