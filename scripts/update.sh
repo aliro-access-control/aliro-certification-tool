@@ -48,8 +48,19 @@ cd $ROOT_DIR && \
     git checkout $ROOT_BRANCH && \
     git pull && \
     git submodule update --init --recursive
+    
+echo "*** Download latest Docker images"
+cd $ROOT_DIR
+# Ensure .env exists
+./scripts/install-default-env.sh
 
-
+# Download docker images from docker-compose.yml.
+# As this might be run during setup we use `newgrp` command to ensure 
+# docker works.
+newgrp docker << END
+# You can do more lines than just this.
+docker compose pull
+END
 
 echo "*** Setup Test Collections"
 cd $ROOT_DIR

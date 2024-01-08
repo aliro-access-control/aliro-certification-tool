@@ -19,6 +19,10 @@
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor --yes -o /usr/share/keyrings/docker-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
+# Silence user prompts about reboot and service restart required (script will prompt user to reboot in the end)
+sudo sed -i "s/#\$nrconf{kernelhints} = -1;/\$nrconf{kernelhints} = -1;/g" /etc/needrestart/needrestart.conf
+sudo sed -i "s/#\$nrconf{restart} = 'i';/\$nrconf{restart} = 'a';/" /etc/needrestart/needrestart.conf
+
 sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
 sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 
@@ -55,9 +59,6 @@ packagelist=(
 
 )
 sudo DEBIAN_FRONTEND=noninteractive sudo apt-get install ${packagelist[@]} -y
-
-# Install Docker Compose, needed for Test Harness
-sudo pip3 install docker-compose
 
 # Install Peotry, needed for Test Harness CLI
 curl -sSL https://install.python-poetry.org | python3 -
