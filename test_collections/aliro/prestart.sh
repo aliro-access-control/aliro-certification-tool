@@ -23,6 +23,10 @@ COLLECTION_PATH=$(realpath $(dirname "$0"))
 # Install PN7160 NFC configuration
 cp $COLLECTION_PATH/support/aliro_actuator/third_party/nxp_nfc/linux_libnfc-nci/conf/*.conf /usr/local/etc/
 
+# Install PN7160 NFC dirvers
+cd $COLLECTION_PATH/support/aliro_actuator/third_party/nxp_nfc/linux_libnfc-nci
+make install
+
 # Install ACWG Actuator python dependencies
 cd $COLLECTION_PATH/support/aliro_actuator
 poetry install --no-root
