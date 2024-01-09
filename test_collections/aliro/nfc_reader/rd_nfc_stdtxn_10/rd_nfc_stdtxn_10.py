@@ -2,9 +2,8 @@ from aliro_actuator.access_protocol import TransportProtocol
 from aliro_actuator.access_protocol.apdu import INS
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID, STEPUP_PHASE_AID
 from aliro_actuator.access_protocol.errors import (
-    InvalidCLAError,
+    AccessProtocolError,
     InvalidCommandError,
-    InvalidParameterError,
 )
 from aliro_actuator.access_protocol.user_device import UserDevice
 from aliro_actuator.trust_framework.endpoint import Endpoint
@@ -76,36 +75,36 @@ class RD_NFC_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
                 options={"OK": 1},
             )
         )
-        self.next_step()
-
-        # Test step 4 Receive/Send Select command/response
         userdevice.transaction_initiation()  # up to RATS command/ ATS response
-        try:
-            command = userdevice.wait_for_command()
-        except (InvalidCommandError, InvalidCLAError, InvalidParameterError) as error:
-            self.mark_step_failure(error)
-            return
-
-        if command.ins != INS.SELECT:
-            self.mark_step_failure("Command received is not a select command")
-            return
-        elif command.aid == STEPUP_PHASE_AID:
-            self.mark_step_failure("Received Stepup AID, expected Expedited AID")
-            return
-        elif command.aid != EXPEDITED_PHASE_AID:
-            self.mark_step_failure("Received unknown AID")
-            return
-
-        userdevice.response_select(
-            aid=EXPEDITED_PHASE_AID, type=0x0000, protocol_versions=[0x0100]
+        userdevice.start_new_session(
+            ephemeral_key=KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK),
         )
         self.next_step()
 
-        # Test step 5
-        command = userdevice.wait_for_command()
-        if command.ins != INS.AUTH0:
-            self.mark_step_failure("Command received is not a auth0 command")
-        userdevice.response_auth0(endpoint_epubk=self.endpoint_ePuBK)
+        # Test step 4 Receive/Send Select command/response
+        try:
+            cmds_select = userdevice.wait_for_command()
+        except InvalidCommandError as error:
+            self.mark_step_failure(error)
+            return
+        try:
+            userdevice.handle_select(cmds_select)
+        except AccessProtocolError as error:
+            self.mark_step_failure(error)
+            return
+        self.next_step()
+
+        # Test step 5 Receive/Send Auth0 command/response
+        try:
+            cmds_auth0 = userdevice.wait_for_command()
+        except InvalidCommandError as error:
+            self.mark_step_failure(error)
+            return
+        try:
+            userdevice.handle_auth0(cmds_auth0)
+        except AccessProtocolError as error:
+            self.mark_step_failure(error)
+            return
         self.next_step()
 
     async def cleanup(self) -> None:

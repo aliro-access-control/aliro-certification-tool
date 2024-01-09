@@ -1,6 +1,10 @@
 from aliro_actuator.access_protocol import TransportProtocol
 from aliro_actuator.access_protocol.apdu import INS
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
+from aliro_actuator.access_protocol.errors import (
+    AccessProtocolError,
+    InvalidCommandError,
+)
 from aliro_actuator.access_protocol.user_device import UserDevice
 from aliro_actuator.trust_framework.endpoint import Endpoint
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey
@@ -75,43 +79,48 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
                 options={"OK": 1},
             )
         )
-        self.next_step()
         userdevice.transaction_initiation()  # up to RATS command/ ATS response
         userdevice.start_new_session(
             ephemeral_key=KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK),
         )
         self.next_step()
 
-        # Test step 4
-        cmds_select = userdevice.wait_for_command()
-        if cmds_select.ins == INS.SELECT:
-            userdevice.handle_select(
-                cmds_select,
-            )
-        else:
-            self.mark_step_failure("Command received is not a SELECT command")
+        # Test step 4 Receive/Send Select command/response
+        try:
+            cmds_select = userdevice.wait_for_command()
+        except InvalidCommandError as error:
+            self.mark_step_failure(error)
+            return
+        try:
+            userdevice.handle_select(cmds_select)
+        except AccessProtocolError as error:
+            self.mark_step_failure(error)
             return
         self.next_step()
 
-        # Test step 5
-        cmds_auth0 = userdevice.wait_for_command()
-        if cmds_auth0.ins == INS.AUTH0:
-            userdevice.handle_auth0(
-                cmds_auth0,
-            )
-        else:
-            self.mark_step_failure("Command received is not a AUTH0 command")
+        # Test step 5 Receive/Send Auth0 command/response
+        try:
+            cmds_auth0 = userdevice.wait_for_command()
+        except InvalidCommandError as error:
+            self.mark_step_failure(error)
+            return
+        try:
+            userdevice.handle_auth0(cmds_auth0)
+        except AccessProtocolError as error:
+            self.mark_step_failure(error)
             return
         self.next_step()
 
-        # Test step 6
-        cmds_auth1 = userdevice.wait_for_command()
-        if cmds_auth1.ins == INS.AUTH1:
-            userdevice.handle_auth1(
-                cmds_auth1,
-            )
-        else:
-            self.mark_step_failure("Command received is not a AUTH1 command")
+        # Test step 6 Receive/Send Auth1 command/response
+        try:
+            cmds_auth1 = userdevice.wait_for_command()
+        except InvalidCommandError as error:
+            self.mark_step_failure(error)
+            return
+        try:
+            userdevice.handle_auth1(cmds_auth1)
+        except AccessProtocolError as error:
+            self.mark_step_failure(error)
             return
         self.next_step()
 
