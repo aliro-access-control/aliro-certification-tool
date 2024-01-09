@@ -1,6 +1,14 @@
 from aliro_actuator.access_protocol import TransportProtocol
-from aliro_actuator.access_protocol.apdu import TransactionCode
+from aliro_actuator.access_protocol.apdu import (
+    Auth1Response,
+    Transaction,
+    TransactionCode,
+)
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
+from aliro_actuator.access_protocol.errors import (
+    AccessProtocolError,
+    InvalidResponseError,
+)
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
@@ -84,24 +92,40 @@ class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 4
-        reader.handle_select(aid=EXPEDITED_PHASE_AID)
+        try:
+            reader.handle_select(aid=EXPEDITED_PHASE_AID)
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(error)
+            return
         self.next_step()
 
         # Test step 5
-        reader.handle_auth0(
-            transaction_type=0,
-            transaction_code=TransactionCode.UNLOCK,
-        )
+        try:
+            reader.handle_auth0(
+                transaction_type=Transaction.STANDARD,
+                transaction_code=TransactionCode.UNLOCK,
+            )
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(error)
+            return
         self.next_step()
 
         # Test step 6
-        reader.handle_auth1()
+        try:
+            reader.handle_auth1(expected_response=Auth1Response.ENDPOINT_PUBLIC_KEY)
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(error)
+            return
         self.next_step()
 
         # Test step 7
-        reader.handle_control_flow(
-            success=True,
-        )
+        try:
+            reader.handle_control_flow(
+                success=True,
+            )
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(error)
+            return
         self.next_step()
 
     async def cleanup(self) -> None:
