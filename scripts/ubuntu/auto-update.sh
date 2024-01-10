@@ -22,5 +22,5 @@ printf "\n*** Getting Test Harness code ***\n"
 $SCRIPT_DIR/update.sh "$BRANCH_NAME"
 
 printf "\n\n**********"
-printf "\n*** Stoping Containers ***\n"
+printf "\n*** Stopping Containers ***\n"
 $SCRIPT_DIR/stop.sh

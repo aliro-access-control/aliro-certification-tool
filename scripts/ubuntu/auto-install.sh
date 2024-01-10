@@ -25,7 +25,7 @@ $UBUNTU_SCRIPT_DIR/1-install-dependendcies.sh
 
 printf "\n\n**********"
 printf "\n*** Configure Machine ***\n"
-$UBUNTU_SCRIPT_DIR/2-machine-cofiguration.sh
+$UBUNTU_SCRIPT_DIR/2-machine-configuration.sh
 
 printf "\n\n**********"
 printf "\n*** Getting Test Harness code ***\n"
