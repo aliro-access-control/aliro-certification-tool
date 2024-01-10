@@ -31,6 +31,9 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         "a27373b38d454af21b70e75e13ebc6d55743ba6a6ffc"
         "4ed37a55515a9346fdae311f60be30421fa6dc61c5"
     )
+    reader_ePrivK = bytes.fromhex(
+        "3c0f74114cd2a021e8066efbaa31dbb97ef0054272192606fd96633a04f66214"
+    )
     transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
 
     @classmethod

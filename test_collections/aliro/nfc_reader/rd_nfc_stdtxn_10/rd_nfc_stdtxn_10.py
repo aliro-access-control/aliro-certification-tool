@@ -28,6 +28,9 @@ class RD_NFC_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         "f608de904c920ac29f72bd4274c2edc810a93e240bf5"
         "d6394a92c9766b690b2bf5128ae70d6e29257ea786"
     )  # from Test Vector
+    endpoint_ePrivK = bytes.fromhex(
+        "70637ee9b40cee568567c69589276888edca7128bb13fb531f9c4f502d8cc65e"
+    )  # from Test Vector
 
     @classmethod
     def pics(cls) -> set[str]:
