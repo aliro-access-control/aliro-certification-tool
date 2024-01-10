@@ -1,8 +1,16 @@
 from aliro_actuator.access_protocol import TransportProtocol
-from aliro_actuator.access_protocol.apdu import TransactionCode
+from aliro_actuator.access_protocol.apdu import (
+    Auth1Response,
+    Transaction,
+    TransactionCode,
+)
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
+from aliro_actuator.access_protocol.errors import (
+    AccessProtocolError,
+    InvalidResponseError,
+)
 from aliro_actuator.access_protocol.reader import Reader
-
+from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -23,11 +31,10 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         "a27373b38d454af21b70e75e13ebc6d55743ba6a6ffc"
         "4ed37a55515a9346fdae311f60be30421fa6dc61c5"
     )
-
-    transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
-    reader_identifier = bytes.fromhex(
-        "00112233445566778899AABBCCDDEEFFFFEEDDCCBBAA99887766554433221100"
+    reader_ePrivK = bytes.fromhex(
+        "3c0f74114cd2a021e8066efbaa31dbb97ef0054272192606fd96633a04f66214"
     )
+    transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
 
     @classmethod
     def pics(cls) -> set[str]:
@@ -51,7 +58,6 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
     async def execute(self) -> None:
         # Test step 1
-
         # load parameters from project config
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
@@ -77,21 +83,29 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 3
         reader.transaction_initiation()  # up to RATS command/ ATS response
+        reader.start_new_session(
+            transaction_identifier=self.transaction_identifier,
+            ephemeral_key=KeyPair(self.reader_ePrivK, self.reader_ePuBK),
+        )
         self.next_step()
 
         # Test step 4
-        reader.command_select(aid=EXPEDITED_PHASE_AID)
+        try:
+            reader.handle_select(aid=EXPEDITED_PHASE_AID)
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(error)
+            return
         self.next_step()
 
         # Test step 5
-        reader.command_auth0(
-            transaction=0,
-            transaction_code=TransactionCode.UNLOCK,
-            protocol_version=0x0100,
-            reader_epubk=self.reader_ePuBK,
-            transaction_identifier=self.transaction_identifier,
-            reader_identifier=self.reader_identifier,
-        )
+        try:
+            reader.handle_auth0(
+                transaction_type=Transaction.STANDARD,
+                transaction_code=TransactionCode.UNLOCK,
+            )
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(error)
+            return
         self.next_step()
 
     async def cleanup(self) -> None:

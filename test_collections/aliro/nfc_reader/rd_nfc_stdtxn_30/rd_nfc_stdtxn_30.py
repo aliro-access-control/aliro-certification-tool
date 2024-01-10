@@ -15,12 +15,12 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase
 
 
-class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
+class RD_NFC_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-STDTXN-2.0",
+        "public_id": "RD-NFC-STDTXN-3.0",
         "version": "0.0.1",
-        "title": "RD-NFC-STDTXN-2.0",
-        "description": """Verify conformance of Reader UT in AUTH1 command.""",
+        "title": "RD-NFC-STDTXN-3.0",
+        "description": """Verify conformance of Reader UT in CONTROL FLOW command.""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -48,6 +48,7 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step4: Receive/Send Select command/response"),
             TestStep("Step5: Receive/Send AUTH0 command/response"),
             TestStep("Step6: Receive/Send AUTH1 command/response"),
+            TestStep("Step7: Receive/Send CONTROL FLOW command/response"),
         ]
 
     async def setup(self) -> None:
@@ -124,5 +125,18 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
             return
         self.next_step()
 
+        # Test step 7
+        try:
+            cmds_control_flow = userdevice.wait_for_command()
+        except InvalidCommandError as error:
+            self.mark_step_failure(error)
+            return
+        try:
+            userdevice.handle_control_flow(cmds_control_flow)
+        except AccessProtocolError as error:
+            self.mark_step_failure(error)
+            return
+        self.next_step()
+
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_STDTXN_20 Cleanup")
+        logger.info("RD_NFC_STDTXN_30 Cleanup")

@@ -18,12 +18,12 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase
 
 
-class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
+class UD_NFC_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-NFC-STDTXN-3.0",
+        "public_id": "UD-NFC-STDTXN-2.0",
         "version": "0.0.1",
-        "title": "UD-NFC-STDTXN-3.0",
-        "description": """Verify conformance of User Device UT in CONTROL_FLOW command.""",
+        "title": "UD-NFC-STDTXN-2.0",
+        "description": """Verify conformance of User Device UT in AUTH1 command.""",
     }
 
     reader_ePuBK = bytes.fromhex(
@@ -52,7 +52,6 @@ class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step4: Send/Receive Select command/response"),
             TestStep("Step5: Send/Receive AUTH0 command/response"),
             TestStep("Step6: Send/Receive AUTH1 command/response"),
-            TestStep("Step7: Send/Receive CONTROL_FLOW command/response"),
         ]
 
     async def setup(self) -> None:
@@ -71,7 +70,8 @@ class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
             reader_group_identifier=group_id,
             reader_group_sub_identifier=sub_group_id,
             reader_key=key,
-        )
+            reader_cert=None,
+        )  # private key(none is automatic generated) #public key #reader group identifier #identifier sub
         self.next_step()
 
         # Test step 2
@@ -118,15 +118,5 @@ class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
             return
         self.next_step()
 
-        # Test step 7
-        try:
-            reader.handle_control_flow(
-                success=True,
-            )
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(error)
-            return
-        self.next_step()
-
     async def cleanup(self) -> None:
-        logger.info("UD_NFC_STDTXN_30 Cleanup")
+        logger.info("UD_NFC_STDTXN_20 Cleanup")
