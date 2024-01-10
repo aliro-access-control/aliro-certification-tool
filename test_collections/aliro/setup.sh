@@ -19,7 +19,7 @@ set -ex
 COLLECTION_PATH=$(realpath $(dirname "$0"))
 
 # This file is executed on Test Harness Setup.
-# Can be used to build depenencies or make configurations specific to the Aliro test collection.
+# Can be used to build dependencies or make configurations specific to the Aliro test collection.
 
 cd $COLLECTION_PATH/support/aliro_actuator
 ./scripts/install_nfc.sh

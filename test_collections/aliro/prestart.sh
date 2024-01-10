@@ -19,11 +19,11 @@ set -ex
 COLLECTION_PATH=$(realpath $(dirname "$0"))
 
 # This file is executed on Test Harness launch.
-# Can be used to install depenencies or make configurations specific to the Aliro test collection.
+# Can be used to install dependencies or make configurations specific to the Aliro test collection.
 # Install PN7160 NFC configuration
 cp $COLLECTION_PATH/support/aliro_actuator/third_party/nxp_nfc/linux_libnfc-nci/conf/*.conf /usr/local/etc/
 
-# Install PN7160 NFC dirvers
+# Install PN7160 NFC drivers
 cd $COLLECTION_PATH/support/aliro_actuator/third_party/nxp_nfc/linux_libnfc-nci
 make install
 

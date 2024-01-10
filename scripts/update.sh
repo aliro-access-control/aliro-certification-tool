@@ -29,7 +29,7 @@ fi
 
 # If the repo is not pointing to a branch, the branch name will appear as "HEAD"
 # In that case, we ask the user if we may use the "develop" branch instead
-# If refused, the whole opperation is aborted
+# If refused, the whole operation is aborted
 if [ "$ROOT_BRANCH" = "HEAD" ]; then
     echo "The HEAD is detached from a branch. Should it checkout to develop before proceeding?"
     select yn in "Yes" "No"; do
