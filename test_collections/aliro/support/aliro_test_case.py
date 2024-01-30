@@ -18,7 +18,6 @@ from typing import Any
 
 from aliro_actuator.trust_framework.endpoint import Endpoint
 from aliro_actuator.trust_framework.key import KeyPair, PrivateKey, PublicKey
-
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestCase
 
@@ -198,7 +197,7 @@ class AliroReaderTestCase(AliroTestCase):
     # Test Parameter keys
     READER_PUBLIC_KEY_KEY = "dut_reader_public_key"
     READER_GROUP_ID_KEY = "dut_reader_group_identifier"
-    READER_SUB_GROUP_ID_KEY = "dut_reader_subgroup_identifier"
+    READER_SUB_GROUP_ID_KEY = "dut_reader_group_sub_identifier"
 
     @classmethod
     def default_test_parameters(self) -> dict[str, Any]:
