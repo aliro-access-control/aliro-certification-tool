@@ -197,7 +197,7 @@ class AliroReaderTestCase(AliroTestCase):
     # Test Parameter keys
     READER_PUBLIC_KEY_KEY = "dut_reader_public_key"
     READER_GROUP_ID_KEY = "dut_reader_group_identifier"
-    READER_SUB_GROUP_ID_KEY = "dut_reader_subgroup_identifier"
+    READER_SUB_GROUP_ID_KEY = "dut_reader_group_sub_identifier"
     ENDPOINT_PRIVATE_KEY_KEY = "th_endpoint_private_key"
     ENDPOINT_PUBLIC_KEY_KEY = "th_endpoint_public_key"
 
