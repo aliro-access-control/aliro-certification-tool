@@ -231,17 +231,31 @@ class AliroReaderTestCase(AliroTestCase):
             Endpoint: Reader endpoint.
         """
 
-        logger.info("Generating User Device Key Pair")
-        logger.info(f"Loading private key from '{self.ENDPOINT_PRIVATE_KEY_KEY}'")
-        endpoint_private_key = self.private_key_from_config(
-            self.ENDPOINT_PRIVATE_KEY_KEY
-        )
-        logger.info(f"Loading public key from '{self.ENDPOINT_PUBLIC_KEY_KEY}'")
-        endpoint_public_key = self.public_key_from_config(self.ENDPOINT_PUBLIC_KEY_KEY)
-        user_device_key_pair = KeyPair(endpoint_private_key, endpoint_public_key)
-
         # Reader Device UT
         logger.info("Loading DUT Reader info from test_parameters in project config.")
+
+        # User Device Key Pair
+        logger.info("Generating User Device Key Pair")
+        logger.info(f"Loading public key from '{self.ENDPOINT_PUBLIC_KEY_KEY}'")
+        endpoint_public_key = self.public_key_from_config(self.ENDPOINT_PUBLIC_KEY_KEY)
+        logger.info(
+            f"TH Using User Device Public Key(hex): \n{endpoint_public_key.as_bytes().hex()}"
+        )
+        logger.info(
+            f"TH Using User Device Public Key(pem): \n{endpoint_public_key.as_pem()}"
+        )
+
+        logger.info(f"Loading private key from '{self.ENDPOINT_PRIVATE_KEY_KEY}'")
+        endpoint_private_key = self.private_key_from_config(
+            self.ENDPOINT_PRIVATE_KEY_KEY, public_key=endpoint_public_key
+        )
+        logger.info(
+            f"TH Using User Device Private Key(hex): \n{endpoint_private_key.as_bytes().hex()}"
+        )
+        logger.info(
+            f"TH Using User Device Private Key(pem): \n{endpoint_private_key.as_pem()}"
+        )
+        user_device_key_pair = KeyPair(endpoint_private_key, endpoint_public_key)
 
         # Public Key
         logger.info(f"Loading public key from '{self.READER_PUBLIC_KEY_KEY}'")
