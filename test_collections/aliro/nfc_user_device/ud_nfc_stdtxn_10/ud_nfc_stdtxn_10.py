@@ -55,21 +55,22 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
-
-    async def execute(self) -> None:
-        # Test step 1
         # load parameters from project config
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
         key = self.th_reader_keypair()
 
         # Initialize Aliro NFC Reader
-        reader = Reader(
+        self.reader = Reader(
             transport_protocol=TransportProtocol.NFC,
             reader_group_identifier=group_id,
             reader_group_sub_identifier=sub_group_id,
             reader_key=key,
         )
+
+    async def execute(self) -> None:
+        # Test step 1
+        # Done in setup
         self.next_step()
 
         # Test step 2
@@ -82,8 +83,8 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 3
-        reader.transaction_initiation()  # up to RATS command/ ATS response
-        reader.start_new_session(
+        self.reader.transaction_initiation()  # up to RATS command/ ATS response
+        self.reader.start_new_session(
             transaction_identifier=self.transaction_identifier,
             ephemeral_key=KeyPair(self.reader_ePrivK, self.reader_ePuBK),
         )
@@ -91,7 +92,7 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 4
         try:
-            reader.handle_select(aid=EXPEDITED_PHASE_AID)
+            self.reader.handle_select(aid=EXPEDITED_PHASE_AID)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(error)
             return
@@ -99,7 +100,7 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 5
         try:
-            reader.handle_auth0(
+            self.reader.handle_auth0(
                 transaction_type=Transaction.STANDARD,
                 transaction_code=TransactionCode.UNLOCK,
             )
@@ -110,3 +111,4 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
     async def cleanup(self) -> None:
         logger.info("UD_NFC_STDTXN_10 Cleanup")
+        self.reader.transport_protocol.deinitialize()
