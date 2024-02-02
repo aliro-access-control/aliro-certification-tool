@@ -126,17 +126,32 @@ class RD_NFC_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 7
-        try:
-            cmds_control_flow = userdevice.wait_for_command()
-        except InvalidCommandError as error:
-            self.mark_step_failure(error)
-            return
-        try:
-            userdevice.handle_control_flow(cmds_control_flow)
-        except AccessProtocolError as error:
-            self.mark_step_failure(error)
-            return
-        self.next_step()
+        while True:
+            try:
+                cmds_control_flow = userdevice.wait_for_command()
+            except InvalidCommandError as error:
+                self.mark_step_failure(error)
+                return
+
+            if cmds_control_flow.ins == INS.CONTROL_FLOW:
+                try:
+                    userdevice.handle_control_flow(cmds_control_flow)
+                except AccessProtocolError as error:
+                    self.mark_step_failure(error)
+                    return
+                self.next_step()
+                break
+            elif cmds_control_flow.ins == INS.EXCHANGE:
+                try:
+                    userdevice.handle_exchange(cmds_control_flow)
+                except AccessProtocolError as error:
+                    self.mark_step_failure(error)
+                    return
+                # re-enter loop waiting for control flow
+            else:
+                self.mark_step_failure(f"Unexpected command {cmds_control_flow.ins}")
+                return
+
 
     async def cleanup(self) -> None:
         logger.info("RD_NFC_STDTXN_30 Cleanup")
