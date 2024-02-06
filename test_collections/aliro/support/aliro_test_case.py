@@ -188,7 +188,7 @@ class AliroReaderTestCase(AliroTestCase):
     - group identifier
     - sub group identifier.
 
-    These can be set in the test_paramters as part of the project configuration.
+    These can be set in the test_parameters as part of the project configuration.
 
     This base class will handle the loading and parsing of these values, so they can be
     used in the test script.
@@ -198,6 +198,8 @@ class AliroReaderTestCase(AliroTestCase):
     READER_PUBLIC_KEY_KEY = "dut_reader_public_key"
     READER_GROUP_ID_KEY = "dut_reader_group_identifier"
     READER_SUB_GROUP_ID_KEY = "dut_reader_group_sub_identifier"
+    ENDPOINT_PRIVATE_KEY_KEY = "th_endpoint_private_key"
+    ENDPOINT_PUBLIC_KEY_KEY = "th_endpoint_public_key"
 
     @classmethod
     def default_test_parameters(self) -> dict[str, Any]:
@@ -214,6 +216,11 @@ class AliroReaderTestCase(AliroTestCase):
             "2ee8873c5d34ee",
             self.READER_GROUP_ID_KEY: "00113344667799AA00113344667799AA",
             self.READER_SUB_GROUP_ID_KEY: "113344667799AA00113344667799AA00",
+            self.ENDPOINT_PRIVATE_KEY_KEY: "f6f601cac64e2d4e47e9b2d1d0408680cef95e4e8"
+            "4b5ecee64d3401773bf9426",
+            self.ENDPOINT_PUBLIC_KEY_KEY: "04742df736d0fc9be978c45b00e8fdf7cea684ea10"
+            "5ae574c1505a2c24ab6198e3125b7f1b7e1d134c55ece69681ba8ecc18a3836dc5199c75"
+            "9f31e8ccf17e3efa",
         }
 
     def reader_endpoint(self) -> Endpoint:
@@ -224,11 +231,31 @@ class AliroReaderTestCase(AliroTestCase):
             Endpoint: Reader endpoint.
         """
 
-        logger.info("Generating User Device Key Pair")
-        user_device_key_pair = KeyPair()
-
         # Reader Device UT
         logger.info("Loading DUT Reader info from test_parameters in project config.")
+
+        # User Device Key Pair
+        logger.info("Generating User Device Key Pair")
+        logger.info(f"Loading public key from '{self.ENDPOINT_PUBLIC_KEY_KEY}'")
+        endpoint_public_key = self.public_key_from_config(self.ENDPOINT_PUBLIC_KEY_KEY)
+        logger.info(
+            f"TH Using User Device Public Key(hex): \n{endpoint_public_key.as_bytes().hex()}"
+        )
+        logger.info(
+            f"TH Using User Device Public Key(pem): \n{endpoint_public_key.as_pem()}"
+        )
+
+        logger.info(f"Loading private key from '{self.ENDPOINT_PRIVATE_KEY_KEY}'")
+        endpoint_private_key = self.private_key_from_config(
+            self.ENDPOINT_PRIVATE_KEY_KEY, public_key=endpoint_public_key
+        )
+        logger.info(
+            f"TH Using User Device Private Key(hex): \n{endpoint_private_key.as_bytes().hex()}"
+        )
+        logger.info(
+            f"TH Using User Device Private Key(pem): \n{endpoint_private_key.as_pem()}"
+        )
+        user_device_key_pair = KeyPair(endpoint_private_key, endpoint_public_key)
 
         # Public Key
         logger.info(f"Loading public key from '{self.READER_PUBLIC_KEY_KEY}'")

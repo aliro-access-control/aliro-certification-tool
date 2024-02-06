@@ -253,6 +253,14 @@ You can edit test parameters for a Project during project creation, but you can 
 * `dut_reader_group_sub_identifier` Sub-group Identifier for Reader DUT
   * Supported Format: 
     * HEX string
+* `th_endpoint_private_key` Private key for the User Endpoint, simulated by the tool. 
+  * Supported Format:
+    * DER encoded HEX string
+    * PEM string (including `\n` as for line breaks)
+* `th_endpoint_public_key` Public key for the User Endpoint, simulated by the tool.  
+  * Supported Format:
+    * DER encoded HEX string
+    * PEM string (including `\n` as for line breaks)
 
 ## Test Parameters for User Device Tests
 
