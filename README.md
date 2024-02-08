@@ -174,23 +174,26 @@ This is mostly a backup, if you need to configure network or find IP address.
 > First reboot after the auto installer might take 5 minutes or more, as several updates are applied.
 
 ## E - Starting the Aliro Test Harness on Raspberry Pi
-    * Initialize the submodules 
-        ```sh
-        cd  ~/aliro-certification-tool
-        git submodule update --init —recursive
-        ```
+1. Initialize the submodules 
 
-    * Setup the Test Harness
-        ```sh
-        cd  ~/aliro-certification-tool/test_collections/aliro
-        ./setup.sh
-        ```
+    ```sh
+    cd  ~/aliro-certification-tool
+    git submodule update --init —-recursive
+    ```
 
-    * Start the Test Harness
-        ```sh
-        cd  ~/aliro-certification-tool
-        ./scripts/start.sh
-        ```
+2. Setup the Test Harness
+
+    ```sh
+    cd  ~/aliro-certification-tool/test_collections/aliro
+    ./setup.sh
+    ```
+
+3. Start the Test Harness
+
+    ```sh
+    cd  ~/aliro-certification-tool
+    ./scripts/start.sh
+    ```
 
 # Usage Instructions
 
