@@ -4,7 +4,7 @@ from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidCommandError,
 )
-from aliro_actuator.access_protocol.user_device import UserDevice
+from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
@@ -108,6 +108,11 @@ class RD_NFC_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         except AccessProtocolError as error:
             self.mark_step_failure(error)
             return
+        if not userdevice.session.state_valid(UserSessionState.AUTH0_STD_DONE):
+            self.mark_step_failure(
+                "Userdevice is not in state auth0 standard done, either fast "
+                "transaction was requested or handling auth0 failed"
+            )
         self.next_step()
 
     async def cleanup(self) -> None:
