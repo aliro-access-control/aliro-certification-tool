@@ -55,9 +55,11 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
 
     async def execute(self) -> None:
         # Test step 1
-        endpoint = self.reader_endpoint()
+        access_credential = self.reader_access_credential()
         userdevice = UserDevice(
-            transport_protocol=TransportProtocol.NFC, endpoints=[endpoint], mailbox=0x20
+            transport_protocol=TransportProtocol.NFC,
+            access_credentials=[access_credential],
+            mailbox=0x20,
         )
         self.next_step()
 

@@ -16,7 +16,7 @@
 
 from typing import Any
 
-from aliro_actuator.trust_framework.endpoint import Endpoint
+from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.key import KeyPair, PrivateKey, PublicKey
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestCase
@@ -203,7 +203,7 @@ class AliroReaderTestCase(AliroTestCase):
 
     @classmethod
     def default_test_parameters(self) -> dict[str, Any]:
-        """Default test paramters for reader test cases.
+        """Default test parameters for reader test cases.
 
         NOTE: these values match the Reader example in Aliro Actuator.
 
@@ -223,9 +223,9 @@ class AliroReaderTestCase(AliroTestCase):
             "9f31e8ccf17e3efa",
         }
 
-    def reader_endpoint(self) -> Endpoint:
-        """Load DUT reader test parameters, and build an Endpoint to be used in when
-        initializing a UserDevice in reader test cases.
+    def reader_access_credential(self) -> AccessCredential:
+        """Load DUT reader test parameters, and build an AccessCredential to be used
+        when initializing a UserDevice in reader test cases.
 
         Returns:
             Endpoint: Reader endpoint.
@@ -237,25 +237,29 @@ class AliroReaderTestCase(AliroTestCase):
         # User Device Key Pair
         logger.info("Generating User Device Key Pair")
         logger.info(f"Loading public key from '{self.ENDPOINT_PUBLIC_KEY_KEY}'")
-        endpoint_public_key = self.public_key_from_config(self.ENDPOINT_PUBLIC_KEY_KEY)
-        logger.info(
-            f"TH Using User Device Public Key(hex): \n{endpoint_public_key.as_bytes().hex()}"
+        access_credential_public_key = self.public_key_from_config(
+            self.ENDPOINT_PUBLIC_KEY_KEY
         )
         logger.info(
-            f"TH Using User Device Public Key(pem): \n{endpoint_public_key.as_pem()}"
+            f"TH Using User Device Public Key(hex): \n{access_credential_public_key.as_bytes().hex()}"
+        )
+        logger.info(
+            f"TH Using User Device Public Key(pem): \n{access_credential_public_key.as_pem()}"
         )
 
         logger.info(f"Loading private key from '{self.ENDPOINT_PRIVATE_KEY_KEY}'")
-        endpoint_private_key = self.private_key_from_config(
-            self.ENDPOINT_PRIVATE_KEY_KEY, public_key=endpoint_public_key
+        access_credential_private_key = self.private_key_from_config(
+            self.ENDPOINT_PRIVATE_KEY_KEY, public_key=access_credential_public_key
         )
         logger.info(
-            f"TH Using User Device Private Key(hex): \n{endpoint_private_key.as_bytes().hex()}"
+            f"TH Using User Device Private Key(hex): \n{access_credential_private_key.as_bytes().hex()}"
         )
         logger.info(
-            f"TH Using User Device Private Key(pem): \n{endpoint_private_key.as_pem()}"
+            f"TH Using User Device Private Key(pem): \n{access_credential_private_key.as_pem()}"
         )
-        user_device_key_pair = KeyPair(endpoint_private_key, endpoint_public_key)
+        user_device_key_pair = KeyPair(
+            access_credential_private_key, access_credential_public_key
+        )
 
         # Public Key
         logger.info(f"Loading public key from '{self.READER_PUBLIC_KEY_KEY}'")
@@ -283,10 +287,9 @@ class AliroReaderTestCase(AliroTestCase):
             f"Using Reader Sub-Group Identifier: {reader_sub_group_identifier.hex()}"
         )
 
-        return Endpoint(
+        return AccessCredential(
             user_device_key_pair=user_device_key_pair,
-            reader_public_key=reader_public_key,
-            reader_identifier=[reader_group_identifier + reader_sub_group_identifier],
+            reader_id_key_list=[(reader_group_identifier, reader_public_key)],
         )
 
 
