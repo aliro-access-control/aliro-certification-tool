@@ -228,7 +228,7 @@ class AliroReaderTestCase(AliroTestCase):
         when initializing a UserDevice in reader test cases.
 
         Returns:
-            Endpoint: Reader endpoint.
+            AccessCredential: Reader access credential.
         """
 
         # Reader Device UT

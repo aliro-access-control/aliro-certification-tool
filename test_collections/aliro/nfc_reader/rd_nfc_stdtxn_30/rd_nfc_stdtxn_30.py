@@ -6,8 +6,7 @@ from aliro_actuator.access_protocol.errors import (
     InvalidCommandError,
 )
 from aliro_actuator.access_protocol.user_device import UserDevice
-from aliro_actuator.trust_framework.endpoint import Endpoint
-from aliro_actuator.trust_framework.key import KeyPair, PublicKey
+from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport

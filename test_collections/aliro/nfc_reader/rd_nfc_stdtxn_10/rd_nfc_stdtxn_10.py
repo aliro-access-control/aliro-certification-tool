@@ -1,13 +1,11 @@
 from aliro_actuator.access_protocol import TransportProtocol
-from aliro_actuator.access_protocol.apdu import INS
-from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID, STEPUP_PHASE_AID
+from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidCommandError,
 )
 from aliro_actuator.access_protocol.user_device import UserDevice
-from aliro_actuator.trust_framework.endpoint import Endpoint
-from aliro_actuator.trust_framework.key import KeyPair, PublicKey
+from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
