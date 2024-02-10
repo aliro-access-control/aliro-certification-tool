@@ -197,7 +197,8 @@ This is mostly a backup, if you need to configure network or find IP address.
 
 # Usage Instructions
 
-The tool will be automatically started when booting the Raspberry Pi.
+> [!NOTE] 
+> The Test Harness will start automatically upon booting the Raspberry Pi.
 
 ## A - Opening the GUI
 The UI of the tool is accessed via a Web Browser from a computer on the same LAN.
