@@ -19,3 +19,13 @@ from app.test_engine.logger import test_engine_logger
 
 # Ensure Aliro Actuator is using test engine logger
 ActuatorGlobal.set_logger(test_engine_logger)
+
+from pathlib import Path
+
+from app.test_engine.test_collection_discovery import test_collection_declaration
+
+COLLECTION_PATH = Path(__file__).parent
+
+onboarding_payload_collection = test_collection_declaration(
+    COLLECTION_PATH, "Aliro"
+)

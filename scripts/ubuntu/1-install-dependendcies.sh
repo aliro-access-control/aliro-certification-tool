@@ -28,35 +28,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 
 # TODO Comment on what dependency is required for:
 packagelist=(
-    apt-transport-https
-    avahi-utils                   # Matter uses Avahi
-    ca-certificates
-    curl
     docker-ce                     # Test Harness uses Docker
-    figlet
-    g++
-    gcc
-    generate-ninja
-    git                           # Update to latest git for code checkout
-    gnupg
-    libavahi-client-dev
-    libcairo2-dev
-    libdbus-1-dev
-    libgirepository1.0-dev
-    libglib2.0-dev
-    libreadline-dev
-    libssl-dev
-    lsb-release
-    net-tools
-    ninja-build
-    npm
-    pkg-config
-    python3-pip                   # Test Harness CLI uses Python              
-    python3-venv                  # Test Harness CLI uses Python
-    software-properties-common
-    toilet
-    unzip
-
 )
 sudo DEBIAN_FRONTEND=noninteractive sudo apt-get install ${packagelist[@]} -y
 
