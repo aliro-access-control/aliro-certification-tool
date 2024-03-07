@@ -81,5 +81,5 @@ https://www.contributor-covenant.org/version/1/4/code-of-conduct.html
 For answers to common questions about this code of conduct, see
 https://www.contributor-covenant.org/faq
 
-For more information refer to the CSA code of conduct
+CSA members are all governed additionally by the organizational code of conduct:
 https://csa-iot.org/wp-content/uploads/2024/02/Alliance-Code-of-Conduct-20240110.pdf
