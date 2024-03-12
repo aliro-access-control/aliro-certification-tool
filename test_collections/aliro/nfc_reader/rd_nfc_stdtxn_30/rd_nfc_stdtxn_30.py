@@ -5,9 +5,8 @@ from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidCommandError,
 )
-from aliro_actuator.access_protocol.user_device import UserDevice
-from aliro_actuator.trust_framework.endpoint import Endpoint
-from aliro_actuator.trust_framework.key import KeyPair, PublicKey
+from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
+from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -56,9 +55,11 @@ class RD_NFC_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
 
     async def execute(self) -> None:
         # Test step 1
-        endpoint = self.reader_endpoint()
+        access_credential = self.reader_access_credential()
         userdevice = UserDevice(
-            transport_protocol=TransportProtocol.NFC, endpoints=[endpoint], mailbox=0x20
+            transport_protocol=TransportProtocol.NFC,
+            access_credentials=[access_credential],
+            mailbox=0x20,
         )
         self.next_step()
 
@@ -110,6 +111,11 @@ class RD_NFC_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
         except AccessProtocolError as error:
             self.mark_step_failure(error)
             return
+        if not userdevice.session.state_valid(UserSessionState.AUTH0_STD_DONE):
+            self.mark_step_failure(
+                "Userdevice is not in state auth0 standard done, either fast "
+                "transaction was requested or handling auth0 failed"
+            )
         self.next_step()
 
         # Test step 6 Receive/Send Auth1 command/response
@@ -151,7 +157,6 @@ class RD_NFC_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
             else:
                 self.mark_step_failure(f"Unexpected command {cmds_control_flow.ins}")
                 return
-
 
     async def cleanup(self) -> None:
         logger.info("RD_NFC_STDTXN_30 Cleanup")
