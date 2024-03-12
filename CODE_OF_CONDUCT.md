@@ -60,7 +60,7 @@ a project may be further defined and clarified by project maintainers.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the Project CHIP open source team at help@csa-iot.org.
+reported by contacting the CSA open source team at help@csa-iot.org.
 All complaints will be reviewed and investigated and will result in a
 response that is deemed necessary and appropriate to the circumstances. The
 CSA open source team should maintain confidentiality with regard to the
@@ -80,3 +80,6 @@ https://www.contributor-covenant.org/version/1/4/code-of-conduct.html
 
 For answers to common questions about this code of conduct, see
 https://www.contributor-covenant.org/faq
+
+CSA members are all governed additionally by the organizational code of conduct:
+https://csa-iot.org/wp-content/uploads/2024/02/Alliance-Code-of-Conduct-20240110.pdf
