@@ -23,10 +23,9 @@ sudo sed -i "s/#\$nrconf{restart} = 'i';/\$nrconf{restart} = 'a';/" /etc/needres
 sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
 sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 
-# TODO Comment on what dependency is required for:
-packagelist=(
-    linux-modules-extra-raspi
-    pi-bluetooth
-)
-
-sudo DEBIAN_FRONTEND=noninteractive sudo apt-get install ${packagelist[@]} -y
+# Install and Lock packages
+PACKAGES_FILE="$(realpath "$(dirname "$0")")/packages-pi.txt"
+# regex to allow comments after each package entry
+PACKAGES=$(grep -oE "^[^#[:space:]]+" "$PACKAGES_FILE")
+sudo DEBIAN_FRONTEND=noninteractive echo "$PACKAGES" | sudo xargs apt-get install -y
+echo "$PACKAGES" | sudo xargs apt-mark hold

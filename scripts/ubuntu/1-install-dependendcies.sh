@@ -26,11 +26,12 @@ sudo sed -i "s/#\$nrconf{restart} = 'i';/\$nrconf{restart} = 'a';/" /etc/needres
 sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
 sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 
-# TODO Comment on what dependency is required for:
-packagelist=(
-    docker-ce                     # Test Harness uses Docker
-)
-sudo DEBIAN_FRONTEND=noninteractive sudo apt-get install ${packagelist[@]} -y
+# Install and Lock packages
+PACKAGES_FILE="$(realpath "$(dirname "$0")")/packages-ubuntu.txt"
+# regex to allow comments after each package entry
+PACKAGES=$(grep -oE "^[^#[:space:]]+" "$PACKAGES_FILE")
+sudo DEBIAN_FRONTEND=noninteractive echo "$PACKAGES" | sudo xargs apt-get install -y
+echo "$PACKAGES" | sudo xargs apt-mark hold
 
 # Install Peotry, needed for Test Harness CLI
 curl -sSL https://install.python-poetry.org | python3 -
