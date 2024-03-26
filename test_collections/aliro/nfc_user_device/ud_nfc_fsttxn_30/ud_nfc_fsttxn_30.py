@@ -116,7 +116,7 @@ class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
                 self.mark_step_failure(error)
                 return
             except CryptogramNotFound as error:
-                # Handler Cryptogram not Found error
+                # Handle Cryptogram not Found error
                 self.mark_step_failure(error)
                 return
             self.next_step()
