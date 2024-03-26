@@ -8,7 +8,9 @@ from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
+    CryptogramNotFound
 )
+
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
@@ -52,8 +54,7 @@ class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
                 TestStep("Step3: Set the User Device UT"),
                 TestStep("Step4: Send/Receive Select command/response"),
                 TestStep("Step5: Send/Receive AUTH0 command/response"),
-                TestStep("Step6: Send/Receive AUTH1 command/response"),
-                TestStep("Step7: Send/Receive CONTROL_FLOW command/response"),
+                TestStep("Step6: Send/Receive CONTROL_FLOW command/response"),
             ]
 
         async def setup(self) -> None:
@@ -95,6 +96,7 @@ class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
             self.next_step()
 
             # Test step 4
+            # Select response is expected
             try:
                 reader.handle_select(aid=EXPEDITED_PHASE_AID)
             except (AccessProtocolError, InvalidResponseError) as error:
@@ -103,6 +105,8 @@ class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
             self.next_step()
 
             # Test Step 5
+            # Handles AUTH0 response and transaction type is fast.
+            # Also initializes reader storage and handles cryptogram checking
             try:
                 reader.handle_auth0(
                     transaction_type=Transaction.FAST,
@@ -111,18 +115,13 @@ class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
             except (AccessProtocolError, InvalidResponseError) as error:
                 self.mark_step_failure(error)
                 return
-            self.next_step()
-
-
-            #Test Step 6
-            try:
-                reader.handle_auth1(expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY)
-            except (AccessProtocolError, InvalidResponseError) as error:
+            except CryptogramNotFound as error:
+                # Handler Cryptogram not Found error
                 self.mark_step_failure(error)
                 return
             self.next_step()
 
-            #Test Step 7
+            #Test Step 6
             try:
                 reader.handle_control_flow(
                     success=True,
