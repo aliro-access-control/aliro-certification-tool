@@ -1,16 +1,6 @@
 from aliro_actuator.access_protocol import TransportProtocol
-from aliro_actuator.access_protocol.apdu import (
-    Auth1Response,
-    Transaction,
-    TransactionCode,
-)
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
-from aliro_actuator.access_protocol.errors import (
-    AccessProtocolError,
-    InvalidResponseError,
-)
 from aliro_actuator.access_protocol.reader import Reader
-from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -48,8 +38,8 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
     def create_test_steps(self) -> None:
         self.test_steps = [
             TestStep(
-                "Step1: Configure User Device to scan for BLE advertisements, \
-                    Configure Reader to send BLE advertisements"
+                "Step1: Configure User Device to scan for BLE advertisements, "
+                "Configure Reader to send BLE advertisements"
             ),
             TestStep("Step2: Reader sends BLE packet: ADV_IND"),
             TestStep("Step3: User Device sends BLE packet: CONNECT_IND"),

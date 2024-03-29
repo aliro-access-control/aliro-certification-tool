@@ -57,7 +57,7 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         # Test step 1
         access_credential = self.reader_access_credential()
         userdevice = UserDevice(
-            transport_protocol=TransportProtocol.BLE,
+            transport_protocol=TransportProtocol.BLE_UWB,
             access_credentials=[access_credential],
             mailbox=0x20,
         )
