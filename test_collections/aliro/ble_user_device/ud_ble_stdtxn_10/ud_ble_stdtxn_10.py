@@ -1,6 +1,7 @@
 from aliro_actuator.access_protocol import TransportProtocol
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.transport_protocol import Mode
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -78,9 +79,7 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 2
-        reader.transport_protocol.setup_connection(
-            group_id, sub_group_id, self.group_resolving_key
-        )
+        reader.transport_protocol.initialization(Mode.READER, group_id, sub_group_id)
         self.next_step()
 
         # Test step 3

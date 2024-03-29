@@ -1,6 +1,7 @@
 from aliro_actuator.access_protocol import TransportProtocol
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.user_device import UserDevice
+from aliro_actuator.transport_protocol import Mode
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -61,7 +62,7 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
             access_credentials=[access_credential],
             mailbox=0x20,
         )
-        userdevice.transport_protocol.initialization()
+        userdevice.transport_protocol.initialization(Mode.USER_DEVICE)
         self.next_step()
 
         # Test step 2
