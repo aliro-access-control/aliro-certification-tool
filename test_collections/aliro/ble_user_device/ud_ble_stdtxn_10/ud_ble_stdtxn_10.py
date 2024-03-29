@@ -1,0 +1,101 @@
+from aliro_actuator.access_protocol import TransportProtocol
+from aliro_actuator.access_protocol.apdu import (
+    Auth1Response,
+    Transaction,
+    TransactionCode,
+)
+from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
+from aliro_actuator.access_protocol.errors import (
+    AccessProtocolError,
+    InvalidResponseError,
+)
+from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.trust_framework.key import KeyPair
+from app.test_engine.logger import test_engine_logger as logger
+from app.test_engine.models import TestStep
+from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
+
+from ...support.aliro_test_case import AliroUserDeviceTestCase
+
+
+class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
+    metadata = {
+        "public_id": "UD-BLE-STDTXN-1.0",
+        "version": "0.0.1",
+        "title": "UD-BLE-STDTXN-1.0",
+        "description": """Verify conformance of User Device UT in BLE discovery.""",
+    }
+
+    reader_ePuBK = bytes.fromhex(
+        "049696afe33de58b7d3253d1cba86d14147c16d455e8"
+        "a27373b38d454af21b70e75e13ebc6d55743ba6a6ffc"
+        "4ed37a55515a9346fdae311f60be30421fa6dc61c5"
+    )
+    reader_ePrivK = bytes.fromhex(
+        "3c0f74114cd2a021e8066efbaa31dbb97ef0054272192606fd96633a04f66214"
+    )
+    transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
+    group_resolving_key = 16 * bytes.fromhex("00")
+
+    @classmethod
+    def pics(cls) -> set[str]:
+        return set(
+            [
+                "",  # PICS in preparation
+            ]
+        )
+
+    def create_test_steps(self) -> None:
+        self.test_steps = [
+            TestStep(
+                "Step1: Configure User Device to scan for BLE advertisements, \
+                    Configure Reader to send BLE advertisements"
+            ),
+            TestStep("Step2: Reader sends BLE packet: ADV_IND"),
+            TestStep("Step3: User Device sends BLE packet: CONNECT_IND"),
+            TestStep("Step4: User Device discovers services (GATT client)"),
+            TestStep("Step5: Reader discovers services (GATT server)"),
+            TestStep("Step6: Device sends BLE host Command"),
+            TestStep("Step7: Reader sends BLE host response"),
+            TestStep("Step8: Device BLE Host discovers GATT characteristics"),
+            TestStep("Step9: Reader BLE Host discovers GATT characteristics"),
+            TestStep("Step10: Device sends BLE host command: ATT_READ_BY_TYPE_REQ"),
+            TestStep("Step11: Reader sends BLE host response: ATT_READ_BY_TYPE_RSP"),
+            TestStep("Step12: Device sends BLE host command: ATT_WRITE_REQ"),
+            TestStep("Step13: Reader sends BLE host response: ATT_WRITE_RSP"),
+        ]
+
+    async def setup(self) -> None:
+        logger.info("This is a test case setup")
+
+    async def execute(self) -> None:
+        # Test step 1
+        # load parameters from project config
+        group_id = self.th_group_identifier()
+        sub_group_id = self.th_sub_group_identifier()
+        key = self.th_reader_keypair()
+        reader = Reader(
+            transport_protocol=TransportProtocol.BLE_UWB,
+            reader_group_identifier=group_id,
+            reader_group_sub_identifier=sub_group_id,
+            reader_key=key,
+        )
+        await self.send_prompt_request(
+            OptionsSelectPromptRequest(
+                prompt="Start user device scanning", options={"OK": 1}
+            )
+        )
+        self.next_step()
+
+        # Test step 2
+        reader.transport_protocol.setup_connection(
+            group_id, sub_group_id, self.group_resolving_key
+        )
+        self.next_step()
+
+        # Test step 3
+        reader.transport_protocol.wait_for_connection()
+        self.next_step()
+
+    async def cleanup(self) -> None:
+        logger.info("UD_BLE_STDTXN_10 Cleanup")

@@ -1,11 +1,6 @@
 from aliro_actuator.access_protocol import TransportProtocol
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
-from aliro_actuator.access_protocol.errors import (
-    AccessProtocolError,
-    InvalidCommandError,
-)
-from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
-from aliro_actuator.trust_framework.key import KeyPair
+from aliro_actuator.access_protocol.user_device import UserDevice
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -18,7 +13,7 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         "public_id": "RD-BLE-STDTXN-1.0",
         "version": "0.0.1",
         "title": "RD-BLE-STDTXN-1.0",
-        "description": """Verify conformance of Reader UT in AUTH0 command.""",
+        "description": """Verify conformance of Reader in BLE discovery.""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -83,4 +78,4 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_STDTXN_10 Cleanup")
+        logger.info("RD_BLE_STDTXN_10 Cleanup")
