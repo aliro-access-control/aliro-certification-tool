@@ -75,7 +75,7 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 3
-        UserDevice.transport_protocol.wait_for_connection()
+        userdevice.transport_protocol.wait_for_connection()
         self.next_step()
 
     async def cleanup(self) -> None:
