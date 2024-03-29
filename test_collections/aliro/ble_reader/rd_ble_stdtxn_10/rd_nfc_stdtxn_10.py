@@ -1,0 +1,86 @@
+from aliro_actuator.access_protocol import TransportProtocol
+from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
+from aliro_actuator.access_protocol.errors import (
+    AccessProtocolError,
+    InvalidCommandError,
+)
+from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
+from aliro_actuator.trust_framework.key import KeyPair
+from app.test_engine.logger import test_engine_logger as logger
+from app.test_engine.models import TestStep
+from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
+
+from ...support.aliro_test_case import AliroReaderTestCase
+
+
+class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
+    metadata = {
+        "public_id": "RD-BLE-STDTXN-1.0",
+        "version": "0.0.1",
+        "title": "RD-BLE-STDTXN-1.0",
+        "description": """Verify conformance of Reader UT in AUTH0 command.""",
+    }
+
+    endpoint_ePuBK = bytes.fromhex(
+        "045d75ab60136a2c54ff27b799ee157f3f3329435c0d"
+        "f608de904c920ac29f72bd4274c2edc810a93e240bf5"
+        "d6394a92c9766b690b2bf5128ae70d6e29257ea786"
+    )  # from Test Vector
+    endpoint_ePrivK = bytes.fromhex(
+        "70637ee9b40cee568567c69589276888edca7128bb13fb531f9c4f502d8cc65e"
+    )  # from Test Vector
+
+    @classmethod
+    def pics(cls) -> set[str]:
+        return set(
+            [
+                "",  # PICS in preparation
+            ]
+        )
+
+    def create_test_steps(self) -> None:
+        self.test_steps = [
+            TestStep("Step1: Configure User Device to scan for BLE advertisements"),
+            TestStep("Step2: Reader sends BLE packet: ADV_IND"),
+            TestStep("Step3: User Device sends BLE packet: CONNECT_IND"),
+            TestStep("Step4: User Device discovers services (GATT client)"),
+            TestStep("Step5: Reader discovers services (GATT server)"),
+            TestStep("Step6: Device sends BLE host Command"),
+            TestStep("Step7: Reader sends BLE host response"),
+            TestStep("Step8: Device BLE Host discovers GATT characteristics"),
+            TestStep("Step9: Reader BLE Host discovers GATT characteristics"),
+            TestStep("Step10: Device sends BLE host command: ATT_READ_BY_TYPE_REQ"),
+            TestStep("Step11: Reader sends BLE host response: ATT_READ_BY_TYPE_RSP"),
+            TestStep("Step12: Device sends BLE host command: ATT_WRITE_REQ"),
+            TestStep("Step13: Reader sends BLE host response: ATT_WRITE_RSP"),
+        ]
+
+    async def setup(self) -> None:
+        logger.info("This is a test case setup")
+
+    async def execute(self) -> None:
+        # Test step 1
+        access_credential = self.reader_access_credential()
+        userdevice = UserDevice(
+            transport_protocol=TransportProtocol.BLE,
+            access_credentials=[access_credential],
+            mailbox=0x20,
+        )
+        userdevice.transport_protocol.initialization()
+        self.next_step()
+
+        # Test step 2
+        await self.send_prompt_request(
+            OptionsSelectPromptRequest(
+                prompt="Set Reader Device Under Test in BLE advertising mode",
+                options={"OK": 1},
+            )
+        )
+        self.next_step()
+
+        # Test step 3
+        UserDevice.transport_protocol.wait_for_connection()
+        self.next_step()
+
+    async def cleanup(self) -> None:
+        logger.info("RD_NFC_STDTXN_10 Cleanup")
