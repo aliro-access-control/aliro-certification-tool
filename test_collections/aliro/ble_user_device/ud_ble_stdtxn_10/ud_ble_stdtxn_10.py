@@ -38,10 +38,7 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
     def create_test_steps(self) -> None:
         self.test_steps = [
-            TestStep(
-                "Step1: Configure User Device to scan for BLE advertisements, "
-                "Configure Reader to send BLE advertisements"
-            ),
+            TestStep("Step1: Configure User Device to scan for BLE advertisements"),
             TestStep("Step2: Reader sends BLE packet: ADV_IND"),
             TestStep("Step3: User Device sends BLE packet: CONNECT_IND"),
             TestStep("Step4: User Device discovers services (GATT client)"),
@@ -72,12 +69,14 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
         key = self.th_reader_keypair()
+        self.next_step()
         reader = Reader(
             transport_protocol=TransportProtocol.BLE_UWB,
             reader_group_identifier=group_id,
             reader_group_sub_identifier=sub_group_id,
             reader_key=key,
         )
+        self.next_step()
         await self.send_prompt_request(
             OptionsSelectPromptRequest(
                 prompt="Start user device scanning", options={"OK": 1}
