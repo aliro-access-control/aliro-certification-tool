@@ -77,11 +77,11 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
             reader_key=key,
         )
         self.next_step()
-        await self.send_prompt_request(
-            OptionsSelectPromptRequest(
-                prompt="Start user device scanning", options={"OK": 1}
-            )
-        )
+        # await self.send_prompt_request(
+        #     OptionsSelectPromptRequest(
+        #         prompt="Start user device scanning", options={"OK": 1}
+        #     )
+        # )
         self.next_step()
 
         # Test step 2
