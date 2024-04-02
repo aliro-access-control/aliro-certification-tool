@@ -62,7 +62,6 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
             access_credentials=[access_credential],
             mailbox=0x20,
         )
-        userdevice.transport_protocol.initialization(Mode.USER_DEVICE)
         self.next_step()
 
         # Test step 2
@@ -72,6 +71,7 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
                 options={"OK": 1},
             )
         )
+        userdevice.transport_protocol.initialization(Mode.USER_DEVICE)
         self.next_step()
 
         # Test step 3
