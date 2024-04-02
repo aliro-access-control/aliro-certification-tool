@@ -55,6 +55,13 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         logger.info("This is a test case setup")
 
     async def execute(self) -> None:
+        await self.send_prompt_request(
+            OptionsSelectPromptRequest(
+                prompt="Reset murata board by pressing switch SW1",
+                options={"OK": 1},
+            )
+        )
+
         # Test step 1
         access_credential = self.reader_access_credential()
         userdevice = UserDevice(

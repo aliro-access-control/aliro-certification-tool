@@ -60,6 +60,13 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         logger.info("This is a test case setup")
 
     async def execute(self) -> None:
+        await self.send_prompt_request(
+            OptionsSelectPromptRequest(
+                prompt="Reset murata board by pressing switch SW1",
+                options={"OK": 1},
+            )
+        )
+
         # Test step 1
         # load parameters from project config
         group_id = self.th_group_identifier()
