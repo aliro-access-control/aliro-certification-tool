@@ -69,27 +69,29 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
         key = self.th_reader_keypair()
-        self.next_step()
         reader = Reader(
             transport_protocol=TransportProtocol.BLE_UWB,
             reader_group_identifier=group_id,
             reader_group_sub_identifier=sub_group_id,
             reader_key=key,
         )
-        self.next_step()
-        # await self.send_prompt_request(
-        #     OptionsSelectPromptRequest(
-        #         prompt="Start user device scanning", options={"OK": 1}
-        #     )
-        # )
+        await self.send_prompt_request(
+            OptionsSelectPromptRequest(
+                prompt="Start user device scanning", options={"OK": 1}
+            )
+        )
         self.next_step()
 
         # Test step 2
-        reader.transport_protocol.initialization(Mode.READER, group_id, sub_group_id)
+        reader.transport_protocol.initialization(
+            Mode.READER,
+            group_id,
+            sub_group_id,
+        )
         self.next_step()
 
         # Test step 3
-        reader.transport_protocol.wait_for_connection()
+        await reader.transport_protocol.wait_for_connection()
         self.next_step()
 
     async def cleanup(self) -> None:
