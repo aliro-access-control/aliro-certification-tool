@@ -83,7 +83,7 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 2
-        reader.transport_protocol.initialization(
+        await reader.transport_protocol.initialization(
             Mode.READER,
             group_id,
             sub_group_id,
