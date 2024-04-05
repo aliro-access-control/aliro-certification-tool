@@ -1,3 +1,5 @@
+from binascii import hexlify
+
 from aliro_actuator.access_protocol import TransportProtocol
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.user_device import UserDevice
@@ -82,7 +84,50 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 3
-        await userdevice.transport_protocol.wait_for_connection()
+        await userdevice.transport_protocol.driver.wait_for_connection()
+        self.next_step()
+
+        # Test step 4
+        self.next_step()
+
+        # Test step 5
+        await userdevice.transport_protocol.driver.handle_GATT_layer_setup()
+        self.next_step()
+
+        # Test step 6
+        primary_service = (
+            await userdevice.transport_protocol.driver.handle_GATT_layer_get_primary_service()
+        )
+        self.next_step()
+
+        # Test step 7
+        self.next_step()
+
+        # Test step 8
+        self.next_step()
+
+        # Test step 9
+        self.next_step()
+
+        # Test step 10
+        spsm, versions = (
+            await userdevice.transport_protocol.driver.handle_GATT_layer_read_characteristic(
+                primary_service
+            )
+        )
+        logger.info("SPSM found: {!r}".format(hexlify(spsm)))
+        if bytes.fromhex("0100") not in versions:
+            self.mark_step_failure("Version 0x0100 not found")
+        self.next_step()
+
+        # Test step 11
+        self.next_step()
+
+        # Test step 12
+        await userdevice.transport_protocol.driver.handle_GATT_layer_write_characteristic()
+        self.next_step()
+
+        # Test step 13
         self.next_step()
 
     async def cleanup(self) -> None:

@@ -94,5 +94,35 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         await reader.transport_protocol.wait_for_connection()
         self.next_step()
 
+        # Test step 4
+        self.next_step()
+
+        # Test step 5
+        self.next_step()
+
+        # Test step 6
+        self.next_step()
+
+        # Test step 7
+        self.next_step()
+
+        # Test step 8
+        self.next_step()
+
+        # Test step 9
+        self.next_step()
+
+        # Test step 10
+        self.next_step()
+
+        # Test step 11
+        self.next_step()
+
+        # Test step 12
+        self.next_step()
+
+        # Test step 13
+        self.next_step()
+
     async def cleanup(self) -> None:
         logger.info("UD_BLE_STDTXN_10 Cleanup")
