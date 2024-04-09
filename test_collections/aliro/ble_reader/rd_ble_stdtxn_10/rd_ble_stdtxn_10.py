@@ -65,39 +65,64 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         )
 
         # Test step 1
-        access_credential = self.reader_access_credential()
-        userdevice = UserDevice(
-            transport_protocol=TransportProtocol.BLE_UWB,
-            access_credentials=[access_credential],
-            mailbox=0x20,
-        )
+        try:
+            access_credential = self.reader_access_credential()
+            userdevice = UserDevice(
+                transport_protocol=TransportProtocol.BLE_UWB,
+                access_credentials=[access_credential],
+                mailbox=0x20,
+            )
+        except Exception as error:
+            "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error)
+            return
         self.next_step()
 
         # Test step 2
-        await self.send_prompt_request(
-            OptionsSelectPromptRequest(
-                prompt="Set Reader Device Under Test in BLE advertising mode",
-                options={"OK": 1},
+        try:
+            await self.send_prompt_request(
+                OptionsSelectPromptRequest(
+                    prompt="Set Reader Device Under Test in BLE advertising mode",
+                    options={"OK": 1},
+                )
             )
-        )
-        await userdevice.transport_protocol.initialization(Mode.USER_DEVICE)
+            await userdevice.transport_protocol.initialization(Mode.USER_DEVICE)
+        except Exception as error:
+            "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error)
+            return
         self.next_step()
 
         # Test step 3
-        await userdevice.transport_protocol.driver.wait_for_connection()
+        try:
+            await userdevice.transport_protocol.driver.wait_for_connection()
+        except Exception as error:
+            "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error)
+            return
         self.next_step()
 
         # Test step 4
         self.next_step()
 
         # Test step 5
-        await userdevice.transport_protocol.driver.handle_GATT_layer_setup()
+        try:
+            await userdevice.transport_protocol.driver.handle_GATT_layer_setup()
+        except Exception as error:
+            "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error)
+            return
         self.next_step()
 
         # Test step 6
-        primary_service = (
-            await userdevice.transport_protocol.driver.handle_GATT_layer_get_primary_service()
-        )
+        try:
+            primary_service = (
+                await userdevice.transport_protocol.driver.handle_GATT_layer_get_primary_service()
+            )
+        except Exception as error:
+            "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error)
+            return
         self.next_step()
 
         # Test step 7
@@ -110,21 +135,31 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 10
-        spsm, versions = (
-            await userdevice.transport_protocol.driver.handle_GATT_layer_read_characteristic(
-                primary_service
+        try:
+            spsm, versions = (
+                await userdevice.transport_protocol.driver.handle_GATT_layer_read_characteristic(
+                    primary_service
+                )
             )
-        )
-        logger.info("SPSM found: {!r}".format(hexlify(spsm)))
-        if bytes.fromhex("0100") not in versions:
-            self.mark_step_failure("Version 0x0100 not found")
+            logger.info("SPSM found: {!r}".format(hexlify(spsm)))
+            if bytes.fromhex("0100") not in versions:
+                self.mark_step_failure("Version 0x0100 not found")
+        except Exception as error:
+            "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error)
+            return
         self.next_step()
 
         # Test step 11
         self.next_step()
 
         # Test step 12
-        await userdevice.transport_protocol.driver.handle_GATT_layer_write_characteristic()
+        try:
+            await userdevice.transport_protocol.driver.handle_GATT_layer_write_characteristic()
+        except Exception as error:
+            "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error)
+            return
         self.next_step()
 
         # Test step 13

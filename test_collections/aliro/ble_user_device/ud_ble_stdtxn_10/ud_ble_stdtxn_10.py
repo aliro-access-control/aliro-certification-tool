@@ -66,32 +66,47 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 1
         # load parameters from project config
-        group_id = self.th_group_identifier()
-        sub_group_id = self.th_sub_group_identifier()
-        key = self.th_reader_keypair()
-        reader = Reader(
-            transport_protocol=TransportProtocol.BLE_UWB,
-            reader_group_identifier=group_id,
-            reader_group_sub_identifier=sub_group_id,
-            reader_key=key,
-        )
-        await self.send_prompt_request(
-            OptionsSelectPromptRequest(
-                prompt="Start user device scanning", options={"OK": 1}
+        try:
+            group_id = self.th_group_identifier()
+            sub_group_id = self.th_sub_group_identifier()
+            key = self.th_reader_keypair()
+            reader = Reader(
+                transport_protocol=TransportProtocol.BLE_UWB,
+                reader_group_identifier=group_id,
+                reader_group_sub_identifier=sub_group_id,
+                reader_key=key,
             )
-        )
+            await self.send_prompt_request(
+                OptionsSelectPromptRequest(
+                    prompt="Start user device scanning", options={"OK": 1}
+                )
+            )
+        except Exception as error:
+            "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error)
+            return
         self.next_step()
 
         # Test step 2
-        await reader.transport_protocol.initialization(
-            Mode.READER,
-            group_id,
-            sub_group_id,
-        )
+        try:
+            await reader.transport_protocol.initialization(
+                Mode.READER,
+                group_id,
+                sub_group_id,
+            )
+        except Exception as error:
+            "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error)
+            return
         self.next_step()
 
         # Test step 3
-        await reader.transport_protocol.wait_for_connection()
+        try:
+            await reader.transport_protocol.wait_for_connection()
+        except Exception as error:
+            "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error)
+            return
         self.next_step()
 
         # Test step 4
