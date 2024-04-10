@@ -155,7 +155,9 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
 
         # Test step 12
         try:
-            await userdevice.transport_protocol.driver.handle_GATT_layer_write_characteristic()
+            await userdevice.transport_protocol.driver.handle_GATT_layer_write_characteristic(
+                primary_service
+            )
         except Exception as error:
             "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error)
