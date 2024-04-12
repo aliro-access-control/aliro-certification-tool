@@ -77,14 +77,14 @@ class UD_BLE_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
                 reader_group_sub_identifier=sub_group_id,
                 reader_key=key,
             )
-            await reader.transaction_initiation()  # up to RATS command/ ATS response
-            reader.start_new_session(
-                ephemeral_key=KeyPair(self.reader_ePrivK, self.reader_ePuBK),
-            )
             await self.send_prompt_request(
                 OptionsSelectPromptRequest(
                     prompt="Start user device scanning", options={"OK": 1}
                 )
+            )
+            await reader.transaction_initiation()  # up to RATS command/ ATS response
+            reader.start_new_session(
+                ephemeral_key=KeyPair(self.reader_ePrivK, self.reader_ePuBK),
             )
         except Exception as error:
             "{}: {}".format(error.__class__.__name__, repr(error))
