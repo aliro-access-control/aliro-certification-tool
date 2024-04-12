@@ -106,7 +106,7 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
 
         # Test step 3
         try:
-            userdevice.handle_auth0(cmds_auth0)
+            await userdevice.handle_auth0(cmds_auth0)
         except Exception as error:
             "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error)
@@ -127,7 +127,7 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
         # Test step 5
         if cmds_auth1.ins == INS.LOAD_CERT:
             try:
-                userdevice.handle_load_cert(cmds_auth1)
+                await userdevice.handle_load_cert(cmds_auth1)
             except Exception as error:
                 "{}: {}".format(error.__class__.__name__, repr(error))
                 self.mark_step_failure(error)
@@ -148,7 +148,7 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
 
         # Test step 7
         try:
-            userdevice.handle_auth1(cmds_auth1)
+            await userdevice.handle_auth1(cmds_auth1)
         except Exception as error:
             "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error)
@@ -168,7 +168,7 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
 
         # Test step 9
         try:
-            userdevice.handle_exchange(cmds_exchange)
+            await userdevice.handle_exchange(cmds_exchange)
         except Exception as error:
             "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error)
