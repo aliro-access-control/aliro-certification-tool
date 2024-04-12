@@ -6,7 +6,6 @@ from aliro_actuator.access_protocol.apdu import (
 )
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.reader import Reader
-from aliro_actuator.transport_protocol import Mode
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
@@ -79,7 +78,7 @@ class UD_BLE_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
                 reader_key=key,
             )
             await reader.transaction_initiation()  # up to RATS command/ ATS response
-            await reader.start_new_session(
+            reader.start_new_session(
                 ephemeral_key=KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK),
             )
             await self.send_prompt_request(
@@ -153,4 +152,4 @@ class UD_BLE_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_BLE_STDTXN_10 Cleanup")
+        logger.info("UD_BLE_STDTXN_20 Cleanup")

@@ -78,7 +78,7 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
                 )
             )
             await userdevice.transaction_initiation()  # up to RATS command/ ATS response
-            await userdevice.start_new_session(
+            userdevice.start_new_session(
                 ephemeral_key=KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK),
             )
         except Exception as error:
@@ -188,4 +188,4 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("RD_BLE_STDTXN_10 Cleanup")
+        logger.info("RD_BLE_STDTXN_20 Cleanup")
