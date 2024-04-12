@@ -79,7 +79,7 @@ class UD_BLE_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
             )
             await reader.transaction_initiation()  # up to RATS command/ ATS response
             reader.start_new_session(
-                ephemeral_key=KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK),
+                ephemeral_key=KeyPair(self.reader_ePrivK, self.reader_ePuBK),
             )
             await self.send_prompt_request(
                 OptionsSelectPromptRequest(
