@@ -66,10 +66,12 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
         )
         try:
             access_credential = self.reader_access_credential()
+            group_resolving_key = self.reader_group_resolving_key()
             userdevice = UserDevice(
                 transport_protocol=TransportProtocol.BLE_UWB,
                 access_credentials=[access_credential],
                 mailbox=0x20,
+                group_resolving_key=group_resolving_key,
             )
             await self.send_prompt_request(
                 OptionsSelectPromptRequest(

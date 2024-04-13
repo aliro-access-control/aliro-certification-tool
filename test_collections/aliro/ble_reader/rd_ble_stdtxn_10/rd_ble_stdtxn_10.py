@@ -67,10 +67,12 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         # Test step 1
         try:
             access_credential = self.reader_access_credential()
+            group_resolving_key = self.reader_group_resolving_key()
             userdevice = UserDevice(
                 transport_protocol=TransportProtocol.BLE_UWB,
                 access_credentials=[access_credential],
                 mailbox=0x20,
+                group_resolving_key=group_resolving_key,
             )
         except Exception as error:
             "{}: {}".format(error.__class__.__name__, repr(error))

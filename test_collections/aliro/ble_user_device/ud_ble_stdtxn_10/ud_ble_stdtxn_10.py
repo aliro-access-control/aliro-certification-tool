@@ -70,11 +70,15 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
             group_id = self.th_group_identifier()
             sub_group_id = self.th_sub_group_identifier()
             key = self.th_reader_keypair()
+            spsm = self.th_spsm()
+            group_resolving_key = self.th_group_resolving_key()
             reader = Reader(
                 transport_protocol=TransportProtocol.BLE_UWB,
                 reader_group_identifier=group_id,
                 reader_group_sub_identifier=sub_group_id,
                 reader_key=key,
+                spsm=spsm,
+                group_resolving_key=group_resolving_key,
             )
             await self.send_prompt_request(
                 OptionsSelectPromptRequest(
