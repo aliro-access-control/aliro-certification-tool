@@ -160,7 +160,8 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
         # Test step 8
         try:
             cmds_exchange = await userdevice.wait_for_command(
-                expected_command=INS.EXCHANGE
+                expected_command=INS.EXCHANGE,
+                encryption=userdevice.session.encryption,
             )
         except Exception as error:
             "{}: {}".format(error.__class__.__name__, repr(error))
