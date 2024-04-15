@@ -64,6 +64,7 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
         key = self.th_reader_keypair()
+        reader_storage = self.th_readerstorage()
 
         # Initialize Aliro NFC Reader
         reader = Reader(
@@ -71,6 +72,7 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
             reader_group_identifier=group_id,
             reader_group_sub_identifier=sub_group_id,
             reader_key=key,
+            reader_storage=reader_storage,
         )
         self.next_step()
 

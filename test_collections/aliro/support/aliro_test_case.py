@@ -16,6 +16,7 @@
 
 from typing import Any
 
+from aliro_actuator.access_protocol.reader import ReaderStorage
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.key import KeyPair, PrivateKey, PublicKey
 from app.test_engine.logger import test_engine_logger as logger
@@ -333,6 +334,15 @@ class AliroUserDeviceTestCase(AliroTestCase):
     READER_SUB_GROUP_ID_KEY = "th_reader_sub_group_identifier"
     READER_GROUP_RESOLVING_KEY = "th_reader_group_resolving_key"
     READER_SPSM = "th_reader_spsm"
+    READER_CACHE_ACCESS_CREDENTIAl = "th_reader_cache_access_credential"
+    READER_CACHE_KPERSISTENT = "th_reader_cache_kpersistent"
+    READER_CACHE_SIGNALING_BITMAP = "th_reader_cache_signaling_bitmap"
+    READER_CACHE_CREDENTIAL_SIGNED_TIMESTAMP = (
+        "th_reader_cache_revocation_signed_timestamp"
+    )
+    READER_CACHE_REVOCATION_SIGNED_TIMESTAMP = (
+        "th_reader_cache_credential_signed_timestamp"
+    )
 
     @classmethod
     def default_test_parameters(self) -> dict[str, Any]:
@@ -353,6 +363,14 @@ class AliroUserDeviceTestCase(AliroTestCase):
             self.READER_SUB_GROUP_ID_KEY: "113344667799AA00113344667799AA00",
             self.READER_GROUP_RESOLVING_KEY: "00000000000000000000000000000000",
             self.READER_SPSM: "0080",
+            self.READER_CACHE_ACCESS_CREDENTIAl: "04742df736d0fc9be978c45b00e8fdf7cea"
+            "684ea105ae574c1505a2c24ab6198e3125b7f1b7e1d134c55ece69681ba8ecc18a3836dc"
+            "5199c759f31e8ccf17e3efa",
+            self.READER_CACHE_KPERSISTENT: "dc7199dd338189299525734777701fa21cddb6e02"
+            "7e6c9a95e32281ba9db4b6f",
+            self.READER_CACHE_SIGNALING_BITMAP: "0000",
+            self.READER_CACHE_CREDENTIAL_SIGNED_TIMESTAMP: None,
+            self.READER_CACHE_REVOCATION_SIGNED_TIMESTAMP: None,
         }
 
     def th_reader_keypair(self) -> KeyPair:
@@ -449,3 +467,40 @@ class AliroUserDeviceTestCase(AliroTestCase):
         spsm = self.bytes_from_config(self.READER_SPSM)
         logger.info(f"Using Reader spsm(hex): {spsm.hex()}")
         return spsm
+
+    def th_readerstorage(self) -> bytes:
+        """Load TH Reader storage from test parameters.
+        When testing a UserDevice, the TH will be the Reader. The reader storage
+        for this reader will be configurable in test_paramters of project configuration.
+
+        Returns:
+            ReaderStorage: reader_storage
+        """
+        logger.info(
+            f"Loading Reader cache access credential from '{self.READER_CACHE_ACCESS_CREDENTIAl}'"
+        )
+        reader_cache_access_credential = self.public_key_from_config(
+            self.READER_CACHE_ACCESS_CREDENTIAl
+        )
+        logger.info(
+            f"Using Reader cache access credential(hex): {reader_cache_access_credential.as_bytes().hex()}"
+        )
+
+        logger.info(
+            f"Loading Reader cache kpersistent from '{self.READER_CACHE_KPERSISTENT}'"
+        )
+        kpersistent = self.bytes_from_config(self.READER_CACHE_KPERSISTENT)
+        logger.info(f"Using Reader kpersistent(hex): {kpersistent.hex()}")
+
+        logger.info(
+            f"Loading Reader cache signaling bitmap from '{self.READER_CACHE_SIGNALING_BITMAP}'"
+        )
+        signaling_bitmap = self.bytes_from_config(self.READER_CACHE_SIGNALING_BITMAP)
+        logger.info(f"Using Reader signaling bitmap(hex): {signaling_bitmap.hex()}")
+
+        reader_storage = ReaderStorage()
+        reader_storage.add_kpersistent(
+            reader_cache_access_credential, kpersistent, signaling_bitmap
+        )
+
+        return reader_storage
