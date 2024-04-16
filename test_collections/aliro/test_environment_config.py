@@ -20,30 +20,11 @@ class TestEnvironmentConfigAliro(TestEnvironmentConfig):
     __test__ = False  # Needed to indicate to PyTest that this is not a "test"
 
     def validate_model(self, dict_model: dict) -> None:
-        valid_test_parameters = [
-            "dut_reader_public_key",
-            "dut_reader_group_identifier",
-            "dut_reader_group_sub_identifier",
-            "th_endpoint_private_key",
-            "th_endpoint_public_key",
-            "th_reader_private_key",
-            "th_reader_public_key",
-            "th_reader_group_identifier",
-            "th_reader_sub_group_identifier",
-        ]
-
+        # If any specific validation for a test_parameter is required, 
+        # it should be implemented bellow
+        
         if dict_model:
             test_parameters = dict_model.get("test_parameters")
 
             if not test_parameters:
                 raise
-
-            # Check if the informed fields in test_parameters are valid
-            for field, _ in test_parameters.items():
-                if field not in valid_test_parameters:
-                    raise
-            
-             # All test_parameters fields but are mandatory
-            for field in valid_test_parameters:
-                if field not in test_parameters:
-                    raise
