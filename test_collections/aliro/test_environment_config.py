@@ -24,7 +24,14 @@ class TestEnvironmentConfigAliro(TestEnvironmentConfig):
             "dut_reader_public_key",
             "dut_reader_group_identifier",
             "dut_reader_group_sub_identifier",
+            "th_endpoint_private_key",
+            "th_endpoint_public_key",
+            "th_reader_private_key",
+            "th_reader_public_key",
+            "th_reader_group_identifier",
+            "th_reader_sub_group_identifier",
         ]
+
         if dict_model:
             test_parameters = dict_model.get("test_parameters")
 
@@ -36,7 +43,7 @@ class TestEnvironmentConfigAliro(TestEnvironmentConfig):
                 if field not in valid_test_parameters:
                     raise
             
-             # All test_parameters fields are mandatory
+             # All test_parameters fields but are mandatory
             for field in valid_test_parameters:
                 if field not in test_parameters:
                     raise
