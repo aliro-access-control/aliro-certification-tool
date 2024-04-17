@@ -53,9 +53,10 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step3: Send/Receive Select command/response"),
             TestStep("Step4: Send/Receive AUTH0 command/response"),
             TestStep("Step5: Send/Receive AUTH1 command/response"),
-            TestStep("Step6: Send/Receive Control flow command/response"),
-            TestStep("Step7: Send/Receive Select Fast command/response"),
-            TestStep("Step8: Send/Receive AUTH0 Fast command/response"),
+            TestStep("Step6: Set to polling mode"),
+            TestStep("Step7: Send/Receive Control flow command/response"),
+            TestStep("Step8: Send/Receive Select Fast command/response"),
+            TestStep("Step9: Send/Receive AUTH0 Fast command/response"),
         ]
 
     async def setup(self) -> None:
@@ -111,7 +112,7 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
             return
         self.next_step()
 
-        # Test step 6
+        # Test step 5
         try:
             reader.handle_auth1(expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY)
         except (AccessProtocolError, InvalidResponseError) as error:
@@ -119,7 +120,7 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
             return
         self.next_step()
 
-        # Test step 7
+        # Test step 6
         try:
             reader.handle_control_flow(
                 success=True,
@@ -136,7 +137,7 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
             )
         )
 
-        # Test Step 3
+        # Test Step 7
         reader.transaction_initiation()  # up to RATS command/ ATS response
         reader.start_new_session(
             transaction_identifier=self.transaction_identifier,
@@ -144,7 +145,7 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         )
         self.next_step()
 
-        # Test Step 4
+        # Test Step 8
         try:
             reader.handle_select(aid=EXPEDITED_PHASE_AID)
         except (AccessProtocolError, InvalidResponseError) as error:
@@ -152,7 +153,7 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
             return
         self.next_step()
 
-        # Test Step 5
+        # Test Step 9
         try:
             reader.handle_auth0(
                 transaction_type=Transaction.FAST,
