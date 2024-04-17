@@ -4,7 +4,6 @@ from aliro_actuator.access_protocol.apdu import (
     Transaction,
     TransactionCode,
 )
-
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
@@ -17,6 +16,7 @@ from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
 from ...support.aliro_test_case import AliroUserDeviceTestCase
+
 
 class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
@@ -35,14 +35,14 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
     reader_ePrivK = bytes.fromhex(
         "3c0f74114cd2a021e8066efbaa31dbb97ef0054272192606fd96633a04f66214"
     )
-    
+
     transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
 
     @classmethod
     def pics(cls) -> set[str]:
         return set(
             [
-                "", #PICS in preparation
+                "",  # PICS in preparation
             ]
         )
 
@@ -50,11 +50,14 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         self.test_steps = [
             TestStep("Step1: Initialization"),
             TestStep("Step2: Set to polling mode"),
-            TestStep("Step3: Set the User Device UT"),
-            TestStep("Step4: Send/Receive Select command/response"),
-            TestStep("Step5: Send/Receive AUTH0 command/response"),
+            TestStep("Step3: Send/Receive Select command/response"),
+            TestStep("Step4: Send/Receive AUTH0 command/response"),
+            TestStep("Step5: Send/Receive AUTH1 command/response"),
+            TestStep("Step6: Send/Receive Control flow command/response"),
+            TestStep("Step7: Send/Receive Select Fast command/response"),
+            TestStep("Step8: Send/Receive AUTH0 Fast command/response"),
         ]
-    
+
     async def setup(self) -> None:
         logger.info("This is a test case setup")
 
@@ -78,13 +81,63 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         # Display pop-up to put the User Device UT on the TH
         await self.send_prompt_request(
             OptionsSelectPromptRequest(
-                prompt="Tap User Device on the Test Harness NFC", options={"OK":1}
+                prompt="Tap User Device on the Test Harness NFC", options={"OK": 1}
             )
+        )
+
+        reader.transaction_initiation()  # up to RATS command/ ATS response
+        reader.start_new_session(
+            transaction_identifier=self.transaction_identifier,
+            ephemeral_key=KeyPair(self.reader_ePrivK, self.reader_ePuBK),
         )
         self.next_step()
 
+        # Test step 3
+        try:
+            reader.handle_select(aid=EXPEDITED_PHASE_AID)
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(error)
+            return
+        self.next_step()
+
+        # Test step 4
+        try:
+            reader.handle_auth0(
+                transaction_type=Transaction.STANDARD,
+                transaction_code=TransactionCode.USER_DEVICE,
+            )
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(error)
+            return
+        self.next_step()
+
+        # Test step 6
+        try:
+            reader.handle_auth1(expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY)
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(error)
+            return
+        self.next_step()
+
+        # Test step 7
+        try:
+            reader.handle_control_flow(
+                success=True,
+            )
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(error)
+            return
+        self.next_step()
+
+        await self.send_prompt_request(
+            OptionsSelectPromptRequest(
+                prompt="Remove and Tap User Device again on the Test Harness NFC",
+                options={"OK": 1},
+            )
+        )
+
         # Test Step 3
-        reader.transaction_initiation()     # up to RATS command/ ATS response
+        reader.transaction_initiation()  # up to RATS command/ ATS response
         reader.start_new_session(
             transaction_identifier=self.transaction_identifier,
             ephemeral_key=KeyPair(self.reader_ePrivK, self.reader_ePuBK),
