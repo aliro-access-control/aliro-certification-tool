@@ -408,7 +408,7 @@ class AliroUserDeviceTestCase(AliroTestCase):
         sub_group_id = self.bytes_from_config(self.READER_SUB_GROUP_ID_KEY)
         logger.info(f"Using Reader sub-group identifier(hex): {sub_group_id.hex()}")
         return sub_group_id
-    
+
     def th_reader_certificate(self) -> bytes:
         """Load TH Reader certificate from test parameters.
         When testing a UserDevice, the TH will be the Reader. The certificate for this
@@ -420,3 +420,4 @@ class AliroUserDeviceTestCase(AliroTestCase):
         logger.info(f"Loading certificate from '{self.READER_CERTIFICATE_KEY}'")
         cert = self.bytes_from_config(self.READER_CERTIFICATE_KEY)
         logger.info(f"Using Reader certificate(hex): {cert.hex()}")
+        return cert
