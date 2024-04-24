@@ -5,7 +5,6 @@ from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidCommandError,
 )
-
 from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
@@ -13,6 +12,7 @@ from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
 from ...support.aliro_test_case import AliroReaderTestCase
+
 
 class RD_NFC_FSTTXN_30(AliroReaderTestCase, UserPromptSupport):
     metadata = {
@@ -31,7 +31,6 @@ class RD_NFC_FSTTXN_30(AliroReaderTestCase, UserPromptSupport):
         "70637ee9b40cee568567c69589276888edca7128bb13fb531f9c4f502d8cc65e"
     )  # from Test Vector
 
-
     @classmethod
     def pics(cls) -> set[str]:
         return set(
@@ -46,10 +45,9 @@ class RD_NFC_FSTTXN_30(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step2: Set Reader Device Under Test in polling mode"),
             TestStep("Step3: Bring Test Harness above Reader Device Under Test"),
             TestStep("Step4: Receive/Send Select command/response"),
-            TestStep("Step5: Receive/Send AUTH0 command/response"), 
+            TestStep("Step5: Receive/Send AUTH0 command/response"),
             TestStep("Step6: Receive/Send CONTROL FLOW command/response"),
         ]
-
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
@@ -58,22 +56,21 @@ class RD_NFC_FSTTXN_30(AliroReaderTestCase, UserPromptSupport):
         # Test Step 1
         access_credential = self.reader_access_credential()
         userdevice = UserDevice(
-                transport_protocol = TransportProtocol.NFC,
-                access_credentials=[access_credential],
-                mailbox=0x20,
+            transport_protocol=TransportProtocol.NFC,
+            access_credentials=[access_credential],
+            mailbox=0x20,
         )
         self.next_step()
 
         # Test Step 2
         # Display pop-up to set the Reader Device Under Test in polling mode
         await self.send_prompt_request(
-                OptionsSelectPromptRequest(
-                    prompt="Set Reader Device Under Test in NFC polling mode",
-                    options={"OK": 1},
-                )
+            OptionsSelectPromptRequest(
+                prompt="Set Reader Device Under Test in NFC polling mode",
+                options={"OK": 1},
             )
+        )
         self.next_step()
-
 
         # Test Step 3
         # Display pop-up to put the Test Harness on the Reader Device Under test
@@ -93,28 +90,27 @@ class RD_NFC_FSTTXN_30(AliroReaderTestCase, UserPromptSupport):
         try:
             cmds_select = userdevice.wait_for_command()
         except InvalidCommandError as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
-        
+
         try:
             userdevice.handle_select(cmds_select)
         except AccessProtocolError as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
         self.next_step()
-
 
         # Test Step 5: Receive/Send Auth0 command/response
         # Auth0 handles the creation of the cryptogram and also sends it to the user device.
         try:
             cmds_auth0 = userdevice.wait_for_command()
         except InvalidCommandError as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
         try:
             userdevice.handle_auth0(cmds_auth0)
         except AccessProtocolError as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
         if not userdevice.session.state_valid(UserSessionState.AUTH0_FAST_DONE):
             self.mark_step_failure(
@@ -124,19 +120,19 @@ class RD_NFC_FSTTXN_30(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
         # Test 6: Start loop for waiting for control flow
-        # After the reader has identified the 
+        # After the reader has identified the
         while True:
             try:
                 cmds_control_flow = userdevice.wait_for_command()
             except InvalidCommandError as error:
-                self.mark_step_failure(error)
+                self.mark_step_failure(str(error))
                 return
 
             if cmds_control_flow.ins == INS.CONTROL_FLOW:
                 try:
                     userdevice.handle_control_flow(cmds_control_flow)
                 except AccessProtocolError as error:
-                    self.mark_step_failure(error)
+                    self.mark_step_failure(str(error))
                     return
                 self.next_step()
                 break
@@ -144,7 +140,7 @@ class RD_NFC_FSTTXN_30(AliroReaderTestCase, UserPromptSupport):
                 try:
                     userdevice.handle_exchange(cmds_control_flow)
                 except AccessProtocolError as error:
-                    self.mark_step_failure(error)
+                    self.mark_step_failure(str(error))
                     return
                 # re-enter loop waiting for control flow
             else:
@@ -153,9 +149,3 @@ class RD_NFC_FSTTXN_30(AliroReaderTestCase, UserPromptSupport):
 
     async def cleanup(self) -> None:
         logger.info("RD_NFC_STDTXN_30 Cleanup")
-
-
-
-
-
-

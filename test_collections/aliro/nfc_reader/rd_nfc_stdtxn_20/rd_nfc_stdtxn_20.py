@@ -89,12 +89,12 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
         try:
             cmds_select = userdevice.wait_for_command()
         except InvalidCommandError as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
         try:
             userdevice.handle_select(cmds_select)
         except AccessProtocolError as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
         self.next_step()
 
@@ -102,12 +102,12 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
         try:
             cmds_auth0 = userdevice.wait_for_command()
         except InvalidCommandError as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
         try:
             userdevice.handle_auth0(cmds_auth0)
         except AccessProtocolError as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
         if not userdevice.session.state_valid(UserSessionState.AUTH0_STD_DONE):
             self.mark_step_failure(
@@ -120,12 +120,12 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
         try:
             cmds_auth1 = userdevice.wait_for_command()
         except InvalidCommandError as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
         try:
             userdevice.handle_auth1(cmds_auth1)
         except AccessProtocolError as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
         self.next_step()
 
