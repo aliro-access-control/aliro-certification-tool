@@ -198,6 +198,7 @@ class AliroReaderTestCase(AliroTestCase):
     READER_PUBLIC_KEY_KEY = "dut_reader_public_key"
     READER_GROUP_ID_KEY = "dut_reader_group_identifier"
     READER_SUB_GROUP_ID_KEY = "dut_reader_group_sub_identifier"
+    READER_GROUP_RESOLVING_KEY = "dut_reader_group_resolving_key"
     ENDPOINT_PRIVATE_KEY_KEY = "th_endpoint_private_key"
     ENDPOINT_PUBLIC_KEY_KEY = "th_endpoint_public_key"
 
@@ -221,6 +222,7 @@ class AliroReaderTestCase(AliroTestCase):
             self.ENDPOINT_PUBLIC_KEY_KEY: "04742df736d0fc9be978c45b00e8fdf7cea684ea10"
             "5ae574c1505a2c24ab6198e3125b7f1b7e1d134c55ece69681ba8ecc18a3836dc5199c75"
             "9f31e8ccf17e3efa",
+            self.READER_GROUP_RESOLVING_KEY: "00000000000000000000000000000000",
         }
 
     def reader_access_credential(self) -> AccessCredential:
@@ -292,6 +294,23 @@ class AliroReaderTestCase(AliroTestCase):
             reader_id_key_list=[(reader_group_identifier, reader_public_key)],
         )
 
+    def reader_group_resolving_key(self) -> bytes:
+        """Load TH Reader group resolving key from test parameters.
+        When testing a UserDevice, the TH will be the Reader. The group resolving key
+        for this reader will be configurable in test_paramters of project configuration.
+
+        Returns:
+            bytes: group resolving key
+        """
+        logger.info(
+            f"Loading Reader group resolving key from '{self.READER_GROUP_RESOLVING_KEY}'"
+        )
+        group_resolving_key = self.bytes_from_config(self.READER_GROUP_RESOLVING_KEY)
+        logger.info(
+            f"Using Reader group resolving key(hex): {group_resolving_key.hex()}"
+        )
+        return group_resolving_key
+
 
 class AliroUserDeviceTestCase(AliroTestCase):
     """Base test case class for Aliro test cases testing User Devices.
@@ -312,6 +331,8 @@ class AliroUserDeviceTestCase(AliroTestCase):
     READER_PUBLIC_KEY_KEY = "th_reader_public_key"
     READER_GROUP_ID_KEY = "th_reader_group_identifier"
     READER_SUB_GROUP_ID_KEY = "th_reader_sub_group_identifier"
+    READER_GROUP_RESOLVING_KEY = "th_reader_group_resolving_key"
+    READER_SPSM = "th_reader_spsm"
 
     @classmethod
     def default_test_parameters(self) -> dict[str, Any]:
@@ -330,6 +351,8 @@ class AliroUserDeviceTestCase(AliroTestCase):
             "873c5d34ee",
             self.READER_GROUP_ID_KEY: "00113344667799AA00113344667799AA",
             self.READER_SUB_GROUP_ID_KEY: "113344667799AA00113344667799AA00",
+            self.READER_GROUP_RESOLVING_KEY: "00000000000000000000000000000000",
+            self.READER_SPSM: "0080",
         }
 
     def th_reader_keypair(self) -> KeyPair:
@@ -396,3 +419,33 @@ class AliroUserDeviceTestCase(AliroTestCase):
         sub_group_id = self.bytes_from_config(self.READER_SUB_GROUP_ID_KEY)
         logger.info(f"Using Reader sub-group identifier(hex): {sub_group_id.hex()}")
         return sub_group_id
+
+    def th_group_resolving_key(self) -> bytes:
+        """Load TH Reader group resolving key from test parameters.
+        When testing a UserDevice, the TH will be the Reader. The group resolving key
+        for this reader will be configurable in test_paramters of project configuration.
+
+        Returns:
+            bytes: group resolving key
+        """
+        logger.info(
+            f"Loading Reader group resolving key from '{self.READER_GROUP_RESOLVING_KEY}'"
+        )
+        group_resolving_key = self.bytes_from_config(self.READER_GROUP_RESOLVING_KEY)
+        logger.info(
+            f"Using Reader group resolving key(hex): {group_resolving_key.hex()}"
+        )
+        return group_resolving_key
+
+    def th_spsm(self) -> bytes:
+        """Load TH Reader spsm from test parameters.
+        When testing a UserDevice, the TH will be the Reader. The spsm
+        for this reader will be configurable in test_paramters of project configuration.
+
+        Returns:
+            bytes: spsm
+        """
+        logger.info(f"Loading Reader spsm from '{self.READER_SPSM}'")
+        spsm = self.bytes_from_config(self.READER_SPSM)
+        logger.info(f"Using Reader spsm(hex): {spsm.hex()}")
+        return spsm

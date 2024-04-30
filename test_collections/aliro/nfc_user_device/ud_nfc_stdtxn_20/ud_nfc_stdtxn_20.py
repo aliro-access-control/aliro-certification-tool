@@ -84,7 +84,7 @@ class UD_NFC_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 3
-        reader.transaction_initiation()  # up to RATS command/ ATS response
+        await reader.transaction_initiation()  # up to RATS command/ ATS response
         reader.start_new_session(
             transaction_identifier=self.transaction_identifier,
             ephemeral_key=KeyPair(self.reader_ePrivK, self.reader_ePuBK),
@@ -93,7 +93,7 @@ class UD_NFC_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 4
         try:
-            reader.handle_select(aid=EXPEDITED_PHASE_AID)
+            await reader.handle_select(aid=EXPEDITED_PHASE_AID)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(error)
             return
@@ -101,7 +101,7 @@ class UD_NFC_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 5
         try:
-            reader.handle_auth0(
+            await reader.handle_auth0(
                 transaction_type=Transaction.STANDARD,
                 transaction_code=TransactionCode.USER_DEVICE,
             )
@@ -112,7 +112,9 @@ class UD_NFC_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 6
         try:
-            reader.handle_auth1(expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY)
+            await reader.handle_auth1(
+                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
+            )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(error)
             return

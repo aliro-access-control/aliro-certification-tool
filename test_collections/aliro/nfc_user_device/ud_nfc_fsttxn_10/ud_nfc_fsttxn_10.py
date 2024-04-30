@@ -4,7 +4,6 @@ from aliro_actuator.access_protocol.apdu import (
     Transaction,
     TransactionCode,
 )
-
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
@@ -17,6 +16,7 @@ from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
 from ...support.aliro_test_case import AliroUserDeviceTestCase
+
 
 class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
@@ -35,14 +35,14 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
     reader_ePrivK = bytes.fromhex(
         "3c0f74114cd2a021e8066efbaa31dbb97ef0054272192606fd96633a04f66214"
     )
-    
+
     transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
 
     @classmethod
     def pics(cls) -> set[str]:
         return set(
             [
-                "", #PICS in preparation
+                "",  # PICS in preparation
             ]
         )
 
@@ -54,7 +54,7 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step4: Send/Receive Select command/response"),
             TestStep("Step5: Send/Receive AUTH0 command/response"),
         ]
-    
+
     async def setup(self) -> None:
         logger.info("This is a test case setup")
 
@@ -78,13 +78,13 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         # Display pop-up to put the User Device UT on the TH
         await self.send_prompt_request(
             OptionsSelectPromptRequest(
-                prompt="Tap User Device on the Test Harness NFC", options={"OK":1}
+                prompt="Tap User Device on the Test Harness NFC", options={"OK": 1}
             )
         )
         self.next_step()
 
         # Test Step 3
-        reader.transaction_initiation()     # up to RATS command/ ATS response
+        await reader.transaction_initiation()  # up to RATS command/ ATS response
         reader.start_new_session(
             transaction_identifier=self.transaction_identifier,
             ephemeral_key=KeyPair(self.reader_ePrivK, self.reader_ePuBK),
@@ -93,7 +93,7 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test Step 4
         try:
-            reader.handle_select(aid=EXPEDITED_PHASE_AID)
+            await reader.handle_select(aid=EXPEDITED_PHASE_AID)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(error)
             return
@@ -101,7 +101,7 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test Step 5
         try:
-            reader.handle_auth0(
+            await reader.handle_auth0(
                 transaction_type=Transaction.FAST,
                 transaction_code=TransactionCode.USER_DEVICE,
             )
