@@ -13,19 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from aliro_actuator import Global as ActuatorGlobal
 
-from app.test_engine.logger import test_engine_logger
-
-# Ensure Aliro Actuator is using test engine logger
-ActuatorGlobal.set_logger(test_engine_logger)
-
-from pathlib import Path
-
-from app.test_engine.test_collection_discovery import test_collection_declaration
-
-COLLECTION_PATH = Path(__file__).parent
-
-onboarding_payload_collection = test_collection_declaration(
-    COLLECTION_PATH, "Aliro"
-)
+from .rd_nfc_fsttxn_30 import RD_NFC_FSTTXN_30

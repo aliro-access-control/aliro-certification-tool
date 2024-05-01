@@ -103,7 +103,7 @@ class UD_NFC_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             reader.handle_auth0(
                 transaction_type=Transaction.STANDARD,
-                transaction_code=TransactionCode.UNLOCK,
+                transaction_code=TransactionCode.USER_DEVICE,
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(error)
@@ -112,7 +112,7 @@ class UD_NFC_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 6
         try:
-            reader.handle_auth1(expected_response=Auth1Response.ENDPOINT_PUBLIC_KEY)
+            reader.handle_auth1(expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(error)
             return

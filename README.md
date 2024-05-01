@@ -117,7 +117,7 @@ This is mostly a backup, if you need to configure network or find IP address.
 > [!TIP] 
 > Default credentials are username: `ubuntu` and password: `ubuntu`.
 
-## C - Installing Aliro Test Harness on Raspberry Pi
+## D - Installing Aliro Test Harness on Raspberry Pi
 
 1. Create an SSH key-pair to access GitHub Repository
     
@@ -173,10 +173,32 @@ This is mostly a backup, if you need to configure network or find IP address.
 > [!NOTE] 
 > First reboot after the auto installer might take 5 minutes or more, as several updates are applied.
 
+## E - Starting the Aliro Test Harness on Raspberry Pi
+1. Initialize the submodules 
+
+    ```sh
+    cd  ~/aliro-certification-tool
+    git submodule update --init —-recursive
+    ```
+
+2. Setup the Test Harness
+
+    ```sh
+    cd  ~/aliro-certification-tool/test_collections/aliro
+    ./setup.sh
+    ```
+
+3. Start the Test Harness
+
+    ```sh
+    cd  ~/aliro-certification-tool
+    ./scripts/start.sh
+    ```
 
 # Usage Instructions
 
-The tool will be automatically started when booting the Raspberry Pi.
+> [!NOTE] 
+> The Test Harness will start automatically upon booting the Raspberry Pi.
 
 ## A - Opening the GUI
 The UI of the tool is accessed via a Web Browser from a computer on the same LAN.
@@ -253,6 +275,14 @@ You can edit test parameters for a Project during project creation, but you can 
 * `dut_reader_group_sub_identifier` Sub-group Identifier for Reader DUT
   * Supported Format: 
     * HEX string
+* `th_endpoint_private_key` Private key for the User Endpoint, simulated by the tool. 
+  * Supported Format:
+    * DER encoded HEX string
+    * PEM string (including `\n` as for line breaks)
+* `th_endpoint_public_key` Public key for the User Endpoint, simulated by the tool.  
+  * Supported Format:
+    * DER encoded HEX string
+    * PEM string (including `\n` as for line breaks)
 
 ## Test Parameters for User Device Tests
 
