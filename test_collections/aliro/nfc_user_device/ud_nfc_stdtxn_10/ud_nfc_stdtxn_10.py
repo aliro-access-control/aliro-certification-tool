@@ -85,8 +85,8 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 3
-        await self.setup_connection()  # up to RATS command/ ATS response
-        self.start_new_session()
+        await self.reader.setup_connection()  # up to RATS command/ ATS response
+        self.reader.start_new_session()
         self.next_step()
 
         # Test step 4
