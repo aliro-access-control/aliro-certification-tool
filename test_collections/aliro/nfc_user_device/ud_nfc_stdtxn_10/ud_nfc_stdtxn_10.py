@@ -66,6 +66,8 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
             reader_group_identifier=group_id,
             reader_group_sub_identifier=sub_group_id,
             reader_key=key,
+            transaction_identifier_list=[self.transaction_identifier],
+            ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
         )
 
     async def execute(self) -> None:
@@ -83,11 +85,8 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 3
-        await self.reader.transaction_initiation()  # up to RATS command/ ATS response
-        self.reader.start_new_session(
-            transaction_identifier=self.transaction_identifier,
-            ephemeral_key=KeyPair(self.reader_ePrivK, self.reader_ePuBK),
-        )
+        await self.setup_connection()  # up to RATS command/ ATS response
+        self.start_new_session()
         self.next_step()
 
         # Test step 4
