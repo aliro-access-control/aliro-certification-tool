@@ -108,7 +108,7 @@ class RD_NFC_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         except AccessProtocolError as error:
             self.mark_step_failure(str(error))
             return
-        if not userdevice.session.state_valid(UserSessionState.AUTH0_STD_DONE):
+        if not self.userdevice.session.state_valid(UserSessionState.AUTH0_STD_DONE):
             self.mark_step_failure(
                 "Userdevice is not in state auth0 standard done, either fast "
                 "transaction was requested or handling auth0 failed"
