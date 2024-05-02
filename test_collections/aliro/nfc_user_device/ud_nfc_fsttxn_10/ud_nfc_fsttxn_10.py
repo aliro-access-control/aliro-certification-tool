@@ -102,4 +102,4 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
     async def cleanup(self) -> None:
         logger.info("UD_NFC_FSTTXN_10 Cleanup")
-        self.reader.transaction_termination()
+        await self.reader.transaction_termination()
