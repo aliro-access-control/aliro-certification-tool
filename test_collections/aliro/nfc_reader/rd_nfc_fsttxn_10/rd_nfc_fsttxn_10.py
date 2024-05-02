@@ -54,7 +54,7 @@ class RD_NFC_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential],
             mailbox=0x20,
-            ephemeral_key_list=KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK),
+            ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
         )
 
     async def execute(self) -> None:
