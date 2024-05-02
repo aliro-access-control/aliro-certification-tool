@@ -93,7 +93,7 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             await self.reader.handle_select(aid=EXPEDITED_PHASE_AID)
         except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
         self.next_step()
 
@@ -104,7 +104,7 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
                 transaction_code=TransactionCode.USER_DEVICE,
             )
         except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
         self.next_step()
 
