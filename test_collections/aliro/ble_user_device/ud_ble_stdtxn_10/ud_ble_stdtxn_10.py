@@ -2,6 +2,7 @@ from aliro_actuator.access_protocol import TransportProtocol
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.transport_protocol import Mode
+from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -55,6 +56,19 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
+        group_id = self.th_group_identifier()
+        sub_group_id = self.th_sub_group_identifier()
+        key = self.th_reader_keypair()
+        spsm = self.th_spsm()
+        group_resolving_key = self.th_group_resolving_key()
+        self.reader = Reader(
+            transport_protocol=TransportProtocol.BLE_UWB,
+            reader_group_identifier=group_id,
+            reader_group_sub_identifier=sub_group_id,
+            reader_key=key,
+            spsm=spsm,
+            group_resolving_key=group_resolving_key,
+        )
 
     async def execute(self) -> None:
         await self.send_prompt_request(
@@ -65,51 +79,35 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         )
 
         # Test step 1
-        # load parameters from project config
-        try:
-            group_id = self.th_group_identifier()
-            sub_group_id = self.th_sub_group_identifier()
-            key = self.th_reader_keypair()
-            spsm = self.th_spsm()
-            group_resolving_key = self.th_group_resolving_key()
-            reader = Reader(
-                transport_protocol=TransportProtocol.BLE_UWB,
-                reader_group_identifier=group_id,
-                reader_group_sub_identifier=sub_group_id,
-                reader_key=key,
-                spsm=spsm,
-                group_resolving_key=group_resolving_key,
+        group_id = self.th_group_identifier()
+        sub_group_id = self.th_sub_group_identifier()
+        # Done in setup
+        await self.send_prompt_request(
+            OptionsSelectPromptRequest(
+                prompt="Start user device scanning", options={"OK": 1}
             )
-            await self.send_prompt_request(
-                OptionsSelectPromptRequest(
-                    prompt="Start user device scanning", options={"OK": 1}
-                )
-            )
-        except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
-            return
+        )
         self.next_step()
 
         # Test step 2
         try:
-            await reader.transport_protocol.initialization(
+            await self.reader.transport_protocol.initialization(
                 Mode.READER,
                 group_id,
                 sub_group_id,
             )
         except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
             return
         self.next_step()
 
         # Test step 3
         try:
-            await reader.transport_protocol.wait_for_connection()
+            await self.reader.transport_protocol.wait_for_connection()
         except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
             return
         self.next_step()
 
@@ -145,3 +143,8 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
     async def cleanup(self) -> None:
         logger.info("UD_BLE_STDTXN_10 Cleanup")
+        try:
+            await self.reader.transaction_termination()
+        except NoDeviceConnectedError:
+            # it is possible to end the test before any device is connected
+            pass

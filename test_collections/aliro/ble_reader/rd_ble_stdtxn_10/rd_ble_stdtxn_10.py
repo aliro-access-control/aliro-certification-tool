@@ -4,6 +4,7 @@ from aliro_actuator.access_protocol import TransportProtocol
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.user_device import UserDevice
 from aliro_actuator.transport_protocol import Mode
+from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -55,6 +56,14 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
+        access_credential = self.reader_access_credential()
+        group_resolving_key = self.reader_group_resolving_key()
+        self.userdevice = UserDevice(
+            transport_protocol=TransportProtocol.BLE_UWB,
+            access_credentials=[access_credential],
+            mailbox=0x20,
+            group_resolving_key=group_resolving_key,
+        )
 
     async def execute(self) -> None:
         await self.send_prompt_request(
@@ -65,19 +74,7 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         )
 
         # Test step 1
-        try:
-            access_credential = self.reader_access_credential()
-            group_resolving_key = self.reader_group_resolving_key()
-            userdevice = UserDevice(
-                transport_protocol=TransportProtocol.BLE_UWB,
-                access_credentials=[access_credential],
-                mailbox=0x20,
-                group_resolving_key=group_resolving_key,
-            )
-        except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
-            return
+        # Done in setup
         self.next_step()
 
         # Test step 2
@@ -88,19 +85,19 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
                     options={"OK": 1},
                 )
             )
-            await userdevice.transport_protocol.initialization(Mode.USER_DEVICE)
+            await self.userdevice.transport_protocol.initialization(Mode.USER_DEVICE)
         except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
             return
         self.next_step()
 
         # Test step 3
         try:
-            await userdevice.transport_protocol.driver.wait_for_connection()
+            await self.userdevice.transport_protocol.driver.wait_for_connection()
         except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
             return
         self.next_step()
 
@@ -109,21 +106,21 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
 
         # Test step 5
         try:
-            await userdevice.transport_protocol.driver.handle_GATT_layer_setup()
+            await self.userdevice.transport_protocol.driver.handle_GATT_layer_setup()
         except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
             return
         self.next_step()
 
         # Test step 6
         try:
             primary_service = (
-                await userdevice.transport_protocol.driver.handle_GATT_layer_get_primary_service()
+                await self.userdevice.transport_protocol.driver.handle_GATT_layer_get_primary_service()
             )
         except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
             return
         self.next_step()
 
@@ -139,7 +136,7 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         # Test step 10
         try:
             spsm, versions = (
-                await userdevice.transport_protocol.driver.handle_GATT_layer_read_characteristic(
+                await self.userdevice.transport_protocol.driver.handle_GATT_layer_read_characteristic(
                     primary_service
                 )
             )
@@ -147,8 +144,8 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
             if bytes.fromhex("0100") not in versions:
                 self.mark_step_failure("Version 0x0100 not found")
         except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
             return
         self.next_step()
 
@@ -157,12 +154,12 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
 
         # Test step 12
         try:
-            await userdevice.transport_protocol.driver.handle_GATT_layer_write_characteristic(
+            await self.userdevice.transport_protocol.driver.handle_GATT_layer_write_characteristic(
                 primary_service
             )
         except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
             return
         self.next_step()
 
@@ -171,3 +168,8 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
 
     async def cleanup(self) -> None:
         logger.info("RD_BLE_STDTXN_10 Cleanup")
+        try:
+            await self.userdevice.transaction_termination()
+        except NoDeviceConnectedError:
+            # it is possible to end the test before any device is connected
+            pass

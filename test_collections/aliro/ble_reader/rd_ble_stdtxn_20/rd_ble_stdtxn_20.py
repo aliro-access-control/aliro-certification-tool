@@ -5,6 +5,7 @@ from aliro_actuator.access_protocol.apdu import INS
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.user_device import UserDevice
 from aliro_actuator.transport_protocol import Mode
+from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
@@ -56,6 +57,15 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
+        access_credential = self.reader_access_credential()
+        group_resolving_key = self.reader_group_resolving_key()
+        self.userdevice = UserDevice(
+            transport_protocol=TransportProtocol.BLE_UWB,
+            access_credentials=[access_credential],
+            mailbox=0x20,
+            group_resolving_key=group_resolving_key,
+            ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
+        )
 
     async def execute(self) -> None:
         await self.send_prompt_request(
@@ -65,116 +75,108 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
             )
         )
         try:
-            access_credential = self.reader_access_credential()
-            group_resolving_key = self.reader_group_resolving_key()
-            userdevice = UserDevice(
-                transport_protocol=TransportProtocol.BLE_UWB,
-                access_credentials=[access_credential],
-                mailbox=0x20,
-                group_resolving_key=group_resolving_key,
-            )
             await self.send_prompt_request(
                 OptionsSelectPromptRequest(
                     prompt="Set Reader Device Under Test in BLE advertising mode",
                     options={"OK": 1},
                 )
             )
-            await userdevice.transaction_initiation()  # up to RATS command/ ATS response
-            userdevice.start_new_session(
-                ephemeral_key=KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK),
-            )
+            await self.userdevice.setup_connection()
+            self.start_new_session()
         except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
             return
 
         # Test step 1
         try:
-            await userdevice.send_initiate_access_protocol_notification()
+            await self.userdevice.send_initiate_access_protocol_notification()
         except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
             return
         self.next_step()
 
         # Test step 2
         try:
-            cmds_auth0 = await userdevice.wait_for_command(expected_command=INS.AUTH0)
+            cmds_auth0 = await self.userdevice.wait_for_command(
+                expected_command=INS.AUTH0
+            )
         except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
             return
         self.next_step()
 
         # Test step 3
         try:
-            await userdevice.handle_auth0(cmds_auth0)
+            await self.userdevice.handle_auth0(cmds_auth0)
         except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
             return
         self.next_step()
 
         # Test step 4
         try:
-            cmds_auth1 = await userdevice.wait_for_command(
+            cmds_auth1 = await self.userdevice.wait_for_command(
                 expected_command=[INS.AUTH1, INS.LOAD_CERT]
             )
         except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
             return
         self.next_step()
 
         # Test step 5
         if cmds_auth1.ins == INS.LOAD_CERT:
             try:
-                await userdevice.handle_load_cert(cmds_auth1)
+                await self.userdevice.handle_load_cert(cmds_auth1)
             except Exception as error:
-                "{}: {}".format(error.__class__.__name__, repr(error))
-                self.mark_step_failure(error)
+                error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+                self.mark_step_failure(error_str)
                 return
         self.next_step()
 
         # Test step 6
         if cmds_auth1.ins == INS.LOAD_CERT:
             try:
-                cmds_auth1 = await userdevice.wait_for_command(
+                cmds_auth1 = await self.userdevice.wait_for_command(
                     expected_command=INS.AUTH1
                 )
             except Exception as error:
-                "{}: {}".format(error.__class__.__name__, repr(error))
-                self.mark_step_failure(error)
+                error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+                self.mark_step_failure(error_str)
                 return
         self.next_step()
 
         # Test step 7
         try:
-            await userdevice.handle_auth1(cmds_auth1)
+            await self.userdevice.handle_auth1(cmds_auth1)
         except Exception as error:
             "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
+            self.mark_step_failure(error_str)
             return
         self.next_step()
 
         # Test step 8
         try:
-            cmds_exchange = await userdevice.wait_for_command(
+            cmds_exchange = await self.userdevice.wait_for_command(
                 expected_command=INS.EXCHANGE,
-                encryption=userdevice.session.encryption,
+                encryption=self.userdevice.session.encryption,
             )
         except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
             return
         self.next_step()
 
         # Test step 9
         try:
-            await userdevice.handle_exchange(cmds_exchange)
+            await self.userdevice.handle_exchange(cmds_exchange)
         except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
             return
         self.next_step()
 
@@ -192,3 +194,8 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
 
     async def cleanup(self) -> None:
         logger.info("RD_BLE_STDTXN_20 Cleanup")
+        try:
+            await self.userdevice.transaction_termination()
+        except NoDeviceConnectedError:
+            # it is possible to end the test before any device is connected
+            pass
