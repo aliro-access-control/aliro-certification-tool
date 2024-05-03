@@ -144,7 +144,7 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             ble_version = await self.reader.transport_protocol.driver.wait_for_write()
             logger.info(
-                "Checking ble version requested by User Device: 0x{:04x}".format(
+                "Checking AC BLE UWB Protocol Version requested by User Device: 0x{:04x}".format(
                     ble_version
                 )
             )
@@ -154,6 +154,8 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
                         ble_version, self.BLE_UWB_VERSION
                     )
                 )
+            else:
+                logger.info("AC BLE UWB Protocol Version is valid!")
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
