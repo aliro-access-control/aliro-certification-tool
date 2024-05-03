@@ -115,7 +115,7 @@ class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         # Also initializes reader storage and handles cryptogram checking
         try:
             await self.reader.handle_auth0(
-                transaction_type=Transaction.FAST,
+                transaction_type=Transaction.STANDARD,
                 transaction_code=TransactionCode.USER_DEVICE,
             )
         except (AccessProtocolError, InvalidResponseError) as error:
@@ -129,8 +129,8 @@ class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test Step 5
         try:
-            await self.reader.handle_control_flow(
-                success=True,
+            await self.reader.handle_auth1(
+                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
