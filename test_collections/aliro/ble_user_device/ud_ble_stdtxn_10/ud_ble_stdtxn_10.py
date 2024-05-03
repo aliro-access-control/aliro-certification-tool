@@ -29,6 +29,8 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
     transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
     group_resolving_key = 16 * bytes.fromhex("00")
 
+    BLE_UWB_VERSION = 0x0100
+
     @classmethod
     def pics(cls) -> set[str]:
         return set(
@@ -104,7 +106,7 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 3
         try:
-            await self.reader.transport_protocol.wait_for_connection()
+            await self.reader.transport_protocol.driver.wait_for_connection()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -139,6 +141,23 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 13
+        try:
+            ble_version = await self.reader.driver.wait_for_write()
+            logger.info(
+                "Checking ble version requested by User Device: 0x{:04x}".format(
+                    ble_version
+                )
+            )
+            if ble_version != self.BLE_UWB_VERSION:
+                self.mark_step_failure(
+                    "Invalid AC BLE UWB Protocol Version: 0x{:04x}, expected 0x{:04x}".format(
+                        ble_version, self.BLE_UWB_VERSION
+                    )
+                )
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
         self.next_step()
 
     async def cleanup(self) -> None:
