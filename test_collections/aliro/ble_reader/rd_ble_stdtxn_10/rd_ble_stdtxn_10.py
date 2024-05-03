@@ -57,12 +57,13 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
     async def setup(self) -> None:
         logger.info("This is a test case setup")
         access_credential = self.reader_access_credential()
-        group_resolving_key = self.reader_group_resolving_key()
+        self.access_credential_list = [access_credential]
+        self.group_resolving_key = self.reader_group_resolving_key()
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.BLE_UWB,
-            access_credentials=[access_credential],
+            access_credentials=self.access_credential_list,
             mailbox=0x20,
-            group_resolving_key=group_resolving_key,
+            group_resolving_key=self.group_resolving_key,
         )
 
     async def execute(self) -> None:
@@ -85,7 +86,14 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
                     options={"OK": 1},
                 )
             )
-            await self.userdevice.transport_protocol.initialization(Mode.USER_DEVICE)
+            reader_group_list = []
+            for access_credential in self.access_credential_list:
+                reader_group_list.extend(access_credential.get_all_reader_id())
+            await self.userdevice.transport_protocol.initialization(
+                Mode.USER_DEVICE,
+                group_resolving_key=self.group_resolving_key,
+                reader_group_identifier_list=reader_group_list,
+            )
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
