@@ -142,7 +142,7 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 13
         try:
-            ble_version = await self.reader.driver.wait_for_write()
+            ble_version = await self.reader.transport_protocol.driver.wait_for_write()
             logger.info(
                 "Checking ble version requested by User Device: 0x{:04x}".format(
                     ble_version
