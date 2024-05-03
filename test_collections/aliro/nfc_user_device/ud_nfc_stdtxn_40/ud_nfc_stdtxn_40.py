@@ -49,19 +49,15 @@ class UD_NFC_STDTXN_40(AliroUserDeviceTestCase, UserPromptSupport):
         self.test_steps = [
             TestStep("Step1: Initialization"),
             TestStep("Step2: Set to polling mode"),
-            TestStep("Step3: Set the User Device UT"),
-            TestStep("Step4: Send/Receive Select command/response"),
-            TestStep("Step5: Send/Receive AUTH0 command/response"),
-            TestStep("Step6: Send/Receive LOAD_CERT command/response"),
-            TestStep("Step7: Send/Receive AUTH1 command/response"),
-            TestStep("Step8: Send/Receive CONTROL_FLOW command/response"),
+            TestStep("Step3: Transaction initiation"),
+            TestStep("Step4: Send/Receive AUTH0 command/response"),
+            TestStep("Step5: Send/Receive LOAD_CERT command/response"),
+            TestStep("Step6: Send/Receive AUTH1 command/response"),
+            TestStep("Step7: Send/Receive CONTROL_FLOW command/response"),
         ]
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
-
-    async def execute(self) -> None:
-        # Test step 1
         # load parameters from project config
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
@@ -69,13 +65,19 @@ class UD_NFC_STDTXN_40(AliroUserDeviceTestCase, UserPromptSupport):
         cert = self.th_reader_certificate()
 
         # Initialize Aliro NFC Reader
-        reader = Reader(
+        self.reader = Reader(
             transport_protocol=TransportProtocol.NFC,
             reader_group_identifier=group_id,
             reader_group_sub_identifier=sub_group_id,
             reader_key=key,
             reader_cert=cert,
+            transaction_identifier_list=[self.transaction_identifier],
+            ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
         )
+
+    async def execute(self) -> None:
+        # Test step 1
+        # Done in setup
         self.next_step()
 
         # Test step 2
@@ -88,57 +90,52 @@ class UD_NFC_STDTXN_40(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 3
-        reader.transaction_initiation()  # up to RATS command/ ATS response
-        reader.start_new_session(
-            transaction_identifier=self.transaction_identifier,
-            ephemeral_key=KeyPair(self.reader_ePrivK, self.reader_ePuBK),
-        )
+        try:
+            self.reader.transaction_initiation()  # including select
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
         self.next_step()
 
         # Test step 4
         try:
-            reader.handle_select(aid=EXPEDITED_PHASE_AID)
+            self.reader.handle_auth0(
+                transaction_type=Transaction.STANDARD,
+                transaction_code=TransactionCode.USER_DEVICE,
+            )
         except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
         self.next_step()
 
         # Test step 5
         try:
-            reader.handle_auth0(
-                transaction_type=Transaction.STANDARD,
-                transaction_code=TransactionCode.USER_DEVICE,
-            )
+            self.reader.handle_load_cert()
         except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
         self.next_step()
 
         # Test step 6
         try:
-            reader.handle_load_cert()
+            self.reader.handle_auth1(
+                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
+            )
         except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
         self.next_step()
 
         # Test step 7
         try:
-            reader.handle_auth1(expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY)
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(error)
-            return
-        self.next_step()
-
-        # Test step 8
-        try:
-            reader.handle_control_flow(
+            self.reader.handle_control_flow(
                 success=True,
             )
         except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_NFC_STDTXN_30 Cleanup")
+        logger.info("UD_NFC_STDTXN_40 Cleanup")
+        await self.reader.transaction_termination()
