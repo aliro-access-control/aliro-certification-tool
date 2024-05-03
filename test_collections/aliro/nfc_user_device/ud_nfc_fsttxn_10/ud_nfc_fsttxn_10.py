@@ -86,7 +86,8 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
             )
         )
 
-        reader.transaction_initiation()  # up to RATS command/ ATS response
+        # Test Step 3
+        await reader.transaction_initiation()  # up to RATS command/ ATS response
         reader.start_new_session(
             transaction_identifier=self.transaction_identifier,
             ephemeral_key=KeyPair(self.reader_ePrivK, self.reader_ePuBK),
@@ -95,7 +96,7 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 3
         try:
-            reader.handle_select(aid=EXPEDITED_PHASE_AID)
+            await reader.handle_select(aid=EXPEDITED_PHASE_AID)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(error)
             return
@@ -155,7 +156,7 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test Step 9
         try:
-            reader.handle_auth0(
+            await reader.handle_auth0(
                 transaction_type=Transaction.FAST,
                 transaction_code=TransactionCode.USER_DEVICE,
             )

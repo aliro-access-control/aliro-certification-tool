@@ -87,36 +87,47 @@ class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
                 prompt="Tap User Device on the Test Harness NFC", options={"OK": 1}
             )
         )
+        self.next_step()
 
-        reader.transaction_initiation()  # up to RATS command/ ATS response
+        # Test Step 3
+        await reader.transaction_initiation()
         reader.start_new_session(
             transaction_identifier=self.transaction_identifier,
             ephemeral_key=KeyPair(self.reader_ePrivK, self.reader_ePuBK),
         )
         self.next_step()
 
-        # Test step 3
+        # Test step 4
+        # Select response is expected
         try:
-            reader.handle_select(aid=EXPEDITED_PHASE_AID)
+            await reader.handle_select(aid=EXPEDITED_PHASE_AID)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(error)
             return
         self.next_step()
 
-        # Test step 4
+        # Test Step 5
+        # Handles AUTH0 response and transaction type is fast.
+        # Also initializes reader storage and handles cryptogram checking
         try:
-            reader.handle_auth0(
-                transaction_type=Transaction.STANDARD,
+            await reader.handle_auth0(
+                transaction_type=Transaction.FAST,
                 transaction_code=TransactionCode.USER_DEVICE,
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(error)
             return
+        except CryptogramNotFound as error:
+            # Handle Cryptogram not Found error
+            self.mark_step_failure(error)
+            return
         self.next_step()
 
-        # Test step 5
+        # Test Step 6
         try:
-            reader.handle_auth1(expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY)
+            await reader.handle_control_flow(
+                success=True,
+            )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(error)
             return
