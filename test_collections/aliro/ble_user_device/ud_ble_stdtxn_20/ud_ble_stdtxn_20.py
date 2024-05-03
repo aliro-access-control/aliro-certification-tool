@@ -89,7 +89,7 @@ class UD_BLE_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
                 )
             )
             await self.reader.setup_connection()
-            self.start_new_session()
+            self.reader.start_new_session()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
