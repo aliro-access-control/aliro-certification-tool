@@ -231,7 +231,8 @@ For example: http://192.168.2.9
         "test_parameters": {
             "dut_reader_public_key":"043928f322019d4757893bde6a0fe5e13e3e537b9ca0f549c0bd2f40f79060252a0a4f291192157a95cb6eb202759428c00cd834998c5d0eab192ee8873c5d34ee",
             "dut_reader_group_identifier":"00113344667799AA00113344667799AA",
-            "dut_reader_group_sub_identifier":"113344667799AA00113344667799AA00"
+            "dut_reader_group_sub_identifier":"113344667799AA00113344667799AA00",
+            "dut_reader_group_resolving_key":"00000000000000000000000000000000"
         }
         ```
         Full description of [Test Parameters](#test-parameters) in a section later.
@@ -275,6 +276,9 @@ You can edit test parameters for a Project during project creation, but you can 
 * `dut_reader_group_sub_identifier` Sub-group Identifier for Reader DUT
   * Supported Format: 
     * HEX string
+* `dut_reader_group_resolving_key` Group resolving key for Reader DUT
+  * Supported Format: 
+    * HEX string
 * `th_endpoint_private_key` Private key for the User Endpoint, simulated by the tool. 
   * Supported Format:
     * DER encoded HEX string
@@ -303,6 +307,13 @@ You can edit test parameters for a Project during project creation, but you can 
 * `th_reader_sub_group_identifier` Sub-group Identifier the Reader, simulated by the tool.
   * Supported Format: 
     * HEX string
+* `th_reader_group_resolving_key` Group resolving key, simulated by the tool.
+  * Supported Format: 
+    * HEX string
+* `th_reader_spsm` spsm, simulated by the tool.
+  * Supported Format: 
+    * HEX string
+
 
 # Updating the Tool
 
