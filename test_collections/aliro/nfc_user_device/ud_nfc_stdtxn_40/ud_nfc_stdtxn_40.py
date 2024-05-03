@@ -91,7 +91,7 @@ class UD_NFC_STDTXN_40(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 3
         try:
-            self.reader.transaction_initiation()  # including select
+            await self.reader.transaction_initiation()  # including select
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
@@ -99,7 +99,7 @@ class UD_NFC_STDTXN_40(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 4
         try:
-            self.reader.handle_auth0(
+            await self.reader.handle_auth0(
                 transaction_type=Transaction.STANDARD,
                 transaction_code=TransactionCode.USER_DEVICE,
             )
@@ -110,7 +110,7 @@ class UD_NFC_STDTXN_40(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 5
         try:
-            self.reader.handle_load_cert()
+            await self.reader.handle_load_cert()
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
@@ -118,7 +118,7 @@ class UD_NFC_STDTXN_40(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 6
         try:
-            self.reader.handle_auth1(
+            await self.reader.handle_auth1(
                 expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
             )
         except (AccessProtocolError, InvalidResponseError) as error:
@@ -128,7 +128,7 @@ class UD_NFC_STDTXN_40(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 7
         try:
-            self.reader.handle_control_flow(
+            await self.reader.handle_control_flow(
                 success=True,
             )
         except (AccessProtocolError, InvalidResponseError) as error:
