@@ -154,8 +154,8 @@ class RD_NFC_FSTTXN_30(AliroReaderTestCase, UserPromptSupport):
         await self.send_prompt_request(
             OptionsSelectPromptRequest(
                 prompt="Remove Test Harness, set Reader Device Under Test in "
-                "NFC polling mode for fast transaction, and bring Test Harness"
-                " above Reader Device Under Test",
+                "NFC polling mode for fast transaction, \r\nand bring Test "
+                "Harness above Reader Device Under Test",
                 options={"OK": 1},
             )
         )
