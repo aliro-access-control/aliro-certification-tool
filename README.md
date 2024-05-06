@@ -68,10 +68,11 @@ Following this section should take a couple hours, mostly depending on internet 
 > Start this with the Raspberry Pi disconnected from power.
 
 1. Attach OM27160B1EVK to Raspberry Pi
-2. Insert micro SD-card
-3. [Optional] Attach ethernet cable
-4. [Optional] Connect monitor and keyboard
-5. Power on raspberry Pi
+2. Connect the Murata LBUA0VG2BP-EVK-P to the Raspberry Pi using the micro usb cable.
+3. Insert micro SD-card
+4. [Optional] Attach ethernet cable
+5. [Optional] Connect monitor and keyboard
+6. Power on raspberry Pi
 
 ## C - Connecting to Raspberry Pi
 There's a couple different ways you can connect to the Raspberry Pi,
