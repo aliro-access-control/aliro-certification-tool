@@ -154,10 +154,11 @@ This is mostly a backup, if you need to configure network or find IP address.
 
 > [!TIP]
 > You can check out a specific release. Eg. `release/test_event1-2024`
->       ```sh
->       cd  ~/aliro-certification-tool
->       git checkout release/test_event1-2024 
->       ```
+> 
+>   ```sh
+>   cd  ~/aliro-certification-tool  
+>   git checkout release/test_event1-2024  
+>   ```
 
 6. Auto install Aliro Certification tool    
    * Run auto installer script
