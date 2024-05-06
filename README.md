@@ -16,6 +16,8 @@ Following this section should take a couple hours, mostly depending on internet 
 * OM27160B1EVK (NFC interface)
 * Ethernet network cable (UDP cable) (optional)
 * LAN/Wi-Fi Network with internet access
+* Murata LBUA0VG2BP-EVK-P (BLE/UWB interface)
+* Micro USB male to USB A male cable (for connecting the Murata)
 
 > [!TIP] 
 > It is possible to setup the TH entirely over SSH. Alternatively, access the Raspberry Pi directly using:
