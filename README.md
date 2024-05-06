@@ -25,6 +25,9 @@ Following this section should take a couple hours, mostly depending on internet 
 > * pc monitor
 > * usb keyboard
 
+> [!IMPORTANT]
+> See https://github.com/csa-access-control/aliro-actuator/tree/main/third_party/murata_fw for instructions on updating the murata FW. 
+
 
 ## A - Installing Ubuntu on SD-Card
 
