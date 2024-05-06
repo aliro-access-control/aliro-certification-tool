@@ -35,10 +35,10 @@ Following this section should take a couple hours, mostly depending on internet 
 3. CHOOSE OS under "Operating System"
     1. Select "Other general-purpose OS"
     2. Select "Ubuntu" 
-    3. Select "Ubuntu Server 22.04.3 LTS (64-bit)"
+    3. Select "Ubuntu Server 22.04.3 LTS (64-bit)" or "Ubuntu Server 22.04.4 LTS (64-bit)"
 
 > [!IMPORTANT]
-> You must pick exactly "Ubuntu Server 22.04.3 LTS (64-bit)"
+> You must pick exactly "Ubuntu Server 22.04.3 LTS (64-bit)" or "Ubuntu Server 22.04.4 LTS (64-bit)"
 
 4. CHOOSE STORAGE under "Storage"
     * Insert the micro sd card, and select in the list.
