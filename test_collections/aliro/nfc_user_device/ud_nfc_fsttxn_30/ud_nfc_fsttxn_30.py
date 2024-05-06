@@ -147,6 +147,7 @@ class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
             return
         self.next_step()
 
+        await self.reader.transaction_termination()
         await self.send_prompt_request(
             OptionsSelectPromptRequest(
                 prompt="Remove and Tap User Device again on the Test Harness NFC",
@@ -155,7 +156,11 @@ class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         )
 
         # Test Step 7
-        await self.reader.transaction_initiation()
+        try:
+            await self.reader.transaction_initiation()
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
         self.next_step()
 
         # Test Step 8

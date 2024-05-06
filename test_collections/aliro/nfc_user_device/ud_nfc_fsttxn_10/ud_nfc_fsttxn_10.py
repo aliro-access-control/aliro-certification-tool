@@ -147,7 +147,11 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         )
 
         # Test Step 7
-        await self.reader.transaction_initiation()  # including select
+        try:
+            await self.reader.transaction_initiation()  # including select
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
         self.next_step()
 
         # Test Step 8
