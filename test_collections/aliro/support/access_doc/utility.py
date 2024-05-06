@@ -22,7 +22,7 @@ class Utility(object):
 
     ############################################################################
     @staticmethod
-    def time_val_to_seconds(val) -> int:
+    def time_val_to_seconds(val : int | float | datetime.date | datetime.datetime) -> int:
         '''Convert the date / time to seconds since Unix epoch.'''
         assert isinstance(val, (int, float, datetime.date, datetime.datetime))
         if isinstance(val, (int, float)):
@@ -64,7 +64,7 @@ class Utility(object):
 
     ############################################################################
     @staticmethod
-    def collection_bytes_to_hex_str(collection) -> None:
+    def collection_bytes_to_hex_str(collection : dict | list) -> None:
         '''Recursively convert all arrays of bytes within a collection to hex strings.'''
         if isinstance(collection, dict):
             for key in collection.keys():

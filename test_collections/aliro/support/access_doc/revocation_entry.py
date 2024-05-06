@@ -15,20 +15,23 @@
 #
 
 import cbor2
+import datetime
 import json
 
 from utility import Utility
 
 ################################################################################
 class RevocationEntry(object):
+    '''Aliro Revocation Data Entry.'''
+
     PUBLIC_KEY_HASH_LABEL = 0
-    '''The label for the Public Key Hash field.'''
+    '''The label for the optional Public Key Hash field.'''
 
     ID_LABEL = 1
-    '''The label for the ID field.'''
+    '''The label for the optional ID field.'''
 
     EXPIRY_TIME_LABEL = 2
-    '''The label for the Expiry Time field.'''
+    '''The label for the optional Expiry Time field.'''
 
 
     ID_LENGTH_MIN = 0
@@ -36,10 +39,6 @@ class RevocationEntry(object):
 
     ID_LENGTH_MAX = 16
     '''The maximum ID Length.'''
-
-
-    TIME_BYTE_COUNT = 4
-    '''The number of bytes to represent time in seconds since the Unix epoch.'''
 
     ############################################################################
     def __init__(self):
@@ -55,7 +54,7 @@ class RevocationEntry(object):
         return self.__public_key_hash
 
     @public_key_hash.setter
-    def public_key_hash(self, val : bytearray) -> None:
+    def public_key_hash(self, val : bytes | bytearray) -> None:
         '''Set the Public Key Hash as an array of bytes.'''
         assert(isinstance(val, (bytes, bytearray)))
         self.__public_key_hash = bytearray(val)
@@ -67,7 +66,7 @@ class RevocationEntry(object):
         return self.__id
 
     @id.setter
-    def id(self, val : bytearray) -> None:
+    def id(self, val : bytes | bytearray) -> None:
         '''Set the ID as an array of bytes.'''
         assert(isinstance(val, (bytes, bytearray)))
         self.__id = bytearray(val)
@@ -79,12 +78,14 @@ class RevocationEntry(object):
         return self.__expiry_time
 
     @expiry_time.setter
-    def expiry_time(self, val) -> None:
+    def expiry_time(self, val : int | float | datetime.date | datetime.datetime) -> None:
         '''Set the expiry date / time in seconds since Unix epoch.'''
         self.__expiry_time = Utility.time_val_to_seconds(val)
 
     ############################################################################
     def is_valid(self) -> bool:
+        '''Returns True if the RevocationEntry contains valid fields,
+           otherwise returns False.'''
         # Verify the Public Key Hash.
         if (self.public_key_hash is not None):
             if not((type(self.public_key_hash) is bytes) or (type(self.public_key_hash) is bytearray)):
@@ -130,7 +131,7 @@ class RevocationEntry(object):
         return revocation_entry_dict
 
     ############################################################################
-    def to_cbor(self):
+    def to_cbor(self) -> bytes:
         '''Convert the RevocationEntry to CBOR.'''
         revocation_entry_dict = self.to_dict()
         if revocation_entry_dict is None:
@@ -138,7 +139,7 @@ class RevocationEntry(object):
         return cbor2.dumps(revocation_entry_dict)
 
     ############################################################################
-    def to_json(self):
+    def to_json(self) -> str:
         '''Convert the RevocationEntry to JSON.'''
         revocation_entry_dict = self.to_dict()
         if revocation_entry_dict is None:
@@ -168,8 +169,9 @@ class RevocationEntry(object):
 
         # Encode the Expiry Time.
         if (self.expiry_time > 0):
+            expiry_time_bytes = Utility.uint_to_bytes(self.expiry_time)
             ba.append(RevocationEntry.EXPIRY_TIME_LABEL)
-            ba.append(RevocationEntry.TIME_BYTE_COUNT)
-            ba.extend(self.expiry_time.to_bytes(RevocationEntry.TIME_BYTE_COUNT, byteorder=Utility.BYTE_ORDER))
+            ba.append(len(expiry_time_bytes))
+            ba.extend(expiry_time_bytes)
 
         return ba

@@ -23,7 +23,7 @@ from .access_rule import AccessRule
 
 from .extension_data import ExtensionData
 
-from .access_extension import Criticality_Bits
+from .access_extension import CriticalityBits
 from .access_extension import AccessExtension
 
 from .non_access_extension import NonAccessExtension

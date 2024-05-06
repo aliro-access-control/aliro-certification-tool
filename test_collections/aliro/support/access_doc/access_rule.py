@@ -57,15 +57,16 @@ class AccessRuleScheduleIdsBits(IntFlag):
 
 ################################################################################
 class AccessRule(object):
+    '''Aliro Access Rule.'''
 
     CAPABILITIES_LABEL = 0
-    '''The label for the Capabilities field.'''
+    '''The label for the optional Capabilities field.'''
 
     ALLOW_SCHEDULE_IDS_LABEL = 1
-    '''The label for the Allow Schedule IDs field.'''
+    '''The label for the optional Allow Schedule IDs field.'''
 
     DENY_SCHEDULE_IDS_LABEL = 2
-    '''The label for the Deny Schedule IDs field.'''
+    '''The label for the optional Deny Schedule IDs field.'''
 
 
     SCHEDULE_ID_MIN = AccessRuleScheduleIds.SCHEDULE_1
@@ -149,7 +150,6 @@ class AccessRule(object):
     def is_valid(self) -> bool:
         '''Returns True if the access rule fields contains valid values,
         otherwise returns False.'''
-
         # Verify the capabilities.
         if (type(self.capabilities) is not int) or (self.capabilities <= 0) or ((self.capabilities & ~(int(AccessRuleCapabilitiesBits.ALL_CAPABILITIES))) != 0):
             return False
@@ -178,7 +178,8 @@ class AccessRule(object):
         access_rule_dict = {}
 
         # Encode the Capabilities.
-        access_rule_dict[AccessRule.CAPABILITIES_LABEL] = self.capabilities
+        if (self.capabilities != 0):
+            access_rule_dict[AccessRule.CAPABILITIES_LABEL] = self.capabilities
 
         # Encode the Allow Schedule IDs.
         allow_schedule_id_bits = self.allow_schedule_id_bits
@@ -218,10 +219,11 @@ class AccessRule(object):
         ba = bytearray()
 
         # Encode the Capabilities.
-        capabilities_bytes = Utility.uint_to_bytes(self.capabilities)
-        ba.append(AccessRule.CAPABILITIES_LABEL)
-        ba.append(len(capabilities_bytes))
-        ba.extend(capabilities_bytes)
+        if (self.capabilities != 0):
+            capabilities_bytes = Utility.uint_to_bytes(self.capabilities)
+            ba.append(AccessRule.CAPABILITIES_LABEL)
+            ba.append(len(capabilities_bytes))
+            ba.extend(capabilities_bytes)
 
         # Encode the Allow Schedule IDs.
         allow_schedule_id_bits = self.allow_schedule_id_bits

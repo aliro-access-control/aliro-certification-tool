@@ -15,6 +15,7 @@
 #
 
 import cbor2
+import datetime
 import json
 
 from enum import IntFlag
@@ -24,20 +25,29 @@ from utility import Utility
 
 ################################################################################
 class ScheduleFlagBits(IntFlag):
+    '''Aliro Schedule Bit Flags.'''
+
     TIME_IN_UTC = 1 << 0
+    '''
+    When set, then the schedule times are UTC.
+    When not set, then the schedule times are local time.
+    '''
 
 ################################################################################
 class Schedule(object):
+    '''Aliro Schedule.'''
+
     START_TIME_LABEL = 0
+    '''The label for the required Start Time field.'''
+
     END_TIME_LABEL = 1
+    '''The label for the optional End Time field.'''
+
     RECURRENCE_RULE_LABEL = 2
+    '''The label for the optional Recurrence Rule (RRULE) field.'''
+
     FLAGS_LABEL = 3
-
-    FLAGS_BYTE_COUNT = 1
-    '''The size in bytes of the Schedule Flags field.'''
-
-    TIME_BYTE_COUNT = 4
-    '''The number of bytes to represent time in seconds since the Unix epoch.'''
+    '''The label for the required Flags field.'''
 
     ############################################################################
     def __init__(self):
@@ -54,10 +64,10 @@ class Schedule(object):
         return self.__flags
 
     @flags.setter
-    def flags(self, val : int) -> None:
+    def flags(self, val : int | ScheduleFlagBits) -> None:
         '''Set the bit flags.'''
-        assert(isinstance(val, int))
-        self.__flags = val & ((1 << (8 * Schedule.FLAGS_BYTE_COUNT)) - 1)
+        assert(isinstance(val, (int, ScheduleFlagBits)))
+        self.__flags = int(val) & 0xFF # Limit flags to a single byte.
 
     ############################################################################
     @property
@@ -95,7 +105,7 @@ class Schedule(object):
         return self.__end_time
 
     @end_time.setter
-    def end_time(self, val) -> None:
+    def end_time(self, val : int | float | datetime.date | datetime.datetime) -> None:
         '''Set the end date / time in seconds since Unix epoch.'''
         self.__end_time = Utility.time_val_to_seconds(val)
 
@@ -177,16 +187,18 @@ class Schedule(object):
 
         ba = bytearray()
 
-        # Encode the start time.
+        # Encode the Start Time.
+        start_time_time_bytes = Utility.uint_to_bytes(self.start_time)
         ba.append(Schedule.START_TIME_LABEL)
-        ba.append(Schedule.TIME_BYTE_COUNT)
-        ba.extend(self.start_time.to_bytes(Schedule.TIME_BYTE_COUNT, byteorder=Utility.BYTE_ORDER))
+        ba.append(len(start_time_time_bytes))
+        ba.extend(start_time_time_bytes)
 
-        # Encode the end time.
+        # Encode the End Time.
         if self.end_time > 0:
+            end_time_bytes = Utility.uint_to_bytes(self.end_time)
             ba.append(Schedule.END_TIME_LABEL)
-            ba.append(Schedule.TIME_BYTE_COUNT)
-            ba.extend(self.end_time.to_bytes(Schedule.TIME_BYTE_COUNT, byteorder=Utility.BYTE_ORDER))
+            ba.append(len(end_time_bytes))
+            ba.extend(end_time_bytes)
 
         # Encode the recurrence rule.
         if self.rrule.is_valid():
@@ -195,8 +207,9 @@ class Schedule(object):
             ba.extend(self.rrule.to_bytearray())
 
         # Encode the Flags.
+        flags_bytes = Utility.uint_to_bytes(self.flags)
         ba.append(Schedule.FLAGS_LABEL)
-        ba.append(Schedule.FLAGS_BYTE_COUNT)
-        ba.extend(self.flags.to_bytes(Schedule.FLAGS_BYTE_COUNT, byteorder=Utility.BYTE_ORDER))
+        ba.append(len(flags_bytes))
+        ba.extend(flags_bytes)
 
         return ba

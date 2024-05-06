@@ -105,6 +105,7 @@ class RecurrenceRuleMaskBits_Yearly(object):
 
 ################################################################################
 class RecurrenceRule(object):
+    '''Aliro Recurrence Rule.'''
 
     DURATION_BYTE_COUNT = 4
     '''The serialized Duration field size in bytes.'''

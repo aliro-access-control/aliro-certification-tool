@@ -24,26 +24,28 @@ from schedule import Schedule
 from utility import Utility
 
 class AccessData(object):
+    '''Aliro Access Data Element.'''
+
     VERSION_LABEL = 0
-    '''The label for the Version field.'''
+    '''The label for the required Version field.'''
 
     ID_LABEL = 1
-    '''The label for the ID field.'''
+    '''The label for the optional ID field.'''
 
     ACCESS_RULES_LABEL = 2
-    '''The label for the Access Rules field.'''
+    '''The label for the optional Access Rules field.'''
 
     SCHEDULES_LABEL = 3
-    '''The label for the Schedules field.'''
+    '''The label for the optional Schedules field.'''
 
     READER_RULE_IDS_LABEL = 4
-    '''The label for the Reader Rule IDs field.'''
+    '''The label for the optional Reader Rule IDs field.'''
 
     NON_ACCESS_EXTENSIONS_LABEL = 5
-    '''The label for the Non-Access Extensions field.'''
+    '''The label for the optional Non-Access Extensions field.'''
 
     ACCESS_EXTENSIONS_LABEL = 6
-    '''The label for the Access Extensions field.'''
+    '''The label for the optional Access Extensions field.'''
 
 
     ID_LENGTH_MIN = 0
@@ -90,7 +92,7 @@ class AccessData(object):
         return self.__id
 
     @id.setter
-    def id(self, val : bytearray) -> None:
+    def id(self, val : bytes | bytearray) -> None:
         '''Set the ID as an array of bytes.'''
         assert(isinstance(val, (bytes, bytearray)))
         self.__id = bytearray(val)
@@ -129,7 +131,6 @@ class AccessData(object):
     def is_valid(self) -> bool:
         '''Returns True if the AccessData contains valid fields,
            otherwise returns False.'''
-
         # Verify the version.
         if (type(self.version) is not int) or (self.version < 0):
             return False
@@ -236,7 +237,7 @@ class AccessData(object):
         return access_data_dict
 
     ############################################################################
-    def to_cbor(self):
+    def to_cbor(self) -> bytes:
         '''Convert the AccessData to CBOR.'''
         access_data_dict = self.to_dict()
         if access_data_dict is None:
@@ -244,7 +245,7 @@ class AccessData(object):
         return cbor2.dumps(access_data_dict)
 
     ############################################################################
-    def to_json(self):
+    def to_json(self) -> str:
         '''Convert the AccessData to JSON.'''
         access_data_dict = self.to_dict()
         if access_data_dict is None:

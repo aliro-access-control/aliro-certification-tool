@@ -22,14 +22,16 @@ from utility import Utility
 
 ################################################################################
 class NonAccessExtension(object):
+    '''Aliro Non-Access Extension.'''
+
     EXTENSION_ID_LABEL = 0
-    '''The label for the Extension ID field.'''
+    '''The label for the required Extension ID field.'''
 
     VERSION_LABEL = 1
-    '''The label for the Version field.'''
+    '''The label for the required Version field.'''
 
     DATA_LABEL = 2
-    '''The label for the Data field.'''
+    '''The label for the required Data field.'''
 
     ############################################################################
     def __init__(self):
@@ -41,12 +43,12 @@ class NonAccessExtension(object):
     ############################################################################
     @property
     def id(self) -> int:
-        '''Get the Extension ID.'''
+        '''Get the Extension's ID.'''
         return self.__id
 
     @id.setter
     def id(self, val : int) -> None:
-        '''Set the Extension ID.'''
+        '''Set the Extension's ID.'''
         assert(isinstance(val, int))
         assert(val >= 0)
         self.__id = val
@@ -54,12 +56,12 @@ class NonAccessExtension(object):
     ############################################################################
     @property
     def version(self) -> int:
-        '''Get the Version.'''
+        '''Get the Extension's Version.'''
         return self.__version
 
     @version.setter
     def version(self, val : int) -> None:
-        '''Set the Version.'''
+        '''Set the Extension's Version.'''
         assert(isinstance(val, int))
         assert(val >= 0)
         self.__version = val
@@ -67,17 +69,19 @@ class NonAccessExtension(object):
     ############################################################################
     @property
     def data(self) -> ExtensionData:
-        '''Get the Extension Data.'''
+        '''Get the Extension's Data.'''
         return self.__data
 
     @data.setter
     def data(self, val : ExtensionData) -> None:
-        '''Set the Extension Data.'''
+        '''Set the Extension's Data.'''
         assert(isinstance(val, ExtensionData))
         self.__data = val
 
     ############################################################################
     def is_valid(self) -> bool:
+        '''Returns True if the NonAccessExtension contains valid fields,
+           otherwise returns False.'''
         # Verify the ID.
         if (type(self.id) is not int) or (self.id < 0):
             return False
@@ -113,7 +117,7 @@ class NonAccessExtension(object):
         return access_extension_dict
 
     ############################################################################
-    def to_cbor(self):
+    def to_cbor(self) -> bytes:
         '''Convert the NonAccessExtension to CBOR.'''
         access_extension_dict = self.to_dict()
         if access_extension_dict is None:
@@ -121,7 +125,7 @@ class NonAccessExtension(object):
         return cbor2.dumps(access_extension_dict)
 
     ############################################################################
-    def to_json(self):
+    def to_json(self) -> str:
         '''Convert the NonAccessExtension to JSON.'''
         access_extension_dict = self.to_dict()
         if access_extension_dict is None:

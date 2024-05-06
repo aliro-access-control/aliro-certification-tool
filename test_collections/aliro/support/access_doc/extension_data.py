@@ -18,6 +18,7 @@ from abc import ABC, abstractmethod
 
 ################################################################################
 class ExtensionData(ABC):
+    '''Aliro Extension Data abstract base class.'''
 
     ############################################################################
     @abstractmethod

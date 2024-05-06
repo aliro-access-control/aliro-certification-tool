@@ -30,7 +30,7 @@ from recurrence_rule import RecurrenceRuleMaskBits_Dates
 
 class ScheduleConverter(object):
     '''
-    Converts iCalender information to a Schedule.
+    Converts iCalender information to Aliro Schedules.
     '''
 
     ############################################################################
@@ -108,6 +108,7 @@ class ScheduleConverter(object):
     ############################################################################
     @staticmethod
     def __day_str_to_int(day : str) -> int:
+        '''Convert a day value from an iCalendar string to an integer.'''
         day_int = None
         day_str = day[-2:].upper()
 

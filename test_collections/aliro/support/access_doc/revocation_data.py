@@ -25,25 +25,35 @@ from utility import Utility
 
 ################################################################################
 class RevocationChangeMode(IntEnum):
+    '''Aliro Revocation Change Modes.'''
+
     OVERWRITE   = 0
+    '''
+    Erase all existing entries in the Reader's revocation list and then append
+    all new entries to the Reader's revocation list.
+    '''
+
     APPEND      = 1
+    '''Append all new entries to the Reader's existing revocation list.'''
 
 ################################################################################
 class RevocationData(object):
+    '''Aliro Revocation Data.'''
+
     VERSION_LABEL = 0
-    '''The label for the Version field.'''
+    '''The label for the required Version field.'''
 
     CHANGE_MODE_LABEL = 1
-    '''The label for the Change Mode field.'''
+    '''The label for the required Change Mode field.'''
 
     ENTRIES_LABEL = 2
-    '''The label for the Entries field.'''
+    '''The label for the optional Entries field.'''
 
     ENTRIES_TO_REMOVE_LABEL = 3
-    '''The label for the Entries to Remove field.'''
+    '''The label for the optional Entries to Remove field.'''
 
     EXTENSIONS_LABEL = 4
-    '''The label for the Reader Rule IDs field.'''
+    '''The label for the optional Revocation Extensions field.'''
 
     ############################################################################
     def __init__(self):
@@ -74,9 +84,9 @@ class RevocationData(object):
         return self.__change_mode
 
     @change_mode.setter
-    def change_mode(self, val : int) -> None:
+    def change_mode(self, val : int | RevocationChangeMode) -> None:
         '''Set the Change Mode.'''
-        assert(isinstance(val, int))
+        assert(isinstance(val, (int | RevocationChangeMode)))
         assert(val >= 0)
         self.__change_mode = val
 
@@ -102,7 +112,6 @@ class RevocationData(object):
     def is_valid(self) -> bool:
         '''Returns True if the RevocationData contains valid fields,
            otherwise returns False.'''
-
         # Verify the Version.
         if (type(self.version) is not int) or (self.version < 0):
             return False
@@ -171,7 +180,7 @@ class RevocationData(object):
         return revocation_data_dict
 
     ############################################################################
-    def to_cbor(self):
+    def to_cbor(self) -> bytes:
         '''Convert the RevocationData to CBOR.'''
         revocation_data_dict = self.to_dict()
         if revocation_data_dict is None:
@@ -179,7 +188,7 @@ class RevocationData(object):
         return cbor2.dumps(revocation_data_dict)
 
     ############################################################################
-    def to_json(self):
+    def to_json(self) -> str:
         '''Convert the RevocationData to JSON.'''
         revocation_data_dict = self.to_dict()
         if revocation_data_dict is None:
@@ -202,7 +211,7 @@ class RevocationData(object):
         ba.extend(version_bytes)
 
         # Encode the Change Mode.
-        change_mode_bytes = Utility.uint_to_bytes(self.version)
+        change_mode_bytes = Utility.uint_to_bytes(int(self.change_mode))
         ba.append(RevocationData.CHANGE_MODE_LABEL)
         ba.append(len(change_mode_bytes))
         ba.extend(change_mode_bytes)
