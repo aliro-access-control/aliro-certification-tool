@@ -125,7 +125,7 @@ class RevocationEntry(object):
             revocation_entry_dict[RevocationEntry.ID_LABEL] = bytearray(self.id)
 
         # Encode the Expiry Time.
-        if (self.expiry_time > 0):
+        if (self.expiry_time is not None) and (self.expiry_time > 0):
             revocation_entry_dict[RevocationEntry.EXPIRY_TIME_LABEL] = self.expiry_time
 
         return revocation_entry_dict
