@@ -52,7 +52,7 @@ class RevocationData(object):
     ENTRIES_TO_REMOVE_LABEL = 3
     '''The label for the optional Entries to Remove field.'''
 
-    EXTENSIONS_LABEL = 4
+    REVOCATION_EXTENSIONS_LABEL = 4
     '''The label for the optional Revocation Extensions field.'''
 
     ############################################################################
@@ -61,7 +61,7 @@ class RevocationData(object):
         self.__change_mode = RevocationChangeMode.OVERWRITE
         self.__entries : list[RevocationEntry] = []
         self.__entries_to_remove : list[RevocationEntry] = []
-        self.__extensions : list[RevocationExtension] = []
+        self.__revocation_extensions : dict[int, list[RevocationExtension]] = {}
         return
 
     ############################################################################
@@ -104,9 +104,9 @@ class RevocationData(object):
 
     ############################################################################
     @property
-    def extensions(self) -> list[RevocationExtension]:
-        '''Get the list of Extensions.'''
-        return self.__extensions
+    def revocation_extensions(self) -> dict[int, list[RevocationExtension]]:
+        '''Get the collection of Extensions.'''
+        return self.__revocation_extensions
 
     ############################################################################
     def is_valid(self) -> bool:
@@ -132,9 +132,9 @@ class RevocationData(object):
                 if not entry.is_valid():
                     return False
 
-        # Verify the Extensions.
-        if (self.extensions is not None):
-            for revocation_extension in self.extensions:
+        # Verify the Revocation Extensions.
+        if (self.revocation_extensions is not None):
+            for revocation_extension in self.revocation_extensions:
                 if not revocation_extension.is_valid():
                     return False
 
@@ -170,11 +170,15 @@ class RevocationData(object):
             revocation_data_dict[RevocationData.ENTRIES_TO_REMOVE_LABEL] = entries_to_remove_list
 
         # Encode the Revocation Extensions.
-        if (self.extensions is not None) and (len(self.extensions) > 0):
-            revocation_extensions_list = []
-            for revocation_extension in self.extensions:
-                revocation_extensions_list.append(revocation_extension.to_dict())
-            revocation_data_dict[RevocationData.EXTENSIONS_LABEL] = revocation_extensions_list
+        if (self.revocation_extensions is not None) and (len(self.revocation_extensions) > 0):
+            revocation_extensions_dict = {}
+            for vendor_registered_id, extensions in self.revocation_extensions:
+                revocation_extensions_list = []
+                for revocation_extension in extensions:
+                    revocation_extensions_list.append(revocation_extension.to_dict())
+                if (len(revocation_extensions_list) > 0):
+                    revocation_extensions_dict[vendor_registered_id] = revocation_extensions_list
+            revocation_data_dict[RevocationData.REVOCATION_EXTENSIONS_LABEL] = revocation_extensions_dict
 
         return revocation_data_dict
 
@@ -198,48 +202,7 @@ class RevocationData(object):
     ############################################################################
     def to_tlv(self) -> bytearray:
         '''Convert the RevocationData to TLV.'''
-        if not self.is_valid():
+        revocation_data_dict = self.to_dict()
+        if revocation_data_dict is None:
             return None
-
-        ba = bytearray()
-
-        # Encode the Version.
-        version_bytes = Utility.uint_to_bytes(self.version)
-        ba.append(RevocationData.VERSION_LABEL)
-        ba.append(len(version_bytes))
-        ba.extend(version_bytes)
-
-        # Encode the Change Mode.
-        change_mode_bytes = Utility.uint_to_bytes(int(self.change_mode))
-        ba.append(RevocationData.CHANGE_MODE_LABEL)
-        ba.append(len(change_mode_bytes))
-        ba.extend(change_mode_bytes)
-
-        # Encode the Entries.
-        if (self.entries is not None) and (len(self.entries) > 0):
-            entries_tlv = bytearray()
-            for entry in self.entries:
-                entries_tlv.extend(entry.to_tlv())
-            ba.append(RevocationData.ENTRIES_LABEL)
-            ba.append(len(entries_tlv))
-            ba.extend(entries_tlv)
-
-        # Encode the Entries to Remove.
-        if (self.entries_to_remove is not None) and (len(self.entries_to_remove) > 0):
-            entries_to_remove_tlv = bytearray()
-            for entry_to_remove in self.entries_to_remove:
-                entries_to_remove_tlv.extend(entry_to_remove.to_tlv())
-            ba.append(RevocationData.ENTRIES_LABEL)
-            ba.append(len(entries_to_remove_tlv))
-            ba.extend(entries_to_remove_tlv)
-
-        # Encode the Revocation Extensions.
-        if (self.extensions is not None) and (len(self.extensions) > 0):
-            extensions_tlv = bytearray()
-            for revocation_extension in self.extensions:
-                extensions_tlv.extend(revocation_extension.to_tlv())
-            ba.append(RevocationData.EXTENSIONS_LABEL)
-            ba.append(len(extensions_tlv))
-            ba.extend(extensions_tlv)
-
-        return ba
+        return Utility.dict_to_tlv(revocation_data_dict)

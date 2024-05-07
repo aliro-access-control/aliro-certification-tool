@@ -136,27 +136,7 @@ class RevocationExtension(object):
     ############################################################################
     def to_tlv(self) -> bytearray:
         '''Convert the RevocationExtension to TLV.'''
-        if not self.is_valid():
+        revocation_extension_dict = self.to_dict()
+        if revocation_extension_dict is None:
             return None
-
-        ba = bytearray()
-
-        # Encode the Extension ID.
-        extension_id_bytes = Utility.uint_to_bytes(self.id)
-        ba.append(RevocationExtension.EXTENSION_ID_LABEL)
-        ba.append(len(extension_id_bytes))
-        ba.extend(extension_id_bytes)
-
-        # Encode the Version.
-        version_bytes = Utility.uint_to_bytes(self.version)
-        ba.append(RevocationExtension.VERSION_LABEL)
-        ba.append(len(version_bytes))
-        ba.extend(version_bytes)
-
-        # Encode the Data.
-        data_tlv = self.data.to_tlv()
-        ba.append(RevocationExtension.DATA_LABEL)
-        ba.append(len(data_tlv))
-        ba.extend(data_tlv)
-
-        return ba
+        return Utility.dict_to_tlv(revocation_extension_dict)

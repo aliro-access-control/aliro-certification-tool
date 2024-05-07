@@ -79,3 +79,110 @@ class Utility(object):
                     collection[index] = Utility.bytes_to_hex_str(val)
                 if isinstance(val, (list, dict)):
                     Utility.collection_bytes_to_hex_str(val)
+
+    ############################################################################
+    @staticmethod
+    def dict_to_tlv(collection : dict) -> bytearray:
+        '''Recursively convert a dictionary with integer or string keys to TLV.'''
+        assert(isinstance(collection, dict))
+        ba = bytearray()
+        for key in collection.keys():
+            val = collection[key]
+            data = None
+            if isinstance(val, dict):
+                data = Utility.dict_to_tlv(val)
+            elif isinstance(val, list):
+                data = Utility.__list_to_tlv(val)
+            elif isinstance(val, (bytes, bytearray)):
+                data = val
+            elif isinstance(val, int):
+                data = Utility.uint_to_bytes(val)
+            elif isinstance(val, str):
+                data = val.encode()
+            elif isinstance(val, bool):
+                data = bytearray()
+                if val:
+                    data.append(int(1))
+                else:
+                    data.append(int(0))
+            else:
+                # Data type is currently unsupported.
+                return None
+
+            if (data is None):
+                return None
+
+            # Encode the Tag.
+            if isinstance(key, int):
+                ba.extend(Utility.uint_to_bytes(key))
+            elif isinstance(key, str):
+                ba.extend(key.encode())
+            else:
+                return None
+
+            # Encode the Length.
+            data_len = len(data)
+            if (data_len <= 127):
+                ba.append(data_len)
+            else:
+                length_byte_count = 1
+                length_mask = 0xFF
+                while data_len > length_mask:
+                    length_mask = (length_mask << 8) | 0xFF
+                    length_byte_count += 1
+                ba.append(0x80 | length_byte_count)
+                ba.extend(Utility.uint_to_bytes(data_len))
+
+            # Encode the Value.
+            ba.extend(data)
+        return ba
+
+    ############################################################################
+    @staticmethod
+    def __list_to_tlv(collection : list) -> bytearray:
+        '''Recursively convert a list to TLV.'''
+        assert(isinstance(collection, list))
+        ba = bytearray()
+        for index, item in enumerate(collection):
+            if isinstance(item, dict):
+                data = Utility.dict_to_tlv(item)
+            elif isinstance(item, list):
+                data = Utility.__list_to_tlv(item)
+            elif isinstance(item, (bytes, bytearray)):
+                data = item
+            elif isinstance(item, int):
+                data = Utility.uint_to_bytes(item)
+            elif isinstance(item, str):
+                data = item.encode()
+            elif isinstance(item, bool):
+                data = bytearray()
+                if item:
+                    data.append(int(1))
+                else:
+                    data.append(int(0))
+            else:
+                # Data type is currently unsupported.
+                return None
+
+            if (data is None):
+                return None
+
+            # Encode the index as the Tag.
+            ba.extend(Utility.uint_to_bytes(index))
+
+            # Encode the Length.
+            data_len = len(data)
+            if (data_len <= 127):
+                ba.append(data_len)
+            else:
+                length_byte_count = 1
+                length_mask = 0xFF
+                while data_len > length_mask:
+                    length_mask = (length_mask << 8) | 0xFF
+                    length_byte_count += 1
+                ba.append(0x80 | length_byte_count)
+                ba.extend(Utility.uint_to_bytes(data_len))
+
+            # Encode the Value.
+            ba.extend(data)
+        return ba

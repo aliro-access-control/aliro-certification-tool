@@ -150,28 +150,7 @@ class RevocationEntry(object):
     ############################################################################
     def to_tlv(self) -> bytearray:
         '''Convert the RevocationEntry to TLV.'''
-        if not self.is_valid():
+        revocation_entry_dict = self.to_dict()
+        if revocation_entry_dict is None:
             return None
-
-        ba = bytearray()
-
-        # Encode the Public Key Hash.
-        if (self.public_key_hash is not None) and (len(self.public_key_hash) > 0):
-            ba.append(RevocationEntry.PUBLIC_KEY_HASH_LABEL)
-            ba.append(len(self.public_key_hash))
-            ba.extend(self.public_key_hash)
-
-        # Encode the ID.
-        if (self.id is not None) and (len(self.id) > 0):
-            ba.append(RevocationEntry.ID_LABEL)
-            ba.append(len(self.id))
-            ba.extend(self.id)
-
-        # Encode the Expiry Time.
-        if (self.expiry_time > 0):
-            expiry_time_bytes = Utility.uint_to_bytes(self.expiry_time)
-            ba.append(RevocationEntry.EXPIRY_TIME_LABEL)
-            ba.append(len(expiry_time_bytes))
-            ba.extend(expiry_time_bytes)
-
-        return ba
+        return Utility.dict_to_tlv(revocation_entry_dict)

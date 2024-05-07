@@ -168,33 +168,7 @@ class AccessExtension(object):
     ############################################################################
     def to_tlv(self) -> bytearray:
         '''Convert the AccessExtension to TLV.'''
-        if not self.is_valid():
+        access_extension_dict = self.to_dict()
+        if access_extension_dict is None:
             return None
-
-        ba = bytearray()
-
-        # Encode the Criticality.
-        criticality_bytes = Utility.uint_to_bytes(self.__criticality)
-        ba.append(AccessExtension.CRITICALITY_LABEL)
-        ba.append(len(criticality_bytes))
-        ba.extend(criticality_bytes)
-
-        # Encode the Extension ID.
-        extension_id_bytes = Utility.uint_to_bytes(self.id)
-        ba.append(AccessExtension.EXTENSION_ID_LABEL)
-        ba.append(len(extension_id_bytes))
-        ba.extend(extension_id_bytes)
-
-        # Encode the Version.
-        version_bytes = Utility.uint_to_bytes(self.version)
-        ba.append(AccessExtension.VERSION_LABEL)
-        ba.append(len(version_bytes))
-        ba.extend(version_bytes)
-
-        # Encode the Data.
-        data_tlv = self.data.to_tlv()
-        ba.append(AccessExtension.DATA_LABEL)
-        ba.append(len(data_tlv))
-        ba.extend(data_tlv)
-
-        return ba
+        return Utility.dict_to_tlv(access_extension_dict)

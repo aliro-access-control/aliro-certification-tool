@@ -68,8 +68,8 @@ class AccessData(object):
         self.__access_rules : list[AccessRule] = []
         self.__schedules : list[Schedule] = []
         self.__reader_rule_ids : list[int] = []
-        self.__non_access_extensions : list[NonAccessExtension] = []
-        self.__access_extensions : list[AccessExtension] = []
+        self.__non_access_extensions : dict[int, list[NonAccessExtension]] = {}
+        self.__access_extensions : dict[int, list[AccessExtension]] = {}
         return
 
     ############################################################################
@@ -117,13 +117,13 @@ class AccessData(object):
 
     ############################################################################
     @property
-    def non_access_extensions(self) -> list[NonAccessExtension]:
+    def non_access_extensions(self) -> dict[int, list[NonAccessExtension]]:
         '''Get the list of Non-Access Extensions.'''
         return self.__non_access_extensions
 
     ############################################################################
     @property
-    def access_extensions(self) -> list[AccessExtension]:
+    def access_extensions(self) -> dict[int, list[AccessExtension]]:
         '''Get the list of Access Extensions.'''
         return self.__access_extensions
 
@@ -174,15 +174,17 @@ class AccessData(object):
 
         # Verify the non-access extensions.
         if (self.non_access_extensions is not None):
-            for non_access_extension in self.non_access_extensions:
-                if not non_access_extension.is_valid():
-                    return False
+            for vendor_registered_id, extensions in self.non_access_extensions:
+                for non_access_extension in extensions:
+                    if (vendor_registered_id == 0) or (not non_access_extension.is_valid()):
+                        return False
 
         # Verify the access extensions.
         if (self.access_extensions is not None):
-            for access_extension in self.access_extensions:
-                if not access_extension.is_valid():
-                    return False
+            for vendor_registered_id, extensions in self.access_extensions:
+                for access_extension in self.access_extensions:
+                    if (vendor_registered_id == 0) or (not access_extension.is_valid()):
+                        return False
 
         # The access data is valid.
         return True
@@ -222,17 +224,25 @@ class AccessData(object):
 
         # Encode the Non-Access Extensions.
         if (self.non_access_extensions is not None) and (len(self.non_access_extensions) > 0):
-            non_access_extensions_list = []
-            for non_access_extension in self.non_access_extensions:
-                non_access_extensions_list.append(non_access_extension.to_dict())
-            access_data_dict[AccessData.NON_ACCESS_EXTENSIONS_LABEL] = non_access_extensions_list
+            non_access_extensions_dict = {}
+            for vendor_registered_id, extensions in self.non_access_extensions:
+                non_access_extensions_list = []
+                for non_access_extension in extensions:
+                    non_access_extensions_list.append(non_access_extension.to_dict())
+                if (len(non_access_extensions_list) > 0):
+                    non_access_extensions_dict[vendor_registered_id] = non_access_extensions_list
+            access_data_dict[AccessData.NON_ACCESS_EXTENSIONS_LABEL] = non_access_extensions_dict
 
         # Encode the Access Extensions.
         if (self.access_extensions is not None) and (len(self.access_extensions) > 0):
-            access_extensions_list = []
-            for access_extension in self.access_extensions:
-                access_extensions_list.append(access_extension.to_dict())
-            access_data_dict[AccessData.ACCESS_EXTENSIONS_LABEL] = access_extensions_list
+            access_extensions_dict = {}
+            for vendor_registered_id, extensions in self.access_extensions:
+                access_extensions_list = []
+                for access_extension in extensions:
+                    access_extensions_list.append(access_extension.to_dict())
+                if (len(access_extensions_list) > 0):
+                    access_extensions_dict[vendor_registered_id] = access_extensions_list
+            access_data_dict[AccessData.ACCESS_EXTENSIONS_LABEL] = access_extensions_dict
 
         return access_data_dict
 
@@ -256,69 +266,7 @@ class AccessData(object):
     ############################################################################
     def to_tlv(self) -> bytearray:
         '''Convert the AccessData to TLV.'''
-        if not self.is_valid():
+        access_data_dict = self.to_dict()
+        if access_data_dict is None:
             return None
-
-        ba = bytearray()
-
-        # Encode the version.
-        version_bytes = Utility.uint_to_bytes(self.version)
-        ba.append(AccessData.VERSION_LABEL)
-        ba.append(len(version_bytes))
-        ba.extend(version_bytes)
-
-        # Encode the ID.
-        if (self.id is not None) and (len(self.id) > 0):
-            ba.append(AccessData.ID_LABEL)
-            ba.append(len(self.id))
-            ba.extend(self.id)
-
-        # Encode the Access Rules.
-        if (self.access_rules is not None) and (len(self.access_rules) > 0):
-            access_rules_tlv = bytearray()
-            for access_rule in self.access_rules:
-                access_rules_tlv.extend(access_rule.to_tlv())
-            ba.append(AccessData.ACCESS_RULES_LABEL)
-            ba.append(len(access_rules_tlv))
-            ba.extend(access_rules_tlv)
-
-        # Encode the Schedules.
-        if (self.schedules is not None) and (len(self.schedules) > 0):
-            schedules_tlv = bytearray()
-            for schedule in self.schedules:
-                schedules_tlv.extend(schedule.to_tlv())
-            ba.append(AccessData.SCHEDULES_LABEL)
-            ba.append(len(schedules_tlv))
-            ba.extend(schedules_tlv)
-
-        # Encode the Reader Rule IDs.
-        if (self.reader_rule_ids is not None) and (len(self.reader_rule_ids) > 0):
-            reader_rules_tlv = bytearray()
-            for reader_rule_id in self.reader_rule_ids:
-                reader_rule_id_bytes = Utility.uint_to_bytes(reader_rule_id)
-                reader_rules_tlv.append(0) # Label for a single Reader Rule ID.
-                reader_rules_tlv.append(len(reader_rule_id_bytes))
-                reader_rules_tlv.extend(reader_rule_id_bytes)
-            ba.append(AccessData.READER_RULE_IDS_LABEL)
-            ba.append(len(reader_rules_tlv))
-            ba.extend(reader_rules_tlv)
-
-        # Encode the Non-Access Extensions.
-        if (self.non_access_extensions is not None) and (len(self.non_access_extensions) > 0):
-            non_access_extensions_tlv = bytearray()
-            for non_access_extension in self.non_access_extensions:
-                non_access_extensions_tlv.extend(non_access_extension.to_tlv())
-            ba.append(AccessData.NON_ACCESS_EXTENSIONS_LABEL)
-            ba.append(len(non_access_extensions_tlv))
-            ba.extend(non_access_extensions_tlv)
-
-        # Encode the Access Extensions.
-        if (self.access_extensions is not None) and (len(self.access_extensions) > 0):
-            access_extensions_tlv = bytearray()
-            for access_extension in self.access_extensions:
-                access_extensions_tlv.extend(access_extension.to_tlv())
-            ba.append(AccessData.ACCESS_EXTENSIONS_LABEL)
-            ba.append(len(access_extensions_tlv))
-            ba.extend(access_extensions_tlv)
-
-        return ba
+        return Utility.dict_to_tlv(access_data_dict)

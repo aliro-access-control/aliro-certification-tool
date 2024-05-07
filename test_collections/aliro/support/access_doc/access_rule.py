@@ -88,13 +88,13 @@ class AccessRule(object):
         return self.__capabilities
 
     @capabilities.setter
-    def capabilities(self, val : int) -> None:
+    def capabilities(self, val : int | AccessRuleCapabilitiesBits) -> None:
         '''Set the Capabilities bit mask.'''
-        assert(isinstance(val, int))
+        assert(isinstance(val, (int, AccessRuleCapabilitiesBits)))
         if val < 0:
-            self.__capabilities = 0
+            self.__capabilities = int(0)
         elif val > AccessRuleCapabilitiesBits.ALL_CAPABILITIES:
-            self.__capabilities = AccessRuleCapabilitiesBits.ALL_CAPABILITIES
+            self.__capabilities = int(AccessRuleCapabilitiesBits.ALL_CAPABILITIES)
         else:
             self.__capabilities = int(val)
 
@@ -109,12 +109,12 @@ class AccessRule(object):
         '''Get the Allow Schedule IDs bit mask.'''
         mask = 0
         for id in self.__allow_schedule_ids:
-            if (type(id) is int) and (id >= AccessRule.SCHEDULE_ID_MIN) and (id <= AccessRule.SCHEDULE_ID_MAX):
-                mask |= 1 << id
+            if isinstance(id, (int, AccessRuleScheduleIds)) and (id >= AccessRule.SCHEDULE_ID_MIN) and (id <= AccessRule.SCHEDULE_ID_MAX):
+                mask |= 1 << int(id)
         return mask
 
     @allow_schedule_id_bits.setter
-    def allow_schedule_id_bits(self, val : int) -> None:
+    def allow_schedule_id_bits(self, val : int | AccessRuleScheduleIdsBits) -> None:
         '''Set the Allow Schedule IDs bit mask.'''
         assert(isinstance(val, int))
         self.__allow_schedule_ids = []
@@ -133,12 +133,12 @@ class AccessRule(object):
         '''Get the Deny Schedule IDs bit mask.'''
         mask = 0
         for id in self.__deny_schedule_ids:
-            if (type(id) is int) and (id >= AccessRule.SCHEDULE_ID_MIN) and (id <= AccessRule.SCHEDULE_ID_MAX):
-                mask |= 1 << id
+            if isinstance(id, (int, AccessRuleScheduleIds)) and (id >= AccessRule.SCHEDULE_ID_MIN) and (id <= AccessRule.SCHEDULE_ID_MAX):
+                mask |= 1 << int(id)
         return mask
 
     @deny_schedule_id_bits.setter
-    def deny_schedule_id_bits(self, val : int) -> None:
+    def deny_schedule_id_bits(self, val : int | AccessRuleScheduleIdsBits) -> None:
         '''Set the Deny Schedule IDs bit mask.'''
         assert(isinstance(val, int))
         self.__deny_schedule_ids = []
@@ -157,13 +157,13 @@ class AccessRule(object):
         # Verify the Allow Schedule IDs.
         for id in self.allow_schedule_ids:
             # Valid Schedule IDs are a bit number in the range [0..7].
-            if (type(id) is not int) or (id < AccessRule.SCHEDULE_ID_MIN) or (id > AccessRule.SCHEDULE_ID_MAX):
+            if (not isinstance(id, (int, AccessRuleScheduleIds))) or (id < AccessRule.SCHEDULE_ID_MIN) or (id > AccessRule.SCHEDULE_ID_MAX):
                 return False
 
         # Verify the Deny Schedule IDs.
         for id in self.deny_schedule_ids:
             # Valid Schedule IDs are a bit number in the range [0..7].
-            if (type(id) is not int) or (id < AccessRule.SCHEDULE_ID_MIN) or (id > AccessRule.SCHEDULE_ID_MAX):
+            if (not isinstance(id, (int, AccessRuleScheduleIds))) or (id < AccessRule.SCHEDULE_ID_MIN) or (id > AccessRule.SCHEDULE_ID_MAX):
                 return False
 
         # The access rule is valid.
@@ -213,32 +213,7 @@ class AccessRule(object):
     ############################################################################
     def to_tlv(self) -> bytearray:
         '''Convert the AccessRule to TLV.'''
-        if not self.is_valid():
+        access_rule_dict = self.to_dict()
+        if access_rule_dict is None:
             return None
-
-        ba = bytearray()
-
-        # Encode the Capabilities.
-        if (self.capabilities != 0):
-            capabilities_bytes = Utility.uint_to_bytes(self.capabilities)
-            ba.append(AccessRule.CAPABILITIES_LABEL)
-            ba.append(len(capabilities_bytes))
-            ba.extend(capabilities_bytes)
-
-        # Encode the Allow Schedule IDs.
-        allow_schedule_id_bits = self.allow_schedule_id_bits
-        if (allow_schedule_id_bits != 0):
-            allow_schedule_id_bytes = Utility.uint_to_bytes(allow_schedule_id_bits)
-            ba.append(AccessRule.ALLOW_SCHEDULE_IDS_LABEL)
-            ba.append(len(allow_schedule_id_bytes))
-            ba.extend(allow_schedule_id_bytes)
-
-        # Encode the Deny Schedule IDs.
-        deny_schedule_id_bits = self.deny_schedule_id_bits
-        if (deny_schedule_id_bits != 0):
-            deny_schedule_id_bytes = Utility.uint_to_bytes(deny_schedule_id_bits)
-            ba.append(AccessRule.DENY_SCHEDULE_IDS_LABEL)
-            ba.append(len(deny_schedule_id_bytes))
-            ba.extend(deny_schedule_id_bytes)
-
-        return ba
+        return Utility.dict_to_tlv(access_rule_dict)

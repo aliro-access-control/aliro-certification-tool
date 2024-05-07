@@ -16,6 +16,8 @@
 
 from abc import ABC, abstractmethod
 
+from utility import Utility
+
 ################################################################################
 class ExtensionData(ABC):
     '''Aliro Extension Data abstract base class.'''
@@ -34,7 +36,9 @@ class ExtensionData(ABC):
         pass
 
     ############################################################################
-    @abstractmethod
     def to_tlv(self) -> bytearray:
         '''Convert the ExtensionData to TLV.'''
-        pass
+        extension_data_dict = self.to_dict()
+        if extension_data_dict is None:
+            return None
+        return Utility.dict_to_tlv(extension_data_dict)

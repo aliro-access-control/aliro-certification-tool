@@ -182,34 +182,7 @@ class Schedule(object):
     ############################################################################
     def to_tlv(self) -> bytearray:
         '''Convert the Schedule to TLV.'''
-        if not self.is_valid():
+        schedule_dict = self.to_dict()
+        if schedule_dict is None:
             return None
-
-        ba = bytearray()
-
-        # Encode the Start Time.
-        start_time_time_bytes = Utility.uint_to_bytes(self.start_time)
-        ba.append(Schedule.START_TIME_LABEL)
-        ba.append(len(start_time_time_bytes))
-        ba.extend(start_time_time_bytes)
-
-        # Encode the End Time.
-        if self.end_time > 0:
-            end_time_bytes = Utility.uint_to_bytes(self.end_time)
-            ba.append(Schedule.END_TIME_LABEL)
-            ba.append(len(end_time_bytes))
-            ba.extend(end_time_bytes)
-
-        # Encode the recurrence rule.
-        if self.rrule.is_valid():
-            ba.append(Schedule.RECURRENCE_RULE_LABEL)
-            ba.append(RecurrenceRule.BYTE_COUNT)
-            ba.extend(self.rrule.to_bytearray())
-
-        # Encode the Flags.
-        flags_bytes = Utility.uint_to_bytes(self.flags)
-        ba.append(Schedule.FLAGS_LABEL)
-        ba.append(len(flags_bytes))
-        ba.extend(flags_bytes)
-
-        return ba
+        return Utility.dict_to_tlv(schedule_dict)
