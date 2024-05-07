@@ -134,9 +134,10 @@ class RevocationData(object):
 
         # Verify the Revocation Extensions.
         if (self.revocation_extensions is not None):
-            for revocation_extension in self.revocation_extensions:
-                if not revocation_extension.is_valid():
-                    return False
+            for vendor_registered_id, extensions in self.revocation_extensions.items():
+                for revocation_extension in extensions:
+                    if (vendor_registered_id == 0) or (not revocation_extension.is_valid()):
+                        return False
 
         # The revocation data is valid.
         return True
@@ -150,10 +151,10 @@ class RevocationData(object):
         revocation_data_dict = {}
 
         # Encode the Version.
-        revocation_data_dict[RevocationData.VERSION_LABEL] = self.version
+        revocation_data_dict[RevocationData.VERSION_LABEL] = int(self.version)
 
         # Encode the Change mode.
-        revocation_data_dict[RevocationData.CHANGE_MODE_LABEL] = self.change_mode
+        revocation_data_dict[RevocationData.CHANGE_MODE_LABEL] = int(self.change_mode)
 
         # Encode the Entries.
         if (self.entries is not None) and (len(self.entries) > 0):
@@ -172,7 +173,7 @@ class RevocationData(object):
         # Encode the Revocation Extensions.
         if (self.revocation_extensions is not None) and (len(self.revocation_extensions) > 0):
             revocation_extensions_dict = {}
-            for vendor_registered_id, extensions in self.revocation_extensions:
+            for vendor_registered_id, extensions in self.revocation_extensions.items():
                 revocation_extensions_list = []
                 for revocation_extension in extensions:
                     revocation_extensions_list.append(revocation_extension.to_dict())

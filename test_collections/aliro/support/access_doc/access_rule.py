@@ -179,7 +179,7 @@ class AccessRule(object):
 
         # Encode the Capabilities.
         if (self.capabilities != 0):
-            access_rule_dict[AccessRule.CAPABILITIES_LABEL] = self.capabilities
+            access_rule_dict[AccessRule.CAPABILITIES_LABEL] = int(self.capabilities)
 
         # Encode the Allow Schedule IDs.
         allow_schedule_id_bits = self.allow_schedule_id_bits

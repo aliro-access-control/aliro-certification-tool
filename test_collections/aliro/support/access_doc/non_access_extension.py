@@ -106,10 +106,10 @@ class NonAccessExtension(object):
         access_extension_dict = {}
 
         # Encode the Extension ID.
-        access_extension_dict[NonAccessExtension.EXTENSION_ID_LABEL] = self.id
+        access_extension_dict[NonAccessExtension.EXTENSION_ID_LABEL] = int(self.id)
 
         # Encode the Version.
-        access_extension_dict[NonAccessExtension.VERSION_LABEL] = self.version
+        access_extension_dict[NonAccessExtension.VERSION_LABEL] = int(self.version)
 
         # Encode the Data.
         access_extension_dict[NonAccessExtension.DATA_LABEL] = self.data.to_dict()

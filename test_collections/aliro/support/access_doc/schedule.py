@@ -147,18 +147,18 @@ class Schedule(object):
         schedule_dict = {}
 
         # Encode the start time.
-        schedule_dict[Schedule.START_TIME_LABEL] = self.start_time
+        schedule_dict[Schedule.START_TIME_LABEL] = int(self.start_time)
 
         # Encode the end time.
         if self.end_time > 0:
-            schedule_dict[Schedule.END_TIME_LABEL] = self.end_time
+            schedule_dict[Schedule.END_TIME_LABEL] = int(self.end_time)
 
         # Encode the recurrence rule.
         if self.rrule.is_valid():
             schedule_dict[Schedule.RECURRENCE_RULE_LABEL] = self.rrule.to_bytearray()
 
         # Encode the Flags.
-        schedule_dict[Schedule.FLAGS_LABEL] = self.flags
+        schedule_dict[Schedule.FLAGS_LABEL] = int(self.flags)
 
         return schedule_dict
 

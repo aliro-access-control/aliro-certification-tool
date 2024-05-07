@@ -174,15 +174,15 @@ class AccessData(object):
 
         # Verify the non-access extensions.
         if (self.non_access_extensions is not None):
-            for vendor_registered_id, extensions in self.non_access_extensions:
+            for vendor_registered_id, extensions in self.non_access_extensions.items():
                 for non_access_extension in extensions:
                     if (vendor_registered_id == 0) or (not non_access_extension.is_valid()):
                         return False
 
         # Verify the access extensions.
         if (self.access_extensions is not None):
-            for vendor_registered_id, extensions in self.access_extensions:
-                for access_extension in self.access_extensions:
+            for vendor_registered_id, extensions in self.access_extensions.items():
+                for access_extension in extensions:
                     if (vendor_registered_id == 0) or (not access_extension.is_valid()):
                         return False
 
@@ -198,7 +198,7 @@ class AccessData(object):
         access_data_dict = {}
 
         # Encode the Version.
-        access_data_dict[AccessData.VERSION_LABEL] = self.version
+        access_data_dict[AccessData.VERSION_LABEL] = int(self.version)
 
         # Encode the ID.
         if (self.id is not None) and (len(self.id) > 0):
@@ -225,7 +225,7 @@ class AccessData(object):
         # Encode the Non-Access Extensions.
         if (self.non_access_extensions is not None) and (len(self.non_access_extensions) > 0):
             non_access_extensions_dict = {}
-            for vendor_registered_id, extensions in self.non_access_extensions:
+            for vendor_registered_id, extensions in self.non_access_extensions.items():
                 non_access_extensions_list = []
                 for non_access_extension in extensions:
                     non_access_extensions_list.append(non_access_extension.to_dict())
@@ -236,7 +236,7 @@ class AccessData(object):
         # Encode the Access Extensions.
         if (self.access_extensions is not None) and (len(self.access_extensions) > 0):
             access_extensions_dict = {}
-            for vendor_registered_id, extensions in self.access_extensions:
+            for vendor_registered_id, extensions in self.access_extensions.items():
                 access_extensions_list = []
                 for access_extension in extensions:
                     access_extensions_list.append(access_extension.to_dict())

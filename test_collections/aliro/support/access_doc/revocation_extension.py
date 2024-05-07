@@ -106,10 +106,10 @@ class RevocationExtension(object):
         revocation_extension_dict = {}
 
         # Encode the Extension ID.
-        revocation_extension_dict[RevocationExtension.EXTENSION_ID_LABEL] = self.id
+        revocation_extension_dict[RevocationExtension.EXTENSION_ID_LABEL] = int(self.id)
 
         # Encode the Version.
-        revocation_extension_dict[RevocationExtension.VERSION_LABEL] = self.version
+        revocation_extension_dict[RevocationExtension.VERSION_LABEL] = int(self.version)
 
         # Encode the Data.
         revocation_extension_dict[RevocationExtension.DATA_LABEL] = self.data.to_dict()

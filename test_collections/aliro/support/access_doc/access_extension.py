@@ -30,7 +30,7 @@ class CriticalityBits(IntFlag):
 class AccessExtension(object):
     '''Aliro Access Extension.'''
 
-    CRITICALITY_LABEL = 0,
+    CRITICALITY_LABEL = 0
     '''The label for the required Criticality field.'''
 
     EXTENSION_ID_LABEL = 1
@@ -108,7 +108,7 @@ class AccessExtension(object):
         '''Returns True if the AccessExtension contains valid fields,
            otherwise returns False.'''
         # Verify the Criticality.
-        if (type(self.criticality) is not int) or ((self.criticality & ~(int(CriticalityBits.CRITICAL))) != 0):
+        if (not isinstance(self.__criticality, (int, CriticalityBits))) or ((self.__criticality & ~(int(CriticalityBits.CRITICAL))) != 0):
             return False
 
         # Verify the ID.
@@ -135,13 +135,13 @@ class AccessExtension(object):
         access_extension_dict = {}
 
         # Encode the Criticality.
-        access_extension_dict[AccessExtension.CRITICALITY_LABEL] = self.__criticality
+        access_extension_dict[AccessExtension.CRITICALITY_LABEL] = int(self.__criticality)
 
         # Encode the Extension ID.
-        access_extension_dict[AccessExtension.EXTENSION_ID_LABEL] = self.id
+        access_extension_dict[AccessExtension.EXTENSION_ID_LABEL] = int(self.id)
 
         # Encode the Version.
-        access_extension_dict[AccessExtension.VERSION_LABEL] = self.version
+        access_extension_dict[AccessExtension.VERSION_LABEL] = int(self.version)
 
         # Encode the Data.
         access_extension_dict[AccessExtension.DATA_LABEL] = self.data.to_dict()
