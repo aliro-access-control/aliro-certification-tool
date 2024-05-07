@@ -16,12 +16,17 @@ Following this section should take a couple hours, mostly depending on internet 
 * OM27160B1EVK (NFC interface)
 * Ethernet network cable (UDP cable) (optional)
 * LAN/Wi-Fi Network with internet access
+* Murata LBUA0VG2BP-EVK-P (BLE/UWB interface)
+* Micro USB male to USB A male cable (for connecting the Murata)
 
 > [!TIP] 
 > It is possible to setup the TH entirely over SSH. Alternatively, access the Raspberry Pi directly using:
 > * micro HDMI to HDMI cable
 > * pc monitor
 > * usb keyboard
+
+> [!IMPORTANT]
+> See https://github.com/csa-access-control/aliro-actuator/tree/main/third_party/murata_fw for instructions on updating the murata FW. 
 
 
 ## A - Installing Ubuntu on SD-Card
@@ -33,10 +38,10 @@ Following this section should take a couple hours, mostly depending on internet 
 3. CHOOSE OS under "Operating System"
     1. Select "Other general-purpose OS"
     2. Select "Ubuntu" 
-    3. Select "Ubuntu Server 22.04.3 LTS (64-bit)"
+    3. Select "Ubuntu Server 22.04.3 LTS (64-bit)" or "Ubuntu Server 22.04.4 LTS (64-bit)"
 
 > [!IMPORTANT]
-> You must pick exactly "Ubuntu Server 22.04.3 LTS (64-bit)"
+> You must pick exactly "Ubuntu Server 22.04.3 LTS (64-bit)" or "Ubuntu Server 22.04.4 LTS (64-bit)"
 
 4. CHOOSE STORAGE under "Storage"
     * Insert the micro sd card, and select in the list.
@@ -66,10 +71,11 @@ Following this section should take a couple hours, mostly depending on internet 
 > Start this with the Raspberry Pi disconnected from power.
 
 1. Attach OM27160B1EVK to Raspberry Pi
-2. Insert micro SD-card
-3. [Optional] Attach ethernet cable
-4. [Optional] Connect monitor and keyboard
-5. Power on raspberry Pi
+2. Connect the Murata LBUA0VG2BP-EVK-P to the Raspberry Pi using the micro usb cable.
+3. Insert micro SD-card
+4. [Optional] Attach ethernet cable
+5. [Optional] Connect monitor and keyboard
+6. Power on raspberry Pi
 
 ## C - Connecting to Raspberry Pi
 There's a couple different ways you can connect to the Raspberry Pi,
@@ -149,11 +155,13 @@ This is mostly a backup, if you need to configure network or find IP address.
 
         * When asked if you trust the connection, please type `yes` and hit enter.
 
-    * Check specific release. Eg. `release/test_event1-2024`
-        ```sh
-        cd  ~/aliro-certification-tool
-        git checkout release/test_event1-2024 
-        ```
+> [!TIP]
+> You can check out a specific release. Eg. `release/test_event1-2024`
+> 
+>   ```sh
+>   cd  ~/aliro-certification-tool  
+>   git checkout release/test_event1-2024  
+>   ```
 
 6. Auto install Aliro Certification tool    
    * Run auto installer script
