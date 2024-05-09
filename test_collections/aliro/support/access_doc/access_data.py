@@ -136,7 +136,7 @@ class AccessData(object):
             return False
 
         # Verify the ID.
-        if (self.id is not None):
+        if (self.id is not None) and (len(self.id) > 0):
             if (len(self.id) < AccessData.ID_LENGTH_MIN) or (len(self.id) > AccessData.ID_LENGTH_MAX):
                 return False
 

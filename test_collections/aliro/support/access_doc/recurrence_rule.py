@@ -176,9 +176,9 @@ class RecurrenceRule(object):
         return self.__pattern
 
     @pattern.setter
-    def pattern(self, val : int) -> None:
+    def pattern(self, val : int | RecurrenceRulePatternType) -> None:
         '''Set the recurrence pattern type.'''
-        assert(isinstance(val, int))
+        assert(isinstance(val, (int, RecurrenceRulePatternType)))
         if val >= RecurrenceRulePatternType.DAILY and val <= RecurrenceRulePatternType.YEARLY_BY_MONTH_WEEK:
             self.__pattern = int(val)
         else:
@@ -323,14 +323,12 @@ class RecurrenceRule(object):
         return ba
 
     ############################################################################
-    def from_bytes(self, data) -> bool:
+    def from_bytes(self, data : bytes | bytearray, index : int = 0) -> bool:
         '''Deserialize the RecurrenceRule from an array of bytes.'''
-        assert isinstance(data, (bytearray, bytes))
+        assert isinstance(data, (bytes, bytearray))
 
-        if (len(data) < RecurrenceRule.BYTE_COUNT):
+        if (len(data) < (index + RecurrenceRule.BYTE_COUNT)):
             return False
-
-        index = 0
 
         # Decode the Duration.
         self.duration_seconds = int.from_bytes(data[index : index + RecurrenceRule.DURATION_BYTE_COUNT], byteorder=Utility.BYTE_ORDER)

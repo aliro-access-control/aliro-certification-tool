@@ -94,7 +94,7 @@ class Schedule(object):
         return self.__start_time
 
     @start_time.setter
-    def start_time(self, val) -> None:
+    def start_time(self, val : int | float | datetime.date | datetime.datetime) -> None:
         '''Set the start date / time in seconds since Unix epoch.'''
         self.__start_time = Utility.time_val_to_seconds(val)
 
