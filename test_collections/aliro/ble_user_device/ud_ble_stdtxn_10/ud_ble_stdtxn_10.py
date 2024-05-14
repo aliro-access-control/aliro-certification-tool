@@ -2,6 +2,7 @@ from aliro_actuator.access_protocol import TransportProtocol
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.transport_protocol import Mode
+from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -27,6 +28,8 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
     )
     transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
     group_resolving_key = 16 * bytes.fromhex("00")
+
+    BLE_UWB_VERSION = 0x0100
 
     @classmethod
     def pics(cls) -> set[str]:
@@ -55,6 +58,19 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
+        group_id = self.th_group_identifier()
+        sub_group_id = self.th_sub_group_identifier()
+        key = self.th_reader_keypair()
+        spsm = self.th_spsm()
+        group_resolving_key = self.th_group_resolving_key()
+        self.reader = Reader(
+            transport_protocol=TransportProtocol.BLE_UWB,
+            reader_group_identifier=group_id,
+            reader_group_sub_identifier=sub_group_id,
+            reader_key=key,
+            spsm=spsm,
+            group_resolving_key=group_resolving_key,
+        )
 
     async def execute(self) -> None:
         await self.send_prompt_request(
@@ -65,51 +81,35 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         )
 
         # Test step 1
-        # load parameters from project config
-        try:
-            group_id = self.th_group_identifier()
-            sub_group_id = self.th_sub_group_identifier()
-            key = self.th_reader_keypair()
-            spsm = self.th_spsm()
-            group_resolving_key = self.th_group_resolving_key()
-            reader = Reader(
-                transport_protocol=TransportProtocol.BLE_UWB,
-                reader_group_identifier=group_id,
-                reader_group_sub_identifier=sub_group_id,
-                reader_key=key,
-                spsm=spsm,
-                group_resolving_key=group_resolving_key,
+        group_id = self.th_group_identifier()
+        sub_group_id = self.th_sub_group_identifier()
+        # Done in setup
+        await self.send_prompt_request(
+            OptionsSelectPromptRequest(
+                prompt="Start user device scanning", options={"OK": 1}
             )
-            await self.send_prompt_request(
-                OptionsSelectPromptRequest(
-                    prompt="Start user device scanning", options={"OK": 1}
-                )
-            )
-        except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
-            return
+        )
         self.next_step()
 
         # Test step 2
         try:
-            await reader.transport_protocol.initialization(
+            await self.reader.transport_protocol.initialization(
                 Mode.READER,
                 group_id,
                 sub_group_id,
             )
         except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
             return
         self.next_step()
 
         # Test step 3
         try:
-            await reader.transport_protocol.wait_for_connection()
+            await self.reader.transport_protocol.driver.wait_for_connection()
         except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error)
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
             return
         self.next_step()
 
@@ -141,7 +141,31 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 13
+        try:
+            ble_version = await self.reader.transport_protocol.driver.wait_for_write()
+            logger.info(
+                "Checking AC BLE UWB Protocol Version requested by User Device: 0x{:04x}".format(
+                    ble_version
+                )
+            )
+            if ble_version != self.BLE_UWB_VERSION:
+                self.mark_step_failure(
+                    "Invalid AC BLE UWB Protocol Version: 0x{:04x}, expected 0x{:04x}".format(
+                        ble_version, self.BLE_UWB_VERSION
+                    )
+                )
+            else:
+                logger.info("AC BLE UWB Protocol Version is valid!")
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
         self.next_step()
 
     async def cleanup(self) -> None:
         logger.info("UD_BLE_STDTXN_10 Cleanup")
+        try:
+            await self.reader.transaction_termination()
+        except NoDeviceConnectedError:
+            # it is possible to end the test before any device is connected
+            pass
