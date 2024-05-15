@@ -49,15 +49,17 @@ class RD_NFC_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
-
-    async def execute(self) -> None:
-        # Test step 1
         access_credential = self.reader_access_credential()
-        userdevice = UserDevice(
+        self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential],
             mailbox=0x20,
+            ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
         )
+
+    async def execute(self) -> None:
+        # Test step 1
+        # Done in setup
         self.next_step()
 
         # Test step 2
@@ -78,37 +80,35 @@ class RD_NFC_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
                 options={"OK": 1},
             )
         )
-        await userdevice.transaction_initiation()  # up to RATS command/ ATS response
-        userdevice.start_new_session(
-            ephemeral_key=KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK),
-        )
+        await self.userdevice.setup_connection()  # up to RATS command/ ATS response
+        self.userdevice.start_new_session()
         self.next_step()
 
         # Test step 4 Receive/Send Select command/response
         try:
-            cmds_select = await userdevice.wait_for_command()
+            cmds_select = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
         try:
-            await userdevice.handle_select(cmds_select)
+            await self.userdevice.handle_select(cmds_select)
         except AccessProtocolError as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
         self.next_step()
 
         # Test step 5 Receive/Send Auth0 command/response
         try:
-            cmds_auth0 = await userdevice.wait_for_command()
+            cmds_auth0 = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
         try:
-            await userdevice.handle_auth0(cmds_auth0)
+            await self.userdevice.handle_auth0(cmds_auth0)
         except AccessProtocolError as error:
-            self.mark_step_failure(error)
+            self.mark_step_failure(str(error))
             return
-        if not userdevice.session.state_valid(UserSessionState.AUTH0_STD_DONE):
+        if not self.userdevice.session.state_valid(UserSessionState.AUTH0_STD_DONE):
             self.mark_step_failure(
                 "Userdevice is not in state auth0 standard done, either fast "
                 "transaction was requested or handling auth0 failed"
@@ -117,3 +117,4 @@ class RD_NFC_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
 
     async def cleanup(self) -> None:
         logger.info("RD_NFC_STDTXN_10 Cleanup")
+        await self.userdevice.transaction_termination()
