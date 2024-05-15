@@ -499,8 +499,6 @@ class AliroUserDeviceTestCase(AliroTestCase):
         logger.info(f"Using Reader signaling bitmap(hex): {signaling_bitmap.hex()}")
 
         reader_storage = ReaderStorage()
-        reader_storage.add_kpersistent(
-            reader_cache_access_credential, kpersistent, signaling_bitmap
-        )
+        reader_storage.add_kpersistent(reader_cache_access_credential, kpersistent)
 
         return reader_storage
