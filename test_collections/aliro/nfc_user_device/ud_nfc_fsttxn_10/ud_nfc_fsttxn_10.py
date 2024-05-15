@@ -104,7 +104,7 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         )
 
         # Test Step 3
-        await self.reader.transaction_initiation()  # including select
+        await self.reader.transaction_initiation()  # including SELECT command
         self.next_step()
 
         # Test step 4
