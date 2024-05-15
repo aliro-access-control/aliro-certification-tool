@@ -31,12 +31,21 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         "a27373b38d454af21b70e75e13ebc6d55743ba6a6ffc"
         "4ed37a55515a9346fdae311f60be30421fa6dc61c5"
     )
+    reader_ePuBK_2 = bytes.fromhex(
+        "04f39b4ca9ffdf7b6af338af3c7c7a7973794652a2354"
+        "a966b5cc0fef88e9f3a9211930161aab3d9baf77a81898"
+        "e768afcce6db853b170489db3c08fd168e159a4"
+    )
 
     reader_ePrivK = bytes.fromhex(
         "3c0f74114cd2a021e8066efbaa31dbb97ef0054272192606fd96633a04f66214"
     )
+    reader_ePrivK_2 = bytes.fromhex(
+        "e20ca94fba4c29d65d20456029da9ab45921075cdaed72cd5d1dcc5e552023f8"
+    )
 
     transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
+    transaction_identifier_2 = bytes.fromhex("3d4fa85d4bfcf30b61b804eb9b3ff7cc")
 
     @classmethod
     def pics(cls) -> set[str]:
@@ -50,8 +59,12 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         self.test_steps = [
             TestStep("Step1: Initialization"),
             TestStep("Step2: Set to polling mode"),
-            TestStep("Step3: Transaction initiation"),
+            TestStep("Step3: Transaction initiation (standard)"),
             TestStep("Step4: Send/Receive AUTH0 command/response"),
+            TestStep("Step5: Send/Receive AUTH1 command/response"),
+            TestStep("Step6: Send/Receive CONTROL_FLOW command/response"),
+            TestStep("Step7: Transaction initiation (fast)"),
+            TestStep("Step8: Send/Receive AUTH0 Fast command/response"),
         ]
 
     async def setup(self) -> None:
@@ -67,8 +80,14 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
             reader_group_identifier=group_id,
             reader_group_sub_identifier=sub_group_id,
             reader_key=key,
-            transaction_identifier_list=[self.transaction_identifier],
-            ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
+            transaction_identifier_list=[
+                self.transaction_identifier,
+                self.transaction_identifier_2,
+            ],
+            ephemeral_key_list=[
+                KeyPair(self.reader_ePrivK, self.reader_ePuBK),
+                KeyPair(self.reader_ePrivK_2, self.reader_ePuBK_2),
+            ],
         )
 
     async def execute(self) -> None:
@@ -83,13 +102,59 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
                 prompt="Tap User Device on the Test Harness NFC", options={"OK": 1}
             )
         )
-        self.next_step()
 
         # Test Step 3
         await self.reader.transaction_initiation()  # including SELECT command
         self.next_step()
 
-        # Test Step 4
+        # Test step 4
+        try:
+            await self.reader.handle_auth0(
+                transaction_type=Transaction.STANDARD,
+                transaction_code=TransactionCode.USER_DEVICE,
+            )
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
+        self.next_step()
+
+        # Test step 5
+        try:
+            await self.reader.handle_auth1(
+                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
+            )
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
+        self.next_step()
+
+        # Test step 6
+        try:
+            await self.reader.handle_control_flow(
+                success=True,
+            )
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
+        self.next_step()
+
+        await self.reader.transaction_termination()
+        await self.send_prompt_request(
+            OptionsSelectPromptRequest(
+                prompt="Remove and Tap User Device again on the Test Harness NFC",
+                options={"OK": 1},
+            )
+        )
+
+        # Test Step 7
+        try:
+            await self.reader.transaction_initiation()  # including select
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
+        self.next_step()
+
+        # Test Step 8
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.FAST,
