@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-from typing import Any
+from typing import Any, Awaitable, Callable
 
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.key import KeyPair, PrivateKey, PublicKey
@@ -24,6 +24,21 @@ from app.test_engine.models import TestCase
 
 class AliroTestParameterError(Exception):
     """Error that will be raised when failing to read test parameters."""
+
+
+def log_errors(func: Callable[[Any], Awaitable[Any]]):
+    async def wrapper(*args, **kwargs):
+        try:
+            await func(*args, **kwargs)
+        except Exception as error:
+            logger.error(
+                "Error occurred during script: {}: {}".format(
+                    error.__class__.__name__, repr(error)
+                )
+            )
+            raise error
+
+    return wrapper
 
 
 class AliroTestCase(TestCase):

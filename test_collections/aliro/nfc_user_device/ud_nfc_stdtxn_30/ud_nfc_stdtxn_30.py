@@ -15,7 +15,7 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
-from ...support.aliro_test_case import AliroUserDeviceTestCase
+from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
 class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
@@ -71,6 +71,7 @@ class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
         )
 
+    @log_errors
     async def execute(self) -> None:
         # Test step 1
         # Done in setup

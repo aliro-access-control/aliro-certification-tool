@@ -11,7 +11,7 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
-from ...support.aliro_test_case import AliroReaderTestCase
+from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
 class RD_NFC_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
@@ -73,6 +73,7 @@ class RD_NFC_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
             ],
         )
 
+    @log_errors
     async def execute(self) -> None:
         # Test step 1: Initialization
         # Done in setup

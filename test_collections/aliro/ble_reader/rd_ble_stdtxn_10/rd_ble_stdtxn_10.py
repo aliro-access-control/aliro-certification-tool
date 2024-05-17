@@ -9,7 +9,7 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
-from ...support.aliro_test_case import AliroReaderTestCase
+from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
 class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
@@ -66,6 +66,7 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
             group_resolving_key=self.group_resolving_key,
         )
 
+    @log_errors
     async def execute(self) -> None:
         await self.send_prompt_request(
             OptionsSelectPromptRequest(
