@@ -151,9 +151,12 @@ class UD_BLE_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 12
-        self.next_step()
-
-        # Test step 13
+        try:
+            await self.reader.reader_status_access_protocol_completed(0, 0)
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
         self.next_step()
 
     async def cleanup(self) -> None:
