@@ -117,6 +117,7 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
             self.mark_step_failure(
                 "Access Credential key type request is not endpoint public key!"
             )
+            return
         try:
             await self.userdevice.handle_auth1(cmds_auth1)
         except AccessProtocolError as error:
