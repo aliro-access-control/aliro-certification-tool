@@ -348,6 +348,7 @@ class AliroUserDeviceTestCase(AliroTestCase):
     READER_SUB_GROUP_ID_KEY = "th_reader_sub_group_identifier"
     READER_GROUP_RESOLVING_KEY = "th_reader_group_resolving_key"
     READER_SPSM = "th_reader_spsm"
+    ENDPOINT_PUBLIC_KEY_KEY = "th_endpoint_public_key"
 
     @classmethod
     def default_test_parameters(self) -> dict[str, Any]:
@@ -368,6 +369,9 @@ class AliroUserDeviceTestCase(AliroTestCase):
             self.READER_SUB_GROUP_ID_KEY: "113344667799AA00113344667799AA00",
             self.READER_GROUP_RESOLVING_KEY: "00000000000000000000000000000000",
             self.READER_SPSM: "0080",
+            self.ENDPOINT_PUBLIC_KEY_KEY: "04742df736d0fc9be978c45b00e8fdf7cea684ea10"
+            "5ae574c1505a2c24ab6198e3125b7f1b7e1d134c55ece69681ba8ecc18a3836dc5199c75"
+            "9f31e8ccf17e3efa",
         }
 
     def th_reader_keypair(self) -> KeyPair:
@@ -464,3 +468,28 @@ class AliroUserDeviceTestCase(AliroTestCase):
         spsm = self.bytes_from_config(self.READER_SPSM)
         logger.info(f"Using Reader spsm(hex): {spsm.hex()}")
         return spsm
+
+    def th_endpoint_public_key(self) -> PublicKey:
+        """Load TH Endpoint public key from test parameters.
+        When testing a UserDevice, the TH will be the Reader. Keys for this reader
+        will be configurable in test_paramters of project configuration.
+
+        Returns:
+            PublicKey: Endpoint public key for TH reader. This key will be used to
+            generate the key slot list.
+        """
+        logger.info("Loading public key for Test Harness use on simulated Reader.")
+
+        # Public Key
+        logger.info(
+            f"Loading Endpoint public key from '{self.ENDPOINT_PUBLIC_KEY_KEY}'"
+        )
+        endpoint_public_key = self.public_key_from_config(self.ENDPOINT_PUBLIC_KEY_KEY)
+        logger.info(
+            f"TH Using Endpoint Public Key(hex): \n{endpoint_public_key.as_bytes().hex()}"
+        )
+        logger.info(
+            f"TH Using Endpoint Public Key(pem): \n{endpoint_public_key.as_pem()}"
+        )
+
+        return endpoint_public_key
