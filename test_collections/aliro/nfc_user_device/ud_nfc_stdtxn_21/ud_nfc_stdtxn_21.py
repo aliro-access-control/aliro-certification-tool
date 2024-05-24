@@ -59,6 +59,7 @@ class UD_NFC_STDTXN_21(AliroUserDeviceTestCase, UserPromptSupport):
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
         key = self.th_reader_keypair()
+        endpoint_key = self.th_endpoint_public_key()
 
         # Initialize Aliro NFC Reader
         self.reader = Reader(
@@ -68,6 +69,7 @@ class UD_NFC_STDTXN_21(AliroUserDeviceTestCase, UserPromptSupport):
             reader_key=key,
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
+            key_slot_list=[endpoint_key],
         )
 
     @log_errors
