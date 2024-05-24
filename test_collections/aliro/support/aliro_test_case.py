@@ -381,9 +381,9 @@ class AliroUserDeviceTestCase(AliroTestCase):
             "d14ae5ead738e2e92a78ef4f9d384be863535484d5151",
             self.READER_GROUP_RESOLVING_KEY: "00000000000000000000000000000000",
             self.READER_SPSM: "0080",
-            self.ENDPOINT_PUBLIC_KEY_KEY: "04742df736d0fc9be978c45b00e8fdf7cea684ea10"
-            "5ae574c1505a2c24ab6198e3125b7f1b7e1d134c55ece69681ba8ecc18a3836dc5199c75"
-            "9f31e8ccf17e3efa",
+            self.ENDPOINT_PUBLIC_KEY_KEY: "044dc6e1f1b0e879b487063d7e24e26e4c75854a140f"
+            "ab5c5a6d4d8a582909d75f360de1dd16e6f113299d44900243901f2041fd82661ad6742128"
+            "fe3b7a02c35d",
         }
 
     def th_reader_keypair(self) -> KeyPair:
