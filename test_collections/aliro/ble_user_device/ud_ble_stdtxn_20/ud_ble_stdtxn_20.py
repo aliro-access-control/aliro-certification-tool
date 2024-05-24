@@ -143,6 +143,7 @@ class UD_BLE_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
             self.mark_step_failure(error_str)
             return
         self.next_step()
+        self.next_step()
 
         # Test step 10
         self.next_step()

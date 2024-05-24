@@ -1,7 +1,7 @@
 from binascii import hexlify
 
 from aliro_actuator.access_protocol import TransportProtocol
-from aliro_actuator.access_protocol.apdu import INS
+from aliro_actuator.access_protocol.apdu import INS, Command
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.user_device import UserDevice
 from aliro_actuator.transport_protocol import Mode
@@ -194,13 +194,21 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
         # Test step 12
         try:
             message_ap_completed = await self.userdevice.wait_for_message()
+            if isinstance(message_ap_completed, Command):
+                self.mark_step_failure(
+                    "Expected Reader status access protocol completed message, "
+                    "got AP_RQ instead"
+                )
+                return
+            payload = message_ap_completed[0]
+            header = message_ap_completed[1]
+            id = message_ap_completed[2]
             if (
-                message_ap_completed.header == ProtocolType.NOTIFICATION
-                and message_ap_completed.id
-                == Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED
+                header == ProtocolType.NOTIFICATION
+                and id == Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED
             ):
                 self.userdevice.handle_reader_status_access_protocol_completed_message(
-                    message_ap_completed.payload
+                    payload
                 )
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
