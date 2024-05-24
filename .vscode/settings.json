@@ -3,5 +3,8 @@
         "aliro",
         "customisation",
         "userdevice"
-    ]
+    ],
+    "flake8.args": [
+        "--max-line-length", "88"
+    ],
 }
