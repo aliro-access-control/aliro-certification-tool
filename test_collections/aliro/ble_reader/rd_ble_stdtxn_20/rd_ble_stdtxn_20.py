@@ -5,6 +5,10 @@ from aliro_actuator.access_protocol.apdu import INS
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.user_device import UserDevice
 from aliro_actuator.transport_protocol import Mode
+from aliro_actuator.transport_protocol.ble_message_format import (
+    Notification_ID,
+    ProtocolType,
+)
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
@@ -188,9 +192,20 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 12
-        self.next_step()
-
-        # Test step 13
+        try:
+            message_ap_completed = await self.userdevice.wait_for_message()
+            if (
+                message_ap_completed.header == ProtocolType.NOTIFICATION
+                and message_ap_completed.id
+                == Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED
+            ):
+                self.userdevice.handle_reader_status_access_protocol_completed_message(
+                    message_ap_completed.payload
+                )
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
         self.next_step()
 
     async def cleanup(self) -> None:
