@@ -1,10 +1,12 @@
-from aliro_actuator.access_protocol import TransportProtocol
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     Transaction,
     TransactionCode,
 )
-from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
+from aliro_actuator.access_protocol.defines import (
+    EXPEDITED_PHASE_AID,
+    TransportProtocol,
+)
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair

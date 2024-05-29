@@ -1,14 +1,11 @@
 from binascii import hexlify
 
-from aliro_actuator.access_protocol import TransportProtocol
-from aliro_actuator.access_protocol.apdu import INS, Command
-from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
-from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
-from aliro_actuator.transport_protocol import Mode
-from aliro_actuator.transport_protocol.ble_message_format import (
-    Notification_ID,
-    ProtocolType,
+from aliro_actuator.access_protocol.apdu import INS
+from aliro_actuator.access_protocol.defines import (
+    EXPEDITED_PHASE_AID,
+    TransportProtocol,
 )
+from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
