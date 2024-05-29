@@ -3,7 +3,7 @@ from binascii import hexlify
 from aliro_actuator.access_protocol import TransportProtocol
 from aliro_actuator.access_protocol.apdu import INS, Command
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
-from aliro_actuator.access_protocol.user_device import UserDevice
+from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
 from aliro_actuator.transport_protocol import Mode
 from aliro_actuator.transport_protocol.ble_message_format import (
     Notification_ID,
@@ -18,11 +18,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
+class RD_BLE_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-BLE-STDTXN-2.0",
+        "public_id": "RD-BLE-FSTTXN-1.0",
         "version": "0.0.1",
-        "title": "RD-BLE-STDTXN-2.0",
+        "title": "RD-BLE-FSTTXN-1.0",
         "description": """Verify conformance of Reader in BLE discovery.""",
     }
 
@@ -57,6 +57,10 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step10: Optional: Reader sends AP_RQ message: ENVELOPE"),
             TestStep("Step11: Conditional: Device sends AP _RS message: GET RESPONSE"),
             TestStep("Step12: Reader sends AP message: AP completed"),
+            TestStep("Step13: User Device sends AP Message: Initiate AP"),
+            TestStep("Step14: Reader sends AP_RQ message: AUTH0 cmd"),
+            TestStep("Step15: User Device sends AP_RS message: AUTH0 response"),
+            TestStep("Step16: Reader sends AP message: AP completed"),
         ]
 
     async def setup(self) -> None:
@@ -120,6 +124,11 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
+        if not self.userdevice.session.state_valid(UserSessionState.AUTH0_STD_DONE):
+            self.mark_step_failure(
+                "Userdevice is not in state auth0 standard done, either fast "
+                "transaction was requested or handling auth0 failed"
+            )
         self.next_step()
 
         # Test step 4
@@ -194,6 +203,7 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
         # Test step 12
         try:
             message_ap_completed = await self.userdevice.wait_for_ble_message()
+
             self.userdevice.handle_reader_status_access_protocol_completed_message(
                 message_ap_completed
             )
@@ -201,6 +211,54 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
+        self.userdevice.transaction_termination()
+        self.next_step()
+
+        # Test step 13
+        try:
+            self.userdevice.transaction_initiation()
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+
+        # Test step 14
+        try:
+            cmds_auth0 = await self.userdevice.wait_for_command(
+                expected_command=INS.AUTH0
+            )
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+
+        # Test step 15
+        try:
+            await self.userdevice.handle_auth0(cmds_auth0)
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        if not self.userdevice.session.state_valid(UserSessionState.AUTH0_FAST_DONE):
+            self.mark_step_failure(
+                "Userdevice is not in state auth0 fast done, either standard "
+                "transaction was requested or handling auth0 failed"
+            )
+        self.next_step()
+
+        # Test step 16
+        try:
+            message_ap_completed = await self.userdevice.wait_for_ble_message()
+            self.userdevice.handle_reader_status_access_protocol_completed_message(
+                message_ap_completed
+            )
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.userdevice.transaction_termination()
         self.next_step()
 
     async def cleanup(self) -> None:
