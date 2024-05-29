@@ -86,7 +86,8 @@ class RD_BLE_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
         try:
             await self.send_prompt_request(
                 OptionsSelectPromptRequest(
-                    prompt="Set Reader Device Under Test in BLE advertising mode",
+                    prompt="Set Reader Device Under Test in BLE advertising mode, "
+                    "and prepare for a standard transaction",
                     options={"OK": 1},
                 )
             )
@@ -215,6 +216,13 @@ class RD_BLE_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 13
+        await self.send_prompt_request(
+            OptionsSelectPromptRequest(
+                prompt="Set Reader Device Under Test in BLE advertising mode, "
+                "and prepare for a fast transaction",
+                options={"OK": 1},
+            )
+        )
         try:
             self.userdevice.transaction_initiation()
         except Exception as error:
