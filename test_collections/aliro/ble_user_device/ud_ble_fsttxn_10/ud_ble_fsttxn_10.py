@@ -15,7 +15,7 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_BLE_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
+class UD_BLE_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
         "public_id": "UD-BLE-FSTTXN-1.0",
         "version": "0.0.1",
@@ -204,7 +204,7 @@ class UD_BLE_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_BLE_STDTXN_20 Cleanup")
+        logger.info("UD_BLE_FSTTXN_10 Cleanup")
         try:
             await self.reader.transaction_termination()
         except NoDeviceConnectedError:
