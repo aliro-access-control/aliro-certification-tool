@@ -209,7 +209,7 @@ class RD_BLE_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
-        self.userdevice.transaction_termination()
+        await self.userdevice.transaction_termination()
         self.next_step()
 
         # Test step 13
@@ -263,7 +263,7 @@ class RD_BLE_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
-        self.userdevice.transaction_termination()
+        await self.userdevice.transaction_termination()
         self.next_step()
 
     async def cleanup(self) -> None:

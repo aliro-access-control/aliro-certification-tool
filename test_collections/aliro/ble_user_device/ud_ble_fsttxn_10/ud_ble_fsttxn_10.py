@@ -1,3 +1,5 @@
+import time
+
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     Transaction,
@@ -160,7 +162,8 @@ class UD_BLE_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         # Test step 12
         try:
             await self.reader.reader_status_access_protocol_completed(0, 0)
-            self.reader.transaction_termination()
+            time.sleep(0.1)
+            await self.reader.transaction_termination()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -198,7 +201,8 @@ class UD_BLE_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         # Test step 15
         try:
             await self.reader.reader_status_access_protocol_completed(0, 0)
-            self.reader.transaction_termination()
+            time.sleep(0.1)
+            await self.reader.transaction_termination()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
