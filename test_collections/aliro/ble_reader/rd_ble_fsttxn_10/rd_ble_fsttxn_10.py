@@ -221,7 +221,7 @@ class RD_BLE_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
             )
         )
         try:
-            self.userdevice.transaction_initiation()
+            await self.userdevice.transaction_initiation()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
