@@ -295,6 +295,11 @@ You can edit test parameters for a Project during project creation, but you can 
   * Supported Format:
     * DER encoded HEX string
     * PEM string (including `\n` as for line breaks)
+* `dut_reader_issuer_public_key` Reader System Issuer CA certificate public key, used 
+for certificate verification, simulated by the tool.  
+  * Supported Format: 
+    * DER encoded HEX string
+    * PEM string (including `\n` as for line breaks)
 
 ## Test Parameters for User Device Tests
 
