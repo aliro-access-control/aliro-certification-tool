@@ -11,7 +11,7 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
-from ...support.aliro_test_case import AliroReaderTestCase
+from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
 class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
@@ -67,6 +67,7 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
         )
 
+    @log_errors
     async def execute(self) -> None:
         await self.send_prompt_request(
             OptionsSelectPromptRequest(
