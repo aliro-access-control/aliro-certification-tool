@@ -1,8 +1,8 @@
 from aliro_actuator.access_protocol import TransportProtocol
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
+    AuthenticationPolicy,
     Transaction,
-    TransactionCode,
 )
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.reader import Reader
@@ -109,7 +109,7 @@ class UD_BLE_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.STANDARD,
-                transaction_code=TransactionCode.USER_DEVICE,
+                transaction_code=AuthenticationPolicy.USER_DEVICE,
             )
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))

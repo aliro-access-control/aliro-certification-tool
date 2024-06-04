@@ -1,8 +1,8 @@
 from aliro_actuator.access_protocol import TransportProtocol
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
+    AuthenticationPolicy,
     Transaction,
-    TransactionCode,
 )
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.errors import (
@@ -102,7 +102,7 @@ class UD_NFC_STDTXN_40(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.STANDARD,
-                transaction_code=TransactionCode.USER_DEVICE,
+                transaction_code=AuthenticationPolicy.USER_DEVICE,
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
