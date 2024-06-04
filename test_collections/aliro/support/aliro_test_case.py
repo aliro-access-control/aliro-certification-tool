@@ -323,7 +323,7 @@ class AliroReaderTestCase(AliroTestCase):
         )
 
         return AccessCredential(
-            user_device_key_pair=user_device_key_pair,
+            access_credential_key_pair=user_device_key_pair,
             reader_id_key_list=[(reader_group_identifier, reader_public_key)],
             reader_system_issuer_ca_certificate_public_key=reader_issuer_public_key,
         )
