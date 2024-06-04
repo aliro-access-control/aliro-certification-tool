@@ -118,7 +118,7 @@ class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.STANDARD,
-                transaction_code=AuthenticationPolicy.USER_DEVICE,
+                authentication_policy=AuthenticationPolicy.USER_DEVICE,
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
@@ -171,7 +171,7 @@ class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.FAST,
-                transaction_code=AuthenticationPolicy.USER_DEVICE,
+                authentication_policy=AuthenticationPolicy.USER_DEVICE,
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
