@@ -161,6 +161,7 @@ class RD_NFC_FSTTXN_30(AliroReaderTestCase, UserPromptSupport):
                 options={"OK": 1},
             )
         )
+        self.next_step()
 
         # Test Step 7: Transaction Initiation Fast
         try:
