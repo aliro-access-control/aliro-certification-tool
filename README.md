@@ -317,10 +317,14 @@ for certificate verification.
   * Supported Format: 
     * DER encoded HEX string
     * PEM string (including `\n` as for line breaks)
-* `th_reader_group_identifier` Group Identifier the Reader, simulated by the tool.
+* `th_reader_group_identifier` Group Identifier for the Reader, simulated by the tool.
   * Supported Format: 
     * HEX string
-* `th_reader_sub_group_identifier` Sub-group Identifier the Reader, simulated by the tool.
+* `th_reader_sub_group_identifier` Sub-group Identifier for the Reader, simulated by the tool.
+  * Supported Format: 
+    * HEX string
+* `th_reader_certificate` Reader Certificate for the Reader, simulated by the tool. 
+Used for LOAD CERT and AUTH1 command.
   * Supported Format: 
     * HEX string
 * `th_reader_certificate` certificate to send during LOAD_CERT and AUTH1 commands.
@@ -335,7 +339,10 @@ tests, in the 'Reader SPSM and AC BLE UWB Protocol Version Characteristic Value
 declaration'.
   * Supported Format: 
     * HEX string
-
+* `th_endpoint_public_key` Endpoint public key, for the key slot lookup table used byb the tool. 
+  * Supported Format: 
+    * DER encoded HEX string
+    * PEM string (including `\n` as for line breaks)
 
 # Updating the Tool
 
