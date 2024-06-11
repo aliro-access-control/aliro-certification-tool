@@ -1,8 +1,6 @@
+from aliro_actuator.access_protocol import TransportProtocol
 from aliro_actuator.access_protocol.apdu import Auth1Response
-from aliro_actuator.access_protocol.defines import (
-    EXPEDITED_PHASE_AID,
-    TransportProtocol,
-)
+from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidCommandError,
@@ -16,12 +14,12 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
+class RD_NFC_STDTXN_21(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-STDTXN-2.0",
+        "public_id": "RD-NFC-STDTXN-2.1",
         "version": "0.0.1",
-        "title": "RD-NFC-STDTXN-2.0",
-        "description": """Verify conformance of Reader UT in AUTH1 command.""",
+        "title": "RD-NFC-STDTXN-2.1",
+        "description": """Verify conformance of Reader UT in AUTH1 command, using keyslot""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -115,9 +113,9 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
         except InvalidCommandError as error:
             self.mark_step_failure(str(error))
             return
-        if cmds_auth1.expected_response != Auth1Response.ENDPOINT_PUBLIC_KEY:
+        if cmds_auth1.expected_response != Auth1Response.KEY_SLOT:
             self.mark_step_failure(
-                "Access Credential key type request is not endpoint public key!"
+                "Access Credential key type request is not key slot!"
             )
             return
         try:
@@ -128,5 +126,5 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_STDTXN_20 Cleanup")
+        logger.info("RD_NFC_STDTXN_21 Cleanup")
         await self.userdevice.transaction_termination()

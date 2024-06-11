@@ -333,7 +333,8 @@ class AliroUserDeviceTestCase(AliroTestCase):
     User Device test cases will simulate a reader, using this information:
     - KeyPair (Private and Public keys)
     - group identifier
-    - sub group identifier.
+    - sub group identifier
+    - reader certificate (uncompressed x509)
 
     These can be set in the test_paramters as part of the project configuration.
 
@@ -346,8 +347,10 @@ class AliroUserDeviceTestCase(AliroTestCase):
     READER_PUBLIC_KEY_KEY = "th_reader_public_key"
     READER_GROUP_ID_KEY = "th_reader_group_identifier"
     READER_SUB_GROUP_ID_KEY = "th_reader_sub_group_identifier"
+    READER_CERTIFICATE_KEY = "th_reader_certificate"
     READER_GROUP_RESOLVING_KEY = "th_reader_group_resolving_key"
     READER_SPSM = "th_reader_spsm"
+    ENDPOINT_PUBLIC_KEY_KEY = "th_endpoint_public_key"
 
     @classmethod
     def default_test_parameters(self) -> dict[str, Any]:
@@ -366,8 +369,21 @@ class AliroUserDeviceTestCase(AliroTestCase):
             "873c5d34ee",
             self.READER_GROUP_ID_KEY: "00113344667799AA00113344667799AA",
             self.READER_SUB_GROUP_ID_KEY: "113344667799AA00113344667799AA00",
+            self.READER_CERTIFICATE_KEY: "308201513081f9a003020102020101300a06082a8648c"
+            "e3d0403023011310f300d06035504030c06697373756572301e170d3230303130313030303"
+            "030305a170d3439303130313030303030305a30123110300e06035504030c077375626a656"
+            "3743059301306072a8648ce3d020106082a8648ce3d030107034200043928f322019d47578"
+            "93bde6a0fe5e13e3e537b9ca0f549c0bd2f40f79060252a0a4f291192157a95cb6eb202759"
+            "428c00cd834998c5d0eab192ee8873c5d34eea341303f301f0603551d23041830168014231"
+            "8e55671f08eae212142a817720fb817ee93bf300c0603551d130101ff04023000300e06035"
+            "51d0f0101ff040403020780300a06082a8648ce3d04030203470030440220606ddd0351bb4"
+            "7c6acccb8b94d83fe5dd18cfa1a2bbd757ccbf7ad9e1e0ba4ca02204e36051d9f93ff34e3a"
+            "d14ae5ead738e2e92a78ef4f9d384be863535484d5151",
             self.READER_GROUP_RESOLVING_KEY: "00000000000000000000000000000000",
             self.READER_SPSM: "0080",
+            self.ENDPOINT_PUBLIC_KEY_KEY: "044dc6e1f1b0e879b487063d7e24e26e4c75854a140f"
+            "ab5c5a6d4d8a582909d75f360de1dd16e6f113299d44900243901f2041fd82661ad6742128"
+            "fe3b7a02c35d",
         }
 
     def th_reader_keypair(self) -> KeyPair:
@@ -435,6 +451,19 @@ class AliroUserDeviceTestCase(AliroTestCase):
         logger.info(f"Using Reader sub-group identifier(hex): {sub_group_id.hex()}")
         return sub_group_id
 
+    def th_reader_certificate(self) -> bytes:
+        """Load TH Reader certificate from test parameters.
+        When testing a UserDevice, the TH will be the Reader. The certificate for this
+        reader will be configurable in test_paramters of project configuration.
+
+        Returns:
+            Certificate
+        """
+        logger.info(f"Loading certificate from '{self.READER_CERTIFICATE_KEY}'")
+        cert = self.bytes_from_config(self.READER_CERTIFICATE_KEY)
+        logger.info(f"Using Reader certificate(hex): {cert.hex()}")
+        return cert
+
     def th_group_resolving_key(self) -> bytes:
         """Load TH Reader group resolving key from test parameters.
         When testing a UserDevice, the TH will be the Reader. The group resolving key
@@ -464,3 +493,28 @@ class AliroUserDeviceTestCase(AliroTestCase):
         spsm = self.bytes_from_config(self.READER_SPSM)
         logger.info(f"Using Reader spsm(hex): {spsm.hex()}")
         return spsm
+
+    def th_endpoint_public_key(self) -> PublicKey:
+        """Load TH Endpoint public key from test parameters.
+        When testing a UserDevice, the TH will be the Reader. Keys for this reader
+        will be configurable in test_paramters of project configuration.
+
+        Returns:
+            PublicKey: Endpoint public key for TH reader. This key will be used to
+            generate the key slot list.
+        """
+        logger.info("Loading public key for Test Harness use on simulated Reader.")
+
+        # Public Key
+        logger.info(
+            f"Loading Endpoint public key from '{self.ENDPOINT_PUBLIC_KEY_KEY}'"
+        )
+        endpoint_public_key = self.public_key_from_config(self.ENDPOINT_PUBLIC_KEY_KEY)
+        logger.info(
+            f"TH Using Endpoint Public Key(hex): \n{endpoint_public_key.as_bytes().hex()}"
+        )
+        logger.info(
+            f"TH Using Endpoint Public Key(pem): \n{endpoint_public_key.as_pem()}"
+        )
+
+        return endpoint_public_key
