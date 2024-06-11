@@ -1,3 +1,5 @@
+import time
+
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     Transaction,
@@ -17,11 +19,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_BLE_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
+class UD_BLE_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-BLE-STDTXN-2.0",
+        "public_id": "UD-BLE-FSTTXN-1.0",
         "version": "0.0.1",
-        "title": "UD-BLE-STDTXN-2.0",
+        "title": "UD-BLE-FSTTXN-1.0",
         "description": """Verify conformance of User Device UT in BLE discovery.""",
     }
 
@@ -58,6 +60,10 @@ class UD_BLE_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step10: Optional: Reader sends AP_RQ message: ENVELOPE"),
             TestStep("Step11: Conditional: Device sends AP _RS message: GET RESPONSE"),
             TestStep("Step12: Reader sends AP message: AP completed"),
+            TestStep("Step13: User Device sends AP Message: Initiate AP"),
+            TestStep("Step14: Reader sends AP_RQ message: AUTH0 cmd"),
+            TestStep("Step15: User Device sends AP_RS message: AUTH0 response"),
+            TestStep("Step16: Reader sends AP message: AP completed"),
         ]
 
     async def setup(self) -> None:
@@ -156,6 +162,47 @@ class UD_BLE_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
         # Test step 12
         try:
             await self.reader.reader_status_access_protocol_completed(0, 0)
+            time.sleep(0.1)
+            await self.reader.transaction_termination()
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+
+        # Test step 13
+        await self.send_prompt_request(
+            OptionsSelectPromptRequest(
+                prompt="Start user device scanning",
+                options={"OK": 1},
+            )
+        )
+        try:
+            await self.reader.transaction_initiation()
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+
+        # Test step 13 and step 14
+        try:
+            await self.reader.handle_auth0(
+                transaction_type=Transaction.FAST,
+                transaction_code=TransactionCode.USER_DEVICE,
+            )
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+        self.next_step()
+
+        # Test step 15
+        try:
+            await self.reader.reader_status_access_protocol_completed(0, 0)
+            time.sleep(0.1)
+            await self.reader.transaction_termination()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -163,7 +210,7 @@ class UD_BLE_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_BLE_STDTXN_20 Cleanup")
+        logger.info("UD_BLE_FSTTXN_10 Cleanup")
         try:
             await self.reader.transaction_termination()
         except NoDeviceConnectedError:
