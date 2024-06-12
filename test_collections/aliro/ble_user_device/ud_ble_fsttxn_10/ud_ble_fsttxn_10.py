@@ -2,8 +2,8 @@ import time
 
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
+    AuthenticationPolicy,
     Transaction,
-    TransactionCode,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -117,7 +117,7 @@ class UD_BLE_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.STANDARD,
-                transaction_code=TransactionCode.USER_DEVICE,
+                authentication_policy=AuthenticationPolicy.USER_DEVICE,
             )
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
@@ -189,7 +189,7 @@ class UD_BLE_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.FAST,
-                transaction_code=TransactionCode.USER_DEVICE,
+                authentication_policy=AuthenticationPolicy.USER_DEVICE,
             )
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
