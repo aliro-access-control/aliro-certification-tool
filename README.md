@@ -5,6 +5,10 @@ A test harness and tooling designed to simplify development, testing, and certif
 > [!NOTE]
 > The tool is a complete reuse from CSA - Matter, and UI is still showing a number of unrelated Matter information. This will be fixed eventually.
 
+This version of the Aliro Certification Tool uses:
+* Aliro Specification Version 0.7.4
+* ACWG CSG Test Plan Version 0.7.4-5
+
 # Setup Instructions
 Following this section should take a couple hours, mostly depending on internet speed.
 
