@@ -186,7 +186,7 @@ This is mostly a backup, if you need to configure network or find IP address.
 
     ```sh
     cd  ~/aliro-certification-tool
-    git submodule update --init —-recursive
+    git submodule update --init --recursive
     ```
 
 2. Setup the Test Harness

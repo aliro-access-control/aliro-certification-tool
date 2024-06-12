@@ -1,6 +1,8 @@
-from aliro_actuator.access_protocol import TransportProtocol
 from aliro_actuator.access_protocol.apdu import INS
-from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
+from aliro_actuator.access_protocol.defines import (
+    EXPEDITED_PHASE_AID,
+    TransportProtocol,
+)
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidCommandError,
