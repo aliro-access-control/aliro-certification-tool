@@ -1,6 +1,8 @@
-from aliro_actuator.access_protocol import TransportProtocol
 from aliro_actuator.access_protocol.apdu import Auth1Response
-from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
+from aliro_actuator.access_protocol.defines import (
+    EXPEDITED_PHASE_AID,
+    TransportProtocol,
+)
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidCommandError,
@@ -113,7 +115,7 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
         except InvalidCommandError as error:
             self.mark_step_failure(str(error))
             return
-        if cmds_auth1.expected_response != Auth1Response.ENDPOINT_PUBLIC_KEY:
+        if cmds_auth1.expected_response != Auth1Response.CREDENTIAL_PUBLIC_KEY:
             self.mark_step_failure(
                 "Access Credential key type request is not endpoint public key!"
             )

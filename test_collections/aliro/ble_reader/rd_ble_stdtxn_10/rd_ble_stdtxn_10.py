@@ -1,7 +1,9 @@
 from binascii import hexlify
 
-from aliro_actuator.access_protocol import TransportProtocol
-from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
+from aliro_actuator.access_protocol.defines import (
+    EXPEDITED_PHASE_AID,
+    TransportProtocol,
+)
 from aliro_actuator.access_protocol.user_device import UserDevice
 from aliro_actuator.transport_protocol import Mode
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
