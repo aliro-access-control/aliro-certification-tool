@@ -42,18 +42,15 @@ class RD_BLE_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
 
     def create_test_steps(self) -> None:
         self.test_steps = [
-            TestStep("Step1: User Device sends AP Message: Initiate AP"),
-            TestStep("Step2: Reader sends AP_RQ message: AUTH0 cmd"),
-            TestStep("Step3: User Device sends AP_RS message: AUTH0 response"),
-            TestStep("Step4: Optional: AP_RQ message: LOAD CERT"),
-            TestStep("Step5: Conditional: AP_RS message: LOAD CERT"),
-            TestStep("Step6: Reader sends AP_RQ message: AUTH1 cmd"),
-            TestStep("Step7: User Device sends AP_RS message: AUTH1 response"),
-            TestStep("Step8: Reader sends AP_RQ message: EXCHANGE command"),
-            TestStep("Step9: Device sends AP_RS message: EXCHANGE response"),
-            TestStep("Step10: Optional: Reader sends AP_RQ message: ENVELOPE"),
-            TestStep("Step11: Conditional: Device sends AP _RS message: GET RESPONSE"),
-            TestStep("Step12: Reader sends AP message: AP completed"),
+            TestStep("Step0: Prerequisites"),
+            TestStep("Step1: User Device sends AP message: Timesync"),
+            TestStep("Step2: User Device sends AP message: Initiate Ranging"),
+            TestStep("Step3: Reader sends AP message: RSS-M1"),
+            TestStep("Step4: User Device sends AP message: RSS-M2"),
+            TestStep("Step5: Reader sends AP message: RSS-M3"),
+            TestStep("Step6: User Device sends AP message: RSS-M4"),
+            TestStep("Step7: Reader acquires UWB ranging result"),
+            TestStep("Step8: Reader sends AP message: Status changed"),
         ]
 
     async def setup(self) -> None:
@@ -90,110 +87,71 @@ class RD_BLE_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
             self.mark_step_failure(error_str)
             return
 
-        # Test step 1
+        # Test step 0: Prerequisites
         try:
-            await self.userdevice.send_initiate_access_protocol_notification()
+            await self.userdevice.single_transaction()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
         self.next_step()
 
-        # Test step 2
+        # Test step 1: User Device sends AP message: Timesync
         try:
-            cmds_auth0 = await self.userdevice.wait_for_command(
-                expected_command=INS.AUTH0
+            await self.userdevice.send_timesync()
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+
+        # Test step 2: User Device sends AP message: Initiate Ranging
+        try:
+            await self.userdevice.send_initiate_ranging()
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+
+        # Test step 3: Reader sends AP message: RSS-M1
+        # Test step 4: User Device sends AP message: RSS-M2
+        try:
+            message = await self.userdevice.wait_for_ble_message(
+                self.reader.session.get_ble_encryption()
             )
+            await self.userdevice.handle_ranging_setup_m1(message)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
         self.next_step()
 
-        # Test step 3
+        # Test step 5: Reader sends AP message: RSS-M3
+        # Test step 6: User Device sends AP message: RSS-M4
         try:
-            await self.userdevice.handle_auth0(cmds_auth0)
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-        self.next_step()
-
-        # Test step 4
-        try:
-            cmds_auth1 = await self.userdevice.wait_for_command(
-                expected_command=[INS.AUTH1, INS.LOAD_CERT]
+            message = await self.userdevice.wait_for_ble_message(
+                self.reader.session.get_ble_encryption()
             )
+            await self.userdevice.handle_ranging_setup_m3(message)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
         self.next_step()
 
-        # Test step 5
-        if cmds_auth1.ins == INS.LOAD_CERT:
-            try:
-                await self.userdevice.handle_load_cert(cmds_auth1)
-            except Exception as error:
-                error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-                self.mark_step_failure(error_str)
-                return
-        self.next_step()
-
-        # Test step 6
-        if cmds_auth1.ins == INS.LOAD_CERT:
-            try:
-                cmds_auth1 = await self.userdevice.wait_for_command(
-                    expected_command=INS.AUTH1
-                )
-            except Exception as error:
-                error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-                self.mark_step_failure(error_str)
-                return
-        self.next_step()
-
-        # Test step 7
+        # Test step 7: Reader acquires UWB ranging result
         try:
-            await self.userdevice.handle_auth1(cmds_auth1)
-        except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-        self.next_step()
-
-        # Test step 8
-        try:
-            cmds_exchange = await self.userdevice.wait_for_command(
-                expected_command=INS.EXCHANGE,
-                encryption=self.userdevice.session.encryption,
-            )
+            cmds = await self.userdevice.wait_for_command()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
         self.next_step()
 
-        # Test step 9
+        # Test step 8: Reader sends AP message: Status changed
         try:
-            await self.userdevice.handle_exchange(cmds_exchange)
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-        self.next_step()
-
-        # Test step 10
-        self.next_step()
-
-        # Test step 11
-        self.next_step()
-
-        # Test step 12
-        try:
-            message_ap_completed = await self.userdevice.wait_for_ble_message()
-            self.userdevice.handle_reader_status_access_protocol_completed_message(
-                message_ap_completed
-            )
+            cmds = await self.userdevice.wait_for_command()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)

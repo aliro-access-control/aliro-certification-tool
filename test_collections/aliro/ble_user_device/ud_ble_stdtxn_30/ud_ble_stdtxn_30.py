@@ -8,6 +8,10 @@ from aliro_actuator.access_protocol.defines import (
     TransportProtocol,
 )
 from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.transport_protocol.ble_message_format import (
+    ReaderStatusInformation_Values,
+    UnsolicitedReaderStatusReporting_Values,
+)
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
@@ -46,18 +50,15 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
 
     def create_test_steps(self) -> None:
         self.test_steps = [
-            TestStep("Step1: User Device sends AP Message: Initiate AP"),
-            TestStep("Step2: Reader sends AP_RQ message: AUTH0 cmd"),
-            TestStep("Step3: User Device sends AP_RS message: AUTH0 response"),
-            TestStep("Step4: Optional: AP_RQ message: LOAD CERT"),
-            TestStep("Step5: Conditional: AP_RS message: LOAD CERT"),
-            TestStep("Step6: Reader sends AP_RQ message: AUTH1 cmd"),
-            TestStep("Step7: User Device sends AP_RS message: AUTH1 response"),
-            TestStep("Step8: Reader sends AP_RQ message: EXCHANGE command"),
-            TestStep("Step9: Device sends AP_RS message: EXCHANGE response"),
-            TestStep("Step10: Optional: Reader sends AP_RQ message: ENVELOPE"),
-            TestStep("Step11: Conditional: Device sends AP _RS message: GET RESPONSE"),
-            TestStep("Step12: Reader sends AP message: AP completed"),
+            TestStep("Step0: Prerequisites"),
+            TestStep("Step1: User Device sends AP message: Timesync"),
+            TestStep("Step2: User Device sends AP message: Initiate Ranging"),
+            TestStep("Step3: Reader sends AP message: RSS-M1"),
+            TestStep("Step4: User Device sends AP message: RSS-M2"),
+            TestStep("Step5: Reader sends AP message: RSS-M3"),
+            TestStep("Step6: User Device sends AP message: RSS-M4"),
+            TestStep("Step7: Reader acquires UWB ranging result"),
+            TestStep("Step8: Reader sends AP message: Status changed"),
         ]
 
     async def setup(self) -> None:
@@ -85,51 +86,47 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
                 options={"OK": 1},
             )
         )
-        try:
-            await self.send_prompt_request(
-                OptionsSelectPromptRequest(
-                    prompt="Start user device scanning", options={"OK": 1}
-                )
+        await self.send_prompt_request(
+            OptionsSelectPromptRequest(
+                prompt="Start user device scanning", options={"OK": 1}
             )
-            await self.reader.setup_connection()
-            self.reader.start_new_session()
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
+        )
 
-        # Test step 1
+        # Test step 0: Prerequisites
         try:
-            await self.reader.wait_for_initiate_access_protocol_notification()
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-        self.next_step()
-
-        # Test step 2 and step 3
-        try:
-            await self.reader.handle_auth0(
-                transaction_type=Transaction.STANDARD,
-                transaction_code=TransactionCode.USER_DEVICE,
+            await self.reader.transaction_initiation()
+            await self.reader.expedited_transaction_standard(
+                transaction_code=TransactionCode.LOCK
+            )
+            await self.reader.reader_status_access_protocol_completed(
+                UnsolicitedReaderStatusReporting_Values.DO_NOT_SEND,
+                ReaderStatusInformation_Values.SECURED,
             )
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
         self.next_step()
-        self.next_step()
 
-        # Test step 4 and step 5
-        # optional
-        self.next_step()
-        self.next_step()
-
-        # Test step 6 and step 7
+        # Test step 1: User Device sends AP message: Timesync
         try:
-            await self.reader.handle_auth1(
-                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
+            message = await self.reader.wait_for_ble_message(
+                self.reader.session.get_ble_encryption()
             )
+            await self.reader.handle_timesync(message)
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+
+        # Test step 2: User Device sends AP message: Initiate Ranging
+        # Test step 3: Reader sends AP message: RSS-M1
+        try:
+            message = await self.reader.wait_for_ble_message(
+                self.reader.session.get_ble_encryption()
+            )
+            await self.reader.handle_initiate_ranging(message)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -137,25 +134,43 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
         self.next_step()
 
-        # Test step 8 and step 9
+        # Test step 4: User Device sends AP message: RSS-M2
+        # Test step 5: Reader sends AP message: RSS-M3
         try:
-            await self.reader.handle_exchange(False)
+            message = await self.reader.wait_for_ble_message(
+                self.reader.session.get_ble_encryption()
+            )
+            await self.reader.handle_ranging_setup_m2(message)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
         self.next_step()
-        self.next_step()
 
-        # Test step 10
-        self.next_step()
-
-        # Test step 11
-        self.next_step()
-
-        # Test step 12
+        # Test step 6: User Device sends AP message: RSS-M4
         try:
-            await self.reader.reader_status_access_protocol_completed(0, 0)
+            message = await self.reader.wait_for_ble_message(
+                self.reader.session.get_ble_encryption()
+            )
+            await self.reader.handle_ranging_setup_m4(message)
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+
+        # Test step 7: Reader acquires UWB ranging result
+        try:
+            await self.reader.do_something()
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+
+        # Test step 8: Reader sends AP message: Status changed
+        try:
+            await self.reader.do_something()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
