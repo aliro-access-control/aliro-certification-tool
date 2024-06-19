@@ -267,7 +267,7 @@ class RD_BLE_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
 
         # Test step 17
         try:
-            await self.userdevice.handle_auth0(cmds_exchange)
+            await self.userdevice.handle_exchange(cmds_exchange)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)

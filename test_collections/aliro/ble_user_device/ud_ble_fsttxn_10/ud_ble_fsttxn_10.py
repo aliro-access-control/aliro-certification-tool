@@ -202,7 +202,7 @@ class UD_BLE_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 15 and step 16
         try:
-            await self.reader.handle_exchange(ursk=b"")
+            await self.reader.handle_exchange(False, ursk=b"")
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
