@@ -5,6 +5,10 @@ A test harness and tooling designed to simplify development, testing, and certif
 > [!NOTE]
 > The tool is a complete reuse from CSA - Matter, and UI is still showing a number of unrelated Matter information. This will be fixed eventually.
 
+This version of the Aliro Certification Tool uses:
+* Aliro Specification Version 0.7.5
+* ACWG CSG Test Plan Version 0.7.5.1a_r2
+
 # Setup Instructions
 Following this section should take a couple hours, mostly depending on internet speed.
 
@@ -156,11 +160,11 @@ This is mostly a backup, if you need to configure network or find IP address.
         * When asked if you trust the connection, please type `yes` and hit enter.
 
 > [!TIP]
-> You can check out a specific release. Eg. `release/test_event1-2024`
+> You can check out a specific release. Eg. `release/test_event3-2024-aliro_specification_v0.7.4-v1.1`
 > 
 >   ```sh
 >   cd  ~/aliro-certification-tool  
->   git checkout release/test_event1-2024  
+>   git checkout release/test_event3-2024-aliro_specification_v0.7.4-v1.1  
 >   ```
 
 6. Auto install Aliro Certification tool    
