@@ -157,6 +157,7 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
                 self.mark_step_failure(
                     "Version 0x{:04x} not found".format(CURRENT_VERSION)
                 )
+                return
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -169,7 +170,7 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         # Test step 12
         try:
             await self.userdevice.transport_protocol.driver.handle_GATT_layer_write_characteristic(
-                primary_service
+                primary_service, CURRENT_VERSION
             )
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
