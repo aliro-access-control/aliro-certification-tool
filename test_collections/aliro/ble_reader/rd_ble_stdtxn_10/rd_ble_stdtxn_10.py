@@ -6,6 +6,7 @@ from aliro_actuator.access_protocol.defines import (
 )
 from aliro_actuator.access_protocol.user_device import UserDevice
 from aliro_actuator.transport_protocol import Mode
+from aliro_actuator.transport_protocol.ble_uwb import CURRENT_VERSION
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
@@ -152,8 +153,10 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
                 )
             )
             logger.info("SPSM found: {!r}".format(hexlify(spsm)))
-            if bytes.fromhex("0100") not in versions:
-                self.mark_step_failure("Version 0x0100 not found")
+            if CURRENT_VERSION not in versions:
+                self.mark_step_failure(
+                    "Version 0x{:04x} not found".format(CURRENT_VERSION)
+                )
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
