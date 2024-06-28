@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .ud_nfc_fsttxn_30 import UD_NFC_FSTTXN_30
+# from .ud_nfc_fsttxn_30 import UD_NFC_FSTTXN_30

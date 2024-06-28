@@ -13,5 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-# from .rd_nfc_fsttxn_30 import RD_NFC_FSTTXN_30
+from .rd_nfc_stdtxn_40 import RD_NFC_STDTXN_40
