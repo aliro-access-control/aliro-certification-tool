@@ -1,7 +1,7 @@
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
+    AuthenticationPolicy,
     Transaction,
-    TransactionCode,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -96,7 +96,7 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             await self.reader.transaction_initiation()
             await self.reader.expedited_transaction_standard(
-                transaction_code=TransactionCode.LOCK
+                authentication_policy=AuthenticationPolicy.LOCK
             )
             await self.reader.reader_status_access_protocol_completed(
                 UnsolicitedReaderStatusReporting_Values.DO_NOT_SEND,
