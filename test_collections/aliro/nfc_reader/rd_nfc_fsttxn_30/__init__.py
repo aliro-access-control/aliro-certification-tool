@@ -14,4 +14,4 @@
 # limitations under the License.
 #
 
-from .rd_nfc_fsttxn_30 import RD_NFC_FSTTXN_30
+# from .rd_nfc_fsttxn_30 import RD_NFC_FSTTXN_30

@@ -6,8 +6,8 @@ A test harness and tooling designed to simplify development, testing, and certif
 > The tool is a complete reuse from CSA - Matter, and UI is still showing a number of unrelated Matter information. This will be fixed eventually.
 
 This version of the Aliro Certification Tool uses:
-* Aliro Specification Version 0.7.4
-* ACWG CSG Test Plan Version 0.7.4-5
+* Aliro Specification Version 0.7.5
+* ACWG CSG Test Plan Version 0.7.5.1a_r2
 
 # Setup Instructions
 Following this section should take a couple hours, mostly depending on internet speed.
@@ -282,21 +282,29 @@ You can edit test parameters for a Project during project creation, but you can 
   * Supported Format: 
     * DER encoded HEX string
     * PEM string (including `\n` as for line breaks)
-* `dut_reader_group_identifier` Group Identifier for Reader DUT
+* `dut_reader_group_identifier` Group Identifier for Reader DUT.
   * Supported Format: 
     * HEX string
-* `dut_reader_group_sub_identifier` Sub-group Identifier for Reader DUT
+* `dut_reader_group_sub_identifier` Sub-group Identifier for Reader DUT.
   * Supported Format: 
     * HEX string
-* `dut_reader_group_resolving_key` Group resolving key for Reader DUT
+* `dut_reader_group_resolving_key` Group resolving key, used for the BLE tests, during 
+the dynamic tag generation.
   * Supported Format: 
     * HEX string
-* `th_endpoint_private_key` Private key for the User Endpoint, simulated by the tool. 
+* `th_access_credential_private_key` Private key for the user access credential, 
+simulated by the tool. 
   * Supported Format:
     * DER encoded HEX string
     * PEM string (including `\n` as for line breaks)
-* `th_endpoint_public_key` Public key for the User Endpoint, simulated by the tool.  
+* `th_access_credential_public_key` Public key for the User access credential, 
+simulated by the tool.  
   * Supported Format:
+    * DER encoded HEX string
+    * PEM string (including `\n` as for line breaks)
+* `dut_reader_issuer_public_key` Reader System Issuer CA certificate public key, used 
+for certificate verification.  
+  * Supported Format: 
     * DER encoded HEX string
     * PEM string (including `\n` as for line breaks)
 
@@ -323,10 +331,16 @@ You can edit test parameters for a Project during project creation, but you can 
 Used for LOAD CERT and AUTH1 command.
   * Supported Format: 
     * HEX string
-* `th_reader_group_resolving_key` Group resolving key, simulated by the tool.
+* `th_reader_certificate` certificate to send during LOAD_CERT and AUTH1 commands.
   * Supported Format: 
     * HEX string
-* `th_reader_spsm` spsm, simulated by the tool.
+* `th_reader_group_resolving_key` Group resolving key, used for the BLE tests, during 
+the dynamic tag generation.
+  * Supported Format: 
+    * HEX string
+* `th_reader_spsm` spsm (Simplified Protocol / Service Multiplexer), used for the BLE 
+tests, in the 'Reader SPSM and AC BLE UWB Protocol Version Characteristic Value 
+declaration'.
   * Supported Format: 
     * HEX string
 * `th_endpoint_public_key` Endpoint public key, for the key slot lookup table used byb the tool. 
