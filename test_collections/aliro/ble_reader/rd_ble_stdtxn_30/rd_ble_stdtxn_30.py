@@ -141,17 +141,13 @@ class RD_BLE_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 7: Reader acquires UWB ranging result
-        try:
-            cmds = await self.userdevice.wait_for_command()
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
+        # only reader
         self.next_step()
 
         # Test step 8: Reader sends AP message: Status changed
         try:
-            cmds = await self.userdevice.wait_for_command()
+            message = await self.userdevice.wait_for_command()
+            self.userdevice.handle_reader_status_changed_message(message)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)

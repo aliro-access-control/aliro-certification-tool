@@ -161,7 +161,8 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 7: Reader acquires UWB ranging result
         try:
-            await self.reader.do_something()
+            await self.reader.transport_protocol.get_ranging_data()
+            await self.reader.transport_protocol.stop_ranging()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -170,7 +171,7 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 8: Reader sends AP message: Status changed
         try:
-            await self.reader.do_something()
+            await self.reader.reader_status_status_changed()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
