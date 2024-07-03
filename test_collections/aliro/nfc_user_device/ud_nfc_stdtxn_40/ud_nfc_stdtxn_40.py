@@ -1,17 +1,16 @@
+from aliro_actuator.access_protocol import TransportProtocol
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     Transaction,
     TransactionCode,
 )
-from aliro_actuator.access_protocol.defines import (
-    EXPEDITED_PHASE_AID,
-    TransportProtocol,
-)
+from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
 )
 from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
@@ -20,12 +19,12 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
+class UD_NFC_STDTXN_40(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-NFC-STDTXN-3.0",
+        "public_id": "UD-NFC-STDTXN-4.0",
         "version": "0.0.1",
-        "title": "UD-NFC-STDTXN-3.0",
-        "description": """Verify conformance of User Device UT in CONTROL_FLOW command.""",
+        "title": "UD-NFC-STDTXN-4.0",
+        "description": """Verify conformance of User Device UT in LOAD CERT command.""",
     }
 
     reader_ePuBK = bytes.fromhex(
@@ -52,8 +51,9 @@ class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step2: Set to polling mode"),
             TestStep("Step3: Transaction initiation"),
             TestStep("Step4: Send/Receive AUTH0 command/response"),
-            TestStep("Step5: Send/Receive AUTH1 command/response"),
-            TestStep("Step6: Send/Receive CONTROL_FLOW command/response"),
+            TestStep("Step5: Send/Receive LOAD_CERT command/response"),
+            TestStep("Step6: Send/Receive AUTH1 command/response"),
+            TestStep("Step7: Send/Receive CONTROL_FLOW command/response"),
         ]
 
     async def setup(self) -> None:
@@ -62,6 +62,7 @@ class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
         key = self.th_reader_keypair()
+        cert = self.th_reader_certificate()
 
         # Initialize Aliro NFC Reader
         self.reader = Reader(
@@ -69,6 +70,7 @@ class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
             reader_group_identifier=group_id,
             reader_group_sub_identifier=sub_group_id,
             reader_key=key,
+            reader_cert=cert,
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
         )
@@ -90,7 +92,7 @@ class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 3
         try:
-            await self.reader.transaction_initiation()  # including SELECT command
+            await self.reader.transaction_initiation()  # including select
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
@@ -109,6 +111,14 @@ class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 5
         try:
+            await self.reader.handle_load_cert()
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
+        self.next_step()
+
+        # Test step 6
+        try:
             await self.reader.handle_auth1(
                 expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
             )
@@ -117,7 +127,7 @@ class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
             return
         self.next_step()
 
-        # Test step 6
+        # Test step 7
         try:
             await self.reader.handle_control_flow(
                 success=True,
@@ -128,5 +138,5 @@ class UD_NFC_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_NFC_STDTXN_30 Cleanup")
+        logger.info("UD_NFC_STDTXN_40 Cleanup")
         await self.reader.transaction_termination()

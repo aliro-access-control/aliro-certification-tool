@@ -1,7 +1,9 @@
 from binascii import hexlify
 
-from aliro_actuator.access_protocol import TransportProtocol
-from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
+from aliro_actuator.access_protocol.defines import (
+    EXPEDITED_PHASE_AID,
+    TransportProtocol,
+)
 from aliro_actuator.access_protocol.user_device import UserDevice
 from aliro_actuator.transport_protocol import Mode
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
@@ -9,7 +11,7 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
-from ...support.aliro_test_case import AliroReaderTestCase
+from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
 class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
@@ -66,6 +68,7 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
             group_resolving_key=self.group_resolving_key,
         )
 
+    @log_errors
     async def execute(self) -> None:
         await self.send_prompt_request(
             OptionsSelectPromptRequest(

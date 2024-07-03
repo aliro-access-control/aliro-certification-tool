@@ -5,6 +5,10 @@ A test harness and tooling designed to simplify development, testing, and certif
 > [!NOTE]
 > The tool is a complete reuse from CSA - Matter, and UI is still showing a number of unrelated Matter information. This will be fixed eventually.
 
+This version of the Aliro Certification Tool uses:
+* Aliro Specification Version 0.7.4
+* ACWG CSG Test Plan Version 0.7.4-5
+
 # Setup Instructions
 Following this section should take a couple hours, mostly depending on internet speed.
 
@@ -156,11 +160,11 @@ This is mostly a backup, if you need to configure network or find IP address.
         * When asked if you trust the connection, please type `yes` and hit enter.
 
 > [!TIP]
-> You can check out a specific release. Eg. `release/test_event1-2024`
+> You can check out a specific release. Eg. `release/test_event3-2024-aliro_specification_v0.7.4-v1.1`
 > 
 >   ```sh
 >   cd  ~/aliro-certification-tool  
->   git checkout release/test_event1-2024  
+>   git checkout release/test_event3-2024-aliro_specification_v0.7.4-v1.1  
 >   ```
 
 6. Auto install Aliro Certification tool    
@@ -186,7 +190,7 @@ This is mostly a backup, if you need to configure network or find IP address.
 
     ```sh
     cd  ~/aliro-certification-tool
-    git submodule update --init —-recursive
+    git submodule update --init --recursive
     ```
 
 2. Setup the Test Harness
@@ -309,10 +313,14 @@ You can edit test parameters for a Project during project creation, but you can 
   * Supported Format: 
     * DER encoded HEX string
     * PEM string (including `\n` as for line breaks)
-* `th_reader_group_identifier` Group Identifier the Reader, simulated by the tool.
+* `th_reader_group_identifier` Group Identifier for the Reader, simulated by the tool.
   * Supported Format: 
     * HEX string
-* `th_reader_sub_group_identifier` Sub-group Identifier the Reader, simulated by the tool.
+* `th_reader_sub_group_identifier` Sub-group Identifier for the Reader, simulated by the tool.
+  * Supported Format: 
+    * HEX string
+* `th_reader_certificate` Reader Certificate for the Reader, simulated by the tool. 
+Used for LOAD CERT and AUTH1 command.
   * Supported Format: 
     * HEX string
 * `th_reader_group_resolving_key` Group resolving key, simulated by the tool.
@@ -321,7 +329,10 @@ You can edit test parameters for a Project during project creation, but you can 
 * `th_reader_spsm` spsm, simulated by the tool.
   * Supported Format: 
     * HEX string
-
+* `th_endpoint_public_key` Endpoint public key, for the key slot lookup table used byb the tool. 
+  * Supported Format: 
+    * DER encoded HEX string
+    * PEM string (including `\n` as for line breaks)
 
 # Updating the Tool
 

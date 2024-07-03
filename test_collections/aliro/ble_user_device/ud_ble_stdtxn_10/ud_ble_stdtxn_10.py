@@ -1,5 +1,7 @@
-from aliro_actuator.access_protocol import TransportProtocol
-from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
+from aliro_actuator.access_protocol.defines import (
+    EXPEDITED_PHASE_AID,
+    TransportProtocol,
+)
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.transport_protocol import Mode
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
@@ -7,7 +9,7 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
-from ...support.aliro_test_case import AliroUserDeviceTestCase
+from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
 class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
@@ -72,6 +74,7 @@ class UD_BLE_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
             group_resolving_key=group_resolving_key,
         )
 
+    @log_errors
     async def execute(self) -> None:
         await self.send_prompt_request(
             OptionsSelectPromptRequest(

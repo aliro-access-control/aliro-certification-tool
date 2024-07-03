@@ -1,5 +1,8 @@
-from aliro_actuator.access_protocol import TransportProtocol
-from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
+from aliro_actuator.access_protocol.apdu import Auth1Response
+from aliro_actuator.access_protocol.defines import (
+    EXPEDITED_PHASE_AID,
+    TransportProtocol,
+)
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidCommandError,
@@ -10,7 +13,7 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
-from ...support.aliro_test_case import AliroReaderTestCase
+from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
 class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
@@ -57,6 +60,7 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
         )
 
+    @log_errors
     async def execute(self) -> None:
         # Test step 1
         # Done in setup
@@ -110,6 +114,11 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
             cmds_auth1 = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:
             self.mark_step_failure(str(error))
+            return
+        if cmds_auth1.expected_response != Auth1Response.CREDENTIAL_PUBLIC_KEY:
+            self.mark_step_failure(
+                "Access Credential key type request is not endpoint public key!"
+            )
             return
         try:
             await self.userdevice.handle_auth1(cmds_auth1)

@@ -1,7 +1,6 @@
-from aliro_actuator.access_protocol.defines import (
-    EXPEDITED_PHASE_AID,
-    TransportProtocol,
-)
+from aliro_actuator.access_protocol import TransportProtocol
+from aliro_actuator.access_protocol.apdu import Auth1Response
+from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidCommandError,
@@ -15,12 +14,12 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class RD_NFC_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
+class RD_NFC_STDTXN_21(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-STDTXN-1.0",
+        "public_id": "RD-NFC-STDTXN-2.1",
         "version": "0.0.1",
-        "title": "RD-NFC-STDTXN-1.0",
-        "description": """Verify conformance of Reader UT in AUTH0 command.""",
+        "title": "RD-NFC-STDTXN-2.1",
+        "description": """Verify conformance of Reader UT in AUTH1 command, using keyslot""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -44,9 +43,9 @@ class RD_NFC_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         self.test_steps = [
             TestStep("Step1: Initialization"),
             TestStep("Step2: Set Reader Device Under Test in polling mode"),
-            TestStep("Step3: Bring Test Harness above Reader Device Under Test"),
-            TestStep("Step4: Receive/Send Select command/response"),
-            TestStep("Step5: Receive/Send AUTH0 command/response"),
+            TestStep("Step3: Transaction initiation"),
+            TestStep("Step4: Receive/Send AUTH0 command/response"),
+            TestStep("Step5: Receive/Send AUTH1 command/response"),
         ]
 
     async def setup(self) -> None:
@@ -79,28 +78,18 @@ class RD_NFC_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         # Display pop-up to put the Test Harness on the Reader device Under Test
         await self.send_prompt_request(
             OptionsSelectPromptRequest(
-                prompt="Bring Test Harness above Reader Device Under Test",
+                prompt="Set Reader Device Under Test in NFC polling mode",
                 options={"OK": 1},
             )
         )
-        await self.userdevice.setup_connection()  # up to RATS command/ ATS response
-        self.userdevice.start_new_session()
-        self.next_step()
-
-        # Test step 4 Receive/Send Select command/response
         try:
-            cmds_select = await self.userdevice.wait_for_command()
-        except InvalidCommandError as error:
-            self.mark_step_failure(str(error))
-            return
-        try:
-            await self.userdevice.handle_select(cmds_select)
-        except AccessProtocolError as error:
+            await self.userdevice.transaction_initiation()  # including select
+        except (AccessProtocolError, InvalidCommandError) as error:
             self.mark_step_failure(str(error))
             return
         self.next_step()
 
-        # Test step 5 Receive/Send Auth0 command/response
+        # Test step 4 Receive/Send Auth0 command/response
         try:
             cmds_auth0 = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:
@@ -118,6 +107,24 @@ class RD_NFC_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
             )
         self.next_step()
 
+        # Test step 5 Receive/Send Auth1 command/response
+        try:
+            cmds_auth1 = await self.userdevice.wait_for_command()
+        except InvalidCommandError as error:
+            self.mark_step_failure(str(error))
+            return
+        if cmds_auth1.expected_response != Auth1Response.KEY_SLOT:
+            self.mark_step_failure(
+                "Access Credential key type request is not key slot!"
+            )
+            return
+        try:
+            await self.userdevice.handle_auth1(cmds_auth1)
+        except AccessProtocolError as error:
+            self.mark_step_failure(str(error))
+            return
+        self.next_step()
+
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_STDTXN_10 Cleanup")
+        logger.info("RD_NFC_STDTXN_21 Cleanup")
         await self.userdevice.transaction_termination()

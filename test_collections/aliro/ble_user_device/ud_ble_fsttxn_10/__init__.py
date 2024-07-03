@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# from .rd_ble_stdtxn_20 import RD_BLE_STDTXN_20
+# from .ud_ble_fsttxn_10 import UD_BLE_FSTTXN_10
