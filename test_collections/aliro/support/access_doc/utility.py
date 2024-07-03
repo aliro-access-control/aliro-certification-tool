@@ -92,7 +92,7 @@ class Utility(object):
             if isinstance(val, dict):
                 data = Utility.dict_to_tlv(val)
             elif isinstance(val, list):
-                data = Utility.__list_to_tlv(val)
+                data = Utility.list_to_tlv(val)
             elif isinstance(val, (bytes, bytearray)):
                 data = val
             elif isinstance(val, int):
@@ -139,7 +139,7 @@ class Utility(object):
 
     ############################################################################
     @staticmethod
-    def __list_to_tlv(collection : list) -> bytearray:
+    def list_to_tlv(collection : list) -> bytearray:
         '''Recursively convert a list to TLV.'''
         assert(isinstance(collection, list))
         ba = bytearray()
@@ -147,7 +147,7 @@ class Utility(object):
             if isinstance(item, dict):
                 data = Utility.dict_to_tlv(item)
             elif isinstance(item, list):
-                data = Utility.__list_to_tlv(item)
+                data = Utility.list_to_tlv(item)
             elif isinstance(item, (bytes, bytearray)):
                 data = item
             elif isinstance(item, int):

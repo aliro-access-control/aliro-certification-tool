@@ -30,18 +30,6 @@ class CriticalityBits(IntFlag):
 class AccessExtension(object):
     '''Aliro Access Extension.'''
 
-    CRITICALITY_LABEL = 0
-    '''The label for the required Criticality field.'''
-
-    EXTENSION_ID_LABEL = 1
-    '''The label for the required Extension ID field.'''
-
-    VERSION_LABEL = 2
-    '''The label for the required Version field.'''
-
-    DATA_LABEL = 3
-    '''The label for the required Data field.'''
-
     ############################################################################
     def __init__(self):
         self.__criticality : int = 0
@@ -127,48 +115,48 @@ class AccessExtension(object):
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
-        '''Convert the AccessExtension to a dictionary.'''
+    def to_list(self) -> list:
+        '''Convert the AccessExtension to a list.'''
         if not self.is_valid():
             return None
 
-        access_extension_dict = {}
+        access_extension_list = []
 
         # Encode the Criticality.
-        access_extension_dict[AccessExtension.CRITICALITY_LABEL] = int(self.__criticality)
+        access_extension_list.append(int(self.__criticality))
 
         # Encode the Extension ID.
-        access_extension_dict[AccessExtension.EXTENSION_ID_LABEL] = int(self.id)
+        access_extension_list.append(int(self.id))
 
         # Encode the Version.
-        access_extension_dict[AccessExtension.VERSION_LABEL] = int(self.version)
+        access_extension_list.append(int(self.version))
 
         # Encode the Data.
-        access_extension_dict[AccessExtension.DATA_LABEL] = self.data.to_dict()
+        access_extension_list.append(self.data.to_dict())
 
-        return access_extension_dict
+        return access_extension_list
 
     ############################################################################
     def to_cbor(self) -> bytes:
         '''Convert the AccessExtension to CBOR.'''
-        access_extension_dict = self.to_dict()
-        if access_extension_dict is None:
+        access_extension_list = self.to_list()
+        if access_extension_list is None:
             return None
-        return cbor2.dumps(access_extension_dict)
+        return cbor2.dumps(access_extension_list)
 
     ############################################################################
     def to_json(self) -> str:
         '''Convert the AccessExtension to JSON.'''
-        access_extension_dict = self.to_dict()
-        if access_extension_dict is None:
+        access_extension_list = self.to_list()
+        if access_extension_list is None:
             return None
-        Utility.collection_bytes_to_hex_str(access_extension_dict)
-        return json.dumps(access_extension_dict)
+        Utility.collection_bytes_to_hex_str(access_extension_list)
+        return json.dumps(access_extension_list)
 
     ############################################################################
     def to_tlv(self) -> bytearray:
         '''Convert the AccessExtension to TLV.'''
-        access_extension_dict = self.to_dict()
-        if access_extension_dict is None:
+        access_extension_list = self.to_list()
+        if access_extension_list is None:
             return None
-        return Utility.dict_to_tlv(access_extension_dict)
+        return Utility.list_to_tlv(access_extension_list)

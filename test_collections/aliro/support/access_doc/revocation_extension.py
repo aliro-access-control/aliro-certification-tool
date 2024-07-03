@@ -24,15 +24,6 @@ from utility import Utility
 class RevocationExtension(object):
     '''Aliro Revocation Extension.'''
 
-    EXTENSION_ID_LABEL = 0
-    '''The label for the required Extension ID field.'''
-
-    VERSION_LABEL = 1
-    '''The label for the required Version field.'''
-
-    DATA_LABEL = 2
-    '''The label for the required Data field.'''
-
     ############################################################################
     def __init__(self):
         self.__id : int = 0
@@ -98,45 +89,45 @@ class RevocationExtension(object):
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
-        '''Convert the RevocationExtension to a dictionary.'''
+    def to_list(self) -> list:
+        '''Convert the RevocationExtension to a list.'''
         if not self.is_valid():
             return None
 
-        revocation_extension_dict = {}
+        revocation_extension_list = []
 
         # Encode the Extension ID.
-        revocation_extension_dict[RevocationExtension.EXTENSION_ID_LABEL] = int(self.id)
+        revocation_extension_list.append(int(self.id))
 
         # Encode the Version.
-        revocation_extension_dict[RevocationExtension.VERSION_LABEL] = int(self.version)
+        revocation_extension_list.append(int(self.version))
 
         # Encode the Data.
-        revocation_extension_dict[RevocationExtension.DATA_LABEL] = self.data.to_dict()
+        revocation_extension_list.append(self.data.to_dict())
 
-        return revocation_extension_dict
+        return revocation_extension_list
 
     ############################################################################
     def to_cbor(self) -> bytes:
         '''Convert the RevocationExtension to CBOR.'''
-        revocation_extension_dict = self.to_dict()
-        if revocation_extension_dict is None:
+        revocation_extension_list = self.to_list()
+        if revocation_extension_list is None:
             return None
-        return cbor2.dumps(revocation_extension_dict)
+        return cbor2.dumps(revocation_extension_list)
 
     ############################################################################
     def to_json(self) -> str:
         '''Convert the RevocationExtension to JSON.'''
-        revocation_extension_dict = self.to_dict()
-        if revocation_extension_dict is None:
+        revocation_extension_list = self.to_list()
+        if revocation_extension_list is None:
             return None
-        Utility.collection_bytes_to_hex_str(revocation_extension_dict)
-        return json.dumps(revocation_extension_dict)
+        Utility.collection_bytes_to_hex_str(revocation_extension_list)
+        return json.dumps(revocation_extension_list)
 
     ############################################################################
     def to_tlv(self) -> bytearray:
         '''Convert the RevocationExtension to TLV.'''
-        revocation_extension_dict = self.to_dict()
-        if revocation_extension_dict is None:
+        revocation_extension_list = self.to_list()
+        if revocation_extension_list is None:
             return None
-        return Utility.dict_to_tlv(revocation_extension_dict)
+        return Utility.list_to_tlv(revocation_extension_list)

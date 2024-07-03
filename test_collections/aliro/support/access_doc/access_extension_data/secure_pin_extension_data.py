@@ -83,7 +83,7 @@ class ReaderPin(object):
     def to_dict(self) -> dict:
         '''Convert the ReaderPin to a dictionary.'''
         if not self.is_valid():
-            return False
+            return None
 
         reader_pin_dict = {}
 
@@ -177,7 +177,7 @@ class SecurePinExtensionData(ExtensionData):
     def to_dict(self) -> dict:
         '''Convert the SecurePinExtensionData to a dictionary.'''
         if not self.is_valid():
-            return False
+            return None
 
         extension_data_dict = {}
 

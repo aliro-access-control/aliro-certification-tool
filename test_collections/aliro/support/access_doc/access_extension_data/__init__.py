@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 
-from .multiple_users_extension_data import MultipleUsersFlagBits
 from .multiple_users_extension_data import MultipleUsersExtensionData
 
 from .secure_pin_extension_data import ReaderPin

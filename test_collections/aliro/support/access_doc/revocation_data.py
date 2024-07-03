@@ -176,7 +176,7 @@ class RevocationData(object):
             for vendor_registered_id, extensions in self.revocation_extensions.items():
                 revocation_extensions_list = []
                 for revocation_extension in extensions:
-                    revocation_extensions_list.append(revocation_extension.to_dict())
+                    revocation_extensions_list.append(revocation_extension.to_list())
                 if (len(revocation_extensions_list) > 0):
                     revocation_extensions_dict[vendor_registered_id] = revocation_extensions_list
             revocation_data_dict[RevocationData.REVOCATION_EXTENSIONS_LABEL] = revocation_extensions_dict
