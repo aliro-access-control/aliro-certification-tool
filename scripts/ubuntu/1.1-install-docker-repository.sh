@@ -16,9 +16,6 @@
 # limitations under the License.
 set -e
 
-ROOT_DIR=$(realpath $(dirname "$0")/../..)
-SCRIPT_DIR="$ROOT_DIR/scripts"
-
 printf "\n\n**********"
 printf "\n*** Verify docker.download.com is reachable ***\n"
 # Verify docker.download.com is reachable before attempting to install the
