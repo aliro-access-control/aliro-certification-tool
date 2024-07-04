@@ -96,7 +96,7 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             await self.reader.transaction_initiation()
             await self.reader.expedited_transaction_standard(
-                authentication_policy=AuthenticationPolicy.LOCK
+                authentication_policy=AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
             )
             await self.reader.reader_status_access_protocol_completed(
                 UnsolicitedReaderStatusReporting_Values.DO_NOT_SEND,
