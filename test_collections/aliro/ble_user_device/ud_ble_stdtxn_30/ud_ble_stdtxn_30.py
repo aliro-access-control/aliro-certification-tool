@@ -113,7 +113,7 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
             message = await self.reader.wait_for_ble_message(
                 self.reader.session.get_ble_encryption()
             )
-            await self.reader.handle_timesync(message)
+            self.reader.handle_timesync(message)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
