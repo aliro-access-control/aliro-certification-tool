@@ -82,7 +82,6 @@ class RD_BLE_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
 
         # Test step 0: Prerequisites
         try:
-            await self.userdevice.transaction_initiation()
             await self.userdevice.single_transaction()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
