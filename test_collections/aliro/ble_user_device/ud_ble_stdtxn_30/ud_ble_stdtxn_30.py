@@ -162,6 +162,7 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 7: Reader acquires UWB ranging result
         try:
+            await self.reader.transport_protocol.start_ranging()
             await self.reader.transport_protocol.get_ranging_data()
             await self.reader.transport_protocol.stop_ranging()
         except Exception as error:
