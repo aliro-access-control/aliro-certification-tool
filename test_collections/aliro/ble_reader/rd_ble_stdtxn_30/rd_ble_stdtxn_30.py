@@ -73,22 +73,16 @@ class RD_BLE_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
                 options={"OK": 1},
             )
         )
-        try:
-            await self.send_prompt_request(
-                OptionsSelectPromptRequest(
-                    prompt="Set Reader Device Under Test in BLE advertising mode",
-                    options={"OK": 1},
-                )
+        await self.send_prompt_request(
+            OptionsSelectPromptRequest(
+                prompt="Set Reader Device Under Test in BLE advertising mode",
+                options={"OK": 1},
             )
-            await self.userdevice.setup_connection()
-            self.userdevice.start_new_session()
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
+        )
 
         # Test step 0: Prerequisites
         try:
+            await self.userdevice.transaction_initiation()
             await self.userdevice.single_transaction()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
