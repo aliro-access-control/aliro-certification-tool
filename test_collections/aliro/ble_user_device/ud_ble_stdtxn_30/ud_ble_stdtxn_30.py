@@ -9,6 +9,7 @@ from aliro_actuator.access_protocol.defines import (
 )
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.transport_protocol.ble_message_format import (
+    OperationSourceInformation_Values,
     ReaderStatusInformation_Values,
     UnsolicitedReaderStatusReporting_Values,
 )
@@ -173,7 +174,10 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 8: Reader sends AP message: Status changed
         try:
-            await self.reader.reader_status_status_changed()
+            await self.reader.reader_status_status_changed(
+                ReaderStatusInformation_Values.UNSECURED,
+                OperationSourceInformation_Values.UNSPECIFIED,
+            )
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
