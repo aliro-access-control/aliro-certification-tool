@@ -111,7 +111,7 @@ class RD_BLE_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
         # Test step 4: User Device sends AP message: RSS-M2
         try:
             message = await self.userdevice.wait_for_ble_message(
-                self.reader.session.get_ble_encryption()
+                self.userdevice.session.get_ble_encryption()
             )
             await self.userdevice.handle_ranging_setup_m1(message)
         except Exception as error:
@@ -125,7 +125,7 @@ class RD_BLE_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
         # Test step 6: User Device sends AP message: RSS-M4
         try:
             message = await self.userdevice.wait_for_ble_message(
-                self.reader.session.get_ble_encryption()
+                self.userdevice.session.get_ble_encryption()
             )
             await self.userdevice.handle_ranging_setup_m3(message)
         except Exception as error:
