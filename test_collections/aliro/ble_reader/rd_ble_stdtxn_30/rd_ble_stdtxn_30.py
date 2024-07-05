@@ -119,6 +119,7 @@ class RD_BLE_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
             self.mark_step_failure(error_str)
             return
         self.next_step()
+        self.next_step()
 
         # Test step 5: Reader sends AP message: RSS-M3
         # Test step 6: User Device sends AP message: RSS-M4
@@ -131,6 +132,7 @@ class RD_BLE_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
+        self.next_step()
         self.next_step()
 
         # Test step 7: Reader acquires UWB ranging result
