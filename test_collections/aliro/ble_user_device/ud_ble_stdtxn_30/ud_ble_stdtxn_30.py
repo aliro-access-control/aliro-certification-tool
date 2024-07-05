@@ -146,6 +146,7 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
             self.mark_step_failure(error_str)
             return
         self.next_step()
+        self.next_step()
 
         # Test step 6: User Device sends AP message: RSS-M4
         try:
