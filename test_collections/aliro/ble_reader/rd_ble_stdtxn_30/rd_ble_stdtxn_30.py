@@ -137,6 +137,12 @@ class RD_BLE_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
 
         # Test step 7: Reader acquires UWB ranging result
         # only reader
+        try:
+            await self.reader.transport_protocol.start_ranging()
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
         self.next_step()
 
         # Test step 8: Reader sends AP message: Status changed
@@ -152,6 +158,7 @@ class RD_BLE_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
     async def cleanup(self) -> None:
         logger.info("RD_BLE_STDTXN_30 Cleanup")
         try:
+            await self.reader.transport_protocol.stop_ranging()
             await self.userdevice.transaction_termination()
         except NoDeviceConnectedError:
             # it is possible to end the test before any device is connected
