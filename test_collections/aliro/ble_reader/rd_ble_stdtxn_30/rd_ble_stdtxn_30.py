@@ -138,7 +138,7 @@ class RD_BLE_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
         # Test step 7: Reader acquires UWB ranging result
         # only reader
         try:
-            await self.reader.transport_protocol.start_ranging()
+            await self.userdevice.transport_protocol.start_ranging()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
