@@ -149,6 +149,7 @@ class RD_BLE_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
         try:
             message = await self.userdevice.wait_for_ble_message()
             self.userdevice.handle_reader_status_changed_message(message)
+            await self.reader.transport_protocol.stop_ranging()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -158,7 +159,6 @@ class RD_BLE_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
     async def cleanup(self) -> None:
         logger.info("RD_BLE_STDTXN_30 Cleanup")
         try:
-            await self.reader.transport_protocol.stop_ranging()
             await self.userdevice.transaction_termination()
         except NoDeviceConnectedError:
             # it is possible to end the test before any device is connected
