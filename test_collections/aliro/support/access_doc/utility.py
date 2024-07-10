@@ -40,6 +40,22 @@ class Utility(object):
 
     ############################################################################
     @staticmethod
+    def time_val_to_tdate(val : int | float | datetime.date | datetime.datetime) -> str:
+        '''Convert the date / time to tdate with format "YYYY-MM-DDTHH:mm:ss[Z]".'''
+        assert isinstance(val, (int, float, datetime.date, datetime.datetime))
+        if isinstance(val, (int, float)):
+            dt = datetime.datetime.fromtimestamp(val)
+        elif type(val) is datetime.datetime:
+            dt = val
+        elif type(val) is datetime.date:
+            dt = datetime.datetime(year=val.year, month=val.month, day=val.day)
+        else:
+            raise TypeError
+
+        return dt.format("YYYY-MM-DDTHH:mm:ss[Z]")
+
+    ############################################################################
+    @staticmethod
     def uint_to_bytes(value : int, byteorder='big') -> bytes:
         '''
         Convert a non-negative integer to an array of bytes,
