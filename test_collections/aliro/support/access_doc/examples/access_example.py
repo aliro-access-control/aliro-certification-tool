@@ -46,6 +46,8 @@ from access_extension_data.secure_pin_extension_data import SecurePinExtensionDa
 
 from access_extension_data.multiple_users_extension_data import MultipleUsersExtensionData
 
+from mdl.device_response_builder import DeviceResponseBuilder
+
 # Create the Access Data Element object.
 access_data = AccessData()
 access_data.version = 1
@@ -133,9 +135,17 @@ multiple_users_extension.data.user_limit = 2
 access_data.access_extensions[0xFA1466] = [secure_pin_extension, multiple_users_extension]
 
 # Output the Access Data Element in JSON, CBOR, and TLV.
-print("")
+print("\nAccess Data Element")
 print("json: " + access_data.to_json() + "\n")
 cbor = access_data.to_cbor()
 print("cbor: " + "".join("{:02X}".format(v) for v in cbor) + "\n")
 tlv = access_data.to_tlv()
 print("tlv: " + "".join("{:02X}".format(v) for v in tlv) + "\n")
+
+# Build a Device Response containing the Access Data Element.
+device_response = DeviceResponseBuilder.build([access_data], None)
+
+print("Device Response")
+cbor = device_response.to_cbor()
+if (cbor is not None):
+    print("cbor: " + "".join("{:02X}".format(v) for v in cbor) + "\n")

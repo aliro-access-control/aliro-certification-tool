@@ -36,6 +36,8 @@ from extension_data_example import ExtensionDataExample
 
 from utility import Utility
 
+from mdl.device_response_builder import DeviceResponseBuilder
+
 # Setup the root revocation data object.
 revocation_data = RevocationData()
 revocation_data.version = 1
@@ -82,9 +84,17 @@ revocation_extension.data.value2 = 2
 revocation_data.revocation_extensions[vendorRegisteredId] = [revocation_extension]
 
 # Output the Revocation Data in JSON, CBOR, and TLV.
-print("")
+print("\nRevocation Data Element")
 print("json: " + revocation_data.to_json() + "\n")
 cbor = revocation_data.to_cbor()
 print("cbor: " + "".join("{:02X}".format(v) for v in cbor) + "\n")
 tlv = revocation_data.to_tlv()
 print("tlv: " + "".join("{:02X}".format(v) for v in tlv) + "\n")
+
+# Build a Device Response containing the Revocation Data Element.
+device_response = DeviceResponseBuilder.build(None, [revocation_data])
+
+print("Device Response")
+cbor = device_response.to_cbor()
+if (cbor is not None):
+    print("cbor: " + "".join("{:02X}".format(v) for v in cbor) + "\n")
