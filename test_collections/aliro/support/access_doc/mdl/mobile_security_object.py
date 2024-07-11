@@ -36,7 +36,7 @@ class MobileSecurityObject(object):
     '''The label for the Value Digests field.'''
 
     DEVICE_KEY_INFO_LABEL = "4"
-    '''The label for the Version field.'''
+    '''The label for the Device Key Info field.'''
 
     DOC_TYPE_LABEL = "5"
     '''The label for the Doc Type field.'''
@@ -99,6 +99,18 @@ class MobileSecurityObject(object):
     def value_digests(self) -> ValueDigests:
         '''Get the value digests.'''
         return self.__value_digests
+
+    ############################################################################
+    @property
+    def device_key_info(self) -> DeviceKeyInfo:
+        '''Get the device key information.'''
+        return self.__device_key_info
+
+    @device_key_info.setter
+    def v(self, val : DeviceKeyInfo) -> None:
+        '''Set the device key information.'''
+        assert(isinstance(val, DeviceKeyInfo))
+        self.__device_key_info = val
 
     ############################################################################
     @property

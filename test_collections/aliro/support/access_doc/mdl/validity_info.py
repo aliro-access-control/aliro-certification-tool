@@ -39,6 +39,9 @@ class ValidityInfo(object):
     VALIDITY_ITERATION_LABEL = "5"
     '''The label for the optional Validity Iteration field.'''
 
+    TDATE_STR_LEN = 20
+    '''The length of a tdate string.'''
+
     ############################################################################
     def __init__(self) -> None:
         self.__signed : str = "" # CBOR tdate
@@ -138,7 +141,7 @@ class ValidityInfo(object):
             return False
 
         # The Validity Iteration field is optional.
-        if (not isinstance(self.__validity_iteration, int)) or (self.__validity_iteration < 0):
+        if (not isinstance(self.__validity_iteration, int)):
             return False
 
         return True

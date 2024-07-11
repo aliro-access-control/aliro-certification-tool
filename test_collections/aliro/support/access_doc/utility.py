@@ -69,7 +69,30 @@ class Utility(object):
         while value > mask:
             mask = (mask << 8) | 0xFF
             length += 1
-        return value.to_bytes(length, byteorder=byteorder)
+        return value.to_bytes(length, byteorder=byteorder, signed=False)
+
+    ############################################################################
+    @staticmethod
+    def int_to_bytes(value : int, byteorder='big') -> bytes:
+        '''
+        Convert an integer to an array of bytes,
+        using the minimum number of bytes.
+        '''
+        assert isinstance(value, int)
+        if (value >= 0):
+            return Utility.uint_to_bytes(value, byteorder)
+        else:
+            if (value >= -128):
+                length = 1
+            elif (value >= -32768):
+                length = 2
+            elif (value >= -8388608):
+                length = 3
+            elif (value >= -2147483648):
+                length = 4
+            else:
+                return None
+            return value.to_bytes(length, byteorder=byteorder, signed=True)
 
     ############################################################################
     @staticmethod
@@ -130,7 +153,10 @@ class Utility(object):
 
             # Encode the Tag.
             if isinstance(key, int):
-                ba.extend(Utility.uint_to_bytes(key))
+                if (key >= 0):
+                    ba.extend(Utility.uint_to_bytes(key))
+                else:
+                    ba.extend(Utility.int_to_bytes(key))
             elif isinstance(key, str):
                 ba.extend(key.encode())
             else:
@@ -202,3 +228,22 @@ class Utility(object):
             # Encode the Value.
             ba.extend(data)
         return ba
+
+    ############################################################################
+    @staticmethod
+    def get_ecc_key_components(key_bytes : bytes | bytearray) -> tuple[bytes, bytes | bool]:
+        assert(isinstance(key_bytes, (bytes, bytearray)))
+        if (key_bytes is None):
+            return None
+        if (len(key_bytes) == 65):
+            if (key_bytes[0] != 0x04):
+                return None
+            x = key_bytes[1:33]
+            y = key_bytes[33:65]
+        elif (len(key_bytes) == 64):
+            x = key_bytes[1:33]
+            y = key_bytes[33:65]
+        else:
+            return None
+
+        return (x, y)

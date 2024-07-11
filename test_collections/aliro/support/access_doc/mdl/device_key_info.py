@@ -85,8 +85,10 @@ class DeviceKeyInfo(object):
         # Encode the Device Key.
         device_key_info_dict[DeviceKeyInfo.DEVICE_KEY_LABEL] = self.device_key.to_dict()
 
-        # Encode the Key Info.
-        device_key_info_dict[DeviceKeyInfo.KEY_INFO_LABEL] = self.key_info.to_dict()
+        # Encode the optional Key Info.
+        key_info_dict = self.key_info.to_dict()
+        if (key_info_dict is not None):
+            device_key_info_dict[DeviceKeyInfo.KEY_INFO_LABEL] = key_info_dict
 
         return device_key_info_dict
 

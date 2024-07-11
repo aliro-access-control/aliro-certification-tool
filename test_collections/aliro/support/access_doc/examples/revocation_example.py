@@ -87,9 +87,9 @@ revocation_data.revocation_extensions[vendorRegisteredId] = [revocation_extensio
 print("\nRevocation Data Element")
 print("json: " + revocation_data.to_json() + "\n")
 cbor = revocation_data.to_cbor()
-print("cbor: " + "".join("{:02X}".format(v) for v in cbor) + "\n")
+print("cbor: " + Utility.bytes_to_hex_str(cbor) + "\n")
 tlv = revocation_data.to_tlv()
-print("tlv: " + "".join("{:02X}".format(v) for v in tlv) + "\n")
+print("tlv: " + Utility.bytes_to_hex_str(tlv) + "\n")
 
 # Build a Device Response containing the Revocation Data Element.
 device_response = DeviceResponseBuilder.build(None, [revocation_data])
@@ -97,4 +97,4 @@ device_response = DeviceResponseBuilder.build(None, [revocation_data])
 print("Device Response")
 cbor = device_response.to_cbor()
 if (cbor is not None):
-    print("cbor: " + "".join("{:02X}".format(v) for v in cbor) + "\n")
+    print("cbor: " + Utility.bytes_to_hex_str(cbor) + "\n")

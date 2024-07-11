@@ -17,12 +17,14 @@
 import datetime
 import hashlib
 
-from access_data import AccessData
 from .issuer_namespaces import IssuerNamespaces
 from .issuer_signed_item import IssuerSignedItem
-from revocation_data import RevocationData
 from .device_response import DeviceResponse
 from .document import Document
+
+from access_data import AccessData
+from revocation_data import RevocationData
+from utility import Utility
 
 ################################################################################
 class DeviceResponseBuilder(object):
@@ -30,15 +32,32 @@ class DeviceResponseBuilder(object):
 
     ############################################################################
     @staticmethod
-    def build(access_data_elements : list[AccessData], revocation_data_elements : list[RevocationData]) -> DeviceResponse:
+    def build(
+        access_data_elements : list[AccessData],
+        revocation_data_elements : list[RevocationData],
+        issuer_private_key : bytes | bytearray,
+        device_public_key : bytes | bytearray) -> DeviceResponse:
         '''Build a Device Response from the given Access Data Elements and Revocation Data Elements.'''
+
         device_response = DeviceResponse()
 
-        doc = DeviceResponseBuilder.__build_doc(IssuerNamespaces.ALIRO_ACCESS, Document.DOC_TYPE_ALIRO_ACCESS, access_data_elements)
+        doc = DeviceResponseBuilder.__build_doc(
+            IssuerNamespaces.ALIRO_ACCESS,
+            Document.DOC_TYPE_ALIRO_ACCESS,
+            access_data_elements,
+            issuer_private_key,
+            device_public_key)
+
         if (doc is not None):
             device_response.documents.append(doc)
 
-        doc = DeviceResponseBuilder.__build_doc(IssuerNamespaces.ALIRO_REVOCATION, Document.DOC_TYPE_ALIRO_REVOCATION, revocation_data_elements)
+        doc = DeviceResponseBuilder.__build_doc(
+            IssuerNamespaces.ALIRO_REVOCATION,
+            Document.DOC_TYPE_ALIRO_REVOCATION,
+            revocation_data_elements,
+            issuer_private_key,
+            device_public_key)
+
         if (doc is not None):
             device_response.documents.append(doc)
 
@@ -46,9 +65,16 @@ class DeviceResponseBuilder(object):
 
     ############################################################################
     @staticmethod
-    def __build_doc(namespace : str, doc_type : str, data_elements : list[AccessData] | list[RevocationData]) -> Document:
+    def __build_doc(
+        namespace : str,
+        doc_type : str,
+        data_elements : list[AccessData] | list[RevocationData],
+        issuer_private_key : bytes | bytearray,
+        device_public_key : bytes | bytearray) -> Document:
         '''Internal method to build a Document containing the given data elements.'''
+
         doc = None
+
         if (data_elements is not None) and (len(data_elements) > 0):
             digest_id = 1
             doc = Document()
@@ -70,8 +96,13 @@ class DeviceResponseBuilder(object):
 
                 digest_id += 1
 
+            (x, y) = Utility.get_ecc_key_components(device_public_key)
+            doc.issuer_signed.issuer_auth.device_key_info.device_key.x = x
+            doc.issuer_signed.issuer_auth.device_key_info.device_key.y = y
+
             doc.issuer_signed.issuer_auth.validity_info.signed = datetime.datetime.now(datetime.timezone.utc)
             doc.issuer_signed.issuer_auth.validity_info.valid_from = datetime.datetime.now(datetime.timezone.utc) # TODO
             doc.issuer_signed.issuer_auth.validity_info.valid_until = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14) # TODO
             doc.issuer_signed.issuer_auth.validity_info.validity_iteration = 1 # TODO
+
         return doc

@@ -53,6 +53,8 @@ class KeyInfo(object):
         '''Convert the KeyInfo to a dictionary.'''
         if not self.is_valid():
             return None
+        if (len(self.__data) == 0):
+            return None
         return copy.deepcopy(self.__data)
 
     ############################################################################
