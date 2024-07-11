@@ -17,12 +17,12 @@
 import cbor2
 import json
 
-from issuer_signed import IssuerSigned
+from .issuer_signed import IssuerSigned
 from utility import Utility
 
 ################################################################################
 class Document(object):
-    '''Aliro Document'''
+    '''Aliro Document.'''
 
     DOC_TYPE_LABEL = "5"
     '''The label for the DocType field.'''

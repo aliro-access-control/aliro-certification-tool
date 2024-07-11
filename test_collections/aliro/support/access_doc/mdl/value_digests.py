@@ -25,25 +25,38 @@ class ValueDigests(object):
 
     ############################################################################
     def __init__(self) -> None:
-        self.__value_digests : dict[str, dict[int, bytearray]] = {}
+        self.__data : dict[str, dict[int, bytearray]] = {}
 
     ############################################################################
     @property
-    def value_digests(self) -> dict[str, dict[int, bytearray]]:
-        '''Get the value digests.'''
-        return self.__value_digests
+    def data(self) -> dict[str, dict[int, bytearray]]:
+        '''Get the Value Digests.'''
+        return self.__data
 
     ############################################################################
-    def update(self, namespace : str, id : int, digest : bytes | bytearray):
+    def set(self, namespace : str, id : int, digest : bytes | bytearray):
+        '''Set the Digest with the given ID within the given Namespace.'''
         assert(isinstance(namespace, str))
         assert(isinstance(id, int))
         assert(isinstance(digest, (bytes, bytearray)))
-        self.__value_digests[str(namespace)][int(id)] = bytearray(digest)
+        if namespace in self.__data:
+            self.__data[namespace][id] = bytearray(digest)
+        else:
+            self.__data[namespace] = {id : bytearray(digest)}
+
+    ############################################################################
+    def is_valid(self) -> bool:
+        '''Returns True if the ValueDigests contains valid fields,
+           otherwise returns False.'''
+        # Verify the Data field.
+        if (type(self.__data) is not dict) or (len(self.__data) == 0):
+            return False
+        return True
 
     ############################################################################
     def to_dict(self) -> dict:
         '''Convert the ValueDigests to a dictionary.'''
-        return copy.deepcopy(self.__value_digests)
+        return copy.deepcopy(self.__data)
 
     ############################################################################
     def to_cbor(self) -> bytes:
@@ -51,7 +64,7 @@ class ValueDigests(object):
         value_digests_dict = self.to_dict()
         if value_digests_dict is None:
             return None
-        return cbor2.dumps(self.__value_digests)
+        return cbor2.dumps(self.__data)
 
     ############################################################################
     def to_json(self) -> str:
@@ -60,7 +73,7 @@ class ValueDigests(object):
         if value_digests_dict is None:
             return None
         Utility.collection_bytes_to_hex_str(value_digests_dict)
-        return json.dumps(self.__value_digests)
+        return json.dumps(self.__data)
 
     ############################################################################
     def to_tlv(self) -> bytearray:
@@ -68,4 +81,4 @@ class ValueDigests(object):
         value_digests_dict = self.to_dict()
         if value_digests_dict is None:
             return None
-        return Utility.dict_to_tlv(self.__value_digests)
+        return Utility.dict_to_tlv(self.__data)

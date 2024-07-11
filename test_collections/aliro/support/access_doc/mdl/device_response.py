@@ -19,7 +19,7 @@ import json
 
 from enum import IntEnum
 
-from document import Document
+from .document import Document
 from utility import Utility
 
 ################################################################################
@@ -31,7 +31,7 @@ class DeviceResponseStatus(IntEnum):
 
 ################################################################################
 class DeviceResponse(object):
-    '''Aliro Device Response'''
+    '''Aliro Device Response.'''
 
     VERSION_LABEL = "1"
     '''The label for the Version field.'''
@@ -69,6 +69,14 @@ class DeviceResponse(object):
     def documents(self) -> list[Document]:
         '''Get the Documents.'''
         return self.__documents
+
+    @documents.setter
+    def documents(self, val : list[Document]) -> None:
+        '''Set the Documents.'''
+        assert(isinstance(val, list))
+        for item in val:
+            assert(isinstance(item, Document))
+        self.__documents = val
 
     ############################################################################
     @property

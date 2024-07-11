@@ -15,15 +15,15 @@
 #
 
 import cbor2
-import copy
 import json
 
-from mobile_security_object import MobileSecurityObject
+from .issuer_signed_item import IssuerSignedItem
+from .mobile_security_object import MobileSecurityObject
 from utility import Utility
 
 ################################################################################
 class IssuerSigned(object):
-    '''Aliro Issuer Signed'''
+    '''Aliro Issuer Signed.'''
 
     NAMESPACES_LABEL = "1"
     '''The label for the Namespaces field.'''
@@ -33,12 +33,12 @@ class IssuerSigned(object):
 
     ############################################################################
     def __init__(self) -> None:
-        self.__namespaces : dict[str, bytearray]
+        self.__namespaces : dict[str, list[IssuerSignedItem]] = {}
         self.__issuer_auth : MobileSecurityObject = MobileSecurityObject()
 
     ############################################################################
     @property
-    def namespaces(self) ->  dict[str, bytearray]:
+    def namespaces(self) -> dict[str, list[IssuerSignedItem]]:
         '''Get the namespaces.'''
         return self.__namespaces
 
@@ -53,6 +53,13 @@ class IssuerSigned(object):
         '''Set the Issuer Auth field.'''
         assert(isinstance(val, MobileSecurityObject))
         self.__issuer_auth = val
+
+    ############################################################################
+    def set(self, namespace, issuer_signed_item):
+        if namespace in self.__namespaces:
+            self.__namespaces[namespace].append(issuer_signed_item)
+        else:
+            self.__namespaces[namespace] = [issuer_signed_item]
 
     ############################################################################
     def is_valid(self) -> bool:
@@ -78,7 +85,15 @@ class IssuerSigned(object):
         issuer_signed_dict = {}
 
         # Encode the Namespaces field.
-        issuer_signed_dict[IssuerSigned.NAMESPACES_LABEL] = copy.deepcopy(self.__namespaces)
+        namespaces_dict = {}
+        for namespace, issuer_signed_items in self.__namespaces.items():
+            issuer_signed_items_list = []
+            for issuer_signed_item in issuer_signed_items:
+                issuer_signed_items_list.append(issuer_signed_item.to_dict())
+            if (len(issuer_signed_items_list) > 0):
+                namespaces_dict[namespace] = issuer_signed_items_list
+        if (len(namespaces_dict) > 0):
+            issuer_signed_dict[IssuerSigned.NAMESPACES_LABEL] = namespaces_dict
 
         # Encode the Issuer Auth field.
         issuer_signed_dict[IssuerSigned.ISSUER_AUTH_LABEL] = self.__issuer_auth.to_dict()

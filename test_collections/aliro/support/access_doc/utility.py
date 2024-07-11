@@ -41,7 +41,7 @@ class Utility(object):
     ############################################################################
     @staticmethod
     def time_val_to_tdate(val : int | float | datetime.date | datetime.datetime) -> str:
-        '''Convert the date / time to tdate with format "YYYY-MM-DDTHH:mm:ss[Z]".'''
+        '''Convert the date / time to tdate with format "YYYY-mm-ddTHH:MM:SSZ".'''
         assert isinstance(val, (int, float, datetime.date, datetime.datetime))
         if isinstance(val, (int, float)):
             dt = datetime.datetime.fromtimestamp(val)
@@ -52,7 +52,7 @@ class Utility(object):
         else:
             raise TypeError
 
-        return dt.format("YYYY-MM-DDTHH:mm:ss[Z]")
+        return dt.astimezone(datetime.timezone.utc).isoformat('T', 'seconds').replace('+00:00', 'Z')
 
     ############################################################################
     @staticmethod

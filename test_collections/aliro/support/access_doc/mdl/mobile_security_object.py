@@ -17,10 +17,10 @@
 import cbor2
 import json
 
-from device_key_info import DeviceKeyInfo
+from .device_key_info import DeviceKeyInfo
 from utility import Utility
-from value_digests import ValueDigests
-from validity_info import ValidityInfo
+from .value_digests import ValueDigests
+from .validity_info import ValidityInfo
 
 ################################################################################
 class MobileSecurityObject(object):
@@ -53,12 +53,6 @@ class MobileSecurityObject(object):
 
     DOC_TYPE_ALIRO_REVOCATION = "aliro-r"
     '''The Doctype for the Aliro Revocation Document.'''
-
-    NAMESPACE_ALIRO_ACCESS = "aliro-a"
-    '''The namespace for the Aliro Access Data Elements.'''
-
-    NAMESPACE_ALIRO_REVOCATION = "aliro-r"
-    '''The namespace for the Aliro Revocation Data Elements.'''
 
     VERSION_DEFAULT = "1.0"
     '''The default data structure version.'''
@@ -117,6 +111,18 @@ class MobileSecurityObject(object):
         '''Set the document type.'''
         assert(isinstance(val, str))
         self.__doc_type = str(val)
+
+    ############################################################################
+    @property
+    def validity_info(self) -> ValidityInfo:
+        '''Get the validity information.'''
+        return self.__validity_info
+
+    @validity_info.setter
+    def validity_info(self, val : ValidityInfo) -> None:
+        '''Set the validity information.'''
+        assert(isinstance(val, ValidityInfo))
+        self.__validity_info = ValidityInfo(val)
 
     ############################################################################
     def is_valid(self) -> bool:

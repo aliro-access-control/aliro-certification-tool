@@ -17,8 +17,8 @@
 import cbor2
 import json
 
-from cose_key import COSE_Key
-from key_info import KeyInfo
+from .cose_key import COSE_Key
+from .key_info import KeyInfo
 from utility import Utility
 
 ################################################################################

@@ -14,7 +14,13 @@
 # limitations under the License.
 #
 
-import typing
+import cbor2
+import json
+import secrets
+
+from access_data import AccessData
+from revocation_data import RevocationData
+from utility import Utility
 
 ################################################################################
 class IssuerSignedItem(object):
@@ -35,9 +41,9 @@ class IssuerSignedItem(object):
     ############################################################################
     def __init__(self) -> None:
         self.__digest_id : int = 0
-        self.__random : bytearray = bytearray()
+        self.__random : bytearray = bytearray(secrets.token_bytes(16))
         self.__element_identifier : str = ""
-        self.__element_value : typing.Any = None
+        self.__element_value : AccessData | RevocationData = None
 
     ############################################################################
     @property
@@ -79,15 +85,15 @@ class IssuerSignedItem(object):
 
     ############################################################################
     @property
-    def element_value(self) -> str:
+    def element_value(self) -> AccessData | RevocationData:
         '''Get the Element Value.'''
         return self.__element_value
 
     @element_value.setter
-    def element_value(self, val : str) -> None:
+    def element_value(self, val : AccessData | RevocationData) -> None:
         '''Set the Element Value.'''
-        assert(isinstance(val, str))
-        self.__element_value = str(val)
+        assert(isinstance(val, (AccessData | RevocationData)))
+        self.__element_value = val
 
     ############################################################################
     def is_valid(self) -> bool:
@@ -130,6 +136,31 @@ class IssuerSignedItem(object):
         issuer_signed_item_dict[IssuerSignedItem.ELEMENT_IDENTIFIER_LABEL] = str(self.__element_identifier)
 
         # Encode the optional Element Value field.
-        issuer_signed_item_dict[IssuerSignedItem.ELEMENT_VALUE_LABEL] = self.__element_value
+        issuer_signed_item_dict[IssuerSignedItem.ELEMENT_VALUE_LABEL] = self.__element_value.to_dict()
 
         return issuer_signed_item_dict
+
+    ############################################################################
+    def to_cbor(self) -> bytes:
+        '''Convert the IssuerSignedItem to CBOR.'''
+        issuer_signed_item_dict = self.to_dict()
+        if issuer_signed_item_dict is None:
+            return None
+        return cbor2.dumps(issuer_signed_item_dict)
+
+    ############################################################################
+    def to_json(self) -> str:
+        '''Convert the IssuerSignedItem to JSON.'''
+        issuer_signed_item_dict = self.to_dict()
+        if issuer_signed_item_dict is None:
+            return None
+        Utility.collection_bytes_to_hex_str(issuer_signed_item_dict)
+        return json.dumps(issuer_signed_item_dict)
+
+    ############################################################################
+    def to_tlv(self) -> bytearray:
+        '''Convert the IssuerSignedItem to TLV.'''
+        issuer_signed_item_dict = self.to_dict()
+        if issuer_signed_item_dict is None:
+            return None
+        return Utility.dict_to_tlv(issuer_signed_item_dict)

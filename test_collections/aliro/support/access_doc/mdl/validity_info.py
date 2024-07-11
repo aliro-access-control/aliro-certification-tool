@@ -22,7 +22,7 @@ from utility import Utility
 
 ################################################################################
 class ValidityInfo(object):
-    '''Aliro Validity Information'''
+    '''Aliro Validity Information.'''
 
     SIGNED_LABEL = "1"
     '''The label for the Signed field.'''
@@ -54,9 +54,12 @@ class ValidityInfo(object):
         return self.__signed
 
     @signed.setter
-    def signed(self, val : int | float | datetime.date | datetime.datetime) -> None:
+    def signed(self, val : str | int | float | datetime.date | datetime.datetime) -> None:
         '''Set the timestamp at which the MSO signature was created.'''
-        self.__signed = Utility.time_val_to_tdate(val)
+        if isinstance(val, str):
+            self.__signed = val
+        else:
+            self.__signed = Utility.time_val_to_tdate(val)
 
     ############################################################################
     @property
@@ -65,9 +68,12 @@ class ValidityInfo(object):
         return self.__valid_from
 
     @valid_from.setter
-    def valid_from(self, val : int | float | datetime.date | datetime.datetime) -> None:
+    def valid_from(self, val : str | int | float | datetime.date | datetime.datetime) -> None:
         '''Set the timestamp before which the MSO is not yet valid.'''
-        self.__valid_from = Utility.time_val_to_tdate(val)
+        if isinstance(val, str):
+            self.__valid_from = val
+        else:
+            self.__valid_from = Utility.time_val_to_tdate(val)
 
     ############################################################################
     @property
@@ -76,9 +82,12 @@ class ValidityInfo(object):
         return self.__valid_until
 
     @valid_until.setter
-    def valid_until(self, val : int | float | datetime.date | datetime.datetime) -> None:
+    def valid_until(self, val : str | int | float | datetime.date | datetime.datetime) -> None:
         '''Set the timestamp after which the MSO is no longer valid.'''
-        self.__valid_until = Utility.time_val_to_tdate(val)
+        if isinstance(val, str):
+            self.__valid_until = val
+        else:
+            self.__valid_until = Utility.time_val_to_tdate(val)
 
     ############################################################################
     @property
@@ -113,23 +122,23 @@ class ValidityInfo(object):
            otherwise returns False.'''
 
         # Verify the Signed field.
-        if (len(self.__signed) == 0):
+        if (len(self.__signed) != 20):
             return False
 
         # Verify the Valid From field.
-        if (len(self.__valid_from) == 0):
+        if (len(self.__valid_from) != 20):
             return False
 
         # Verify the Valid Until field.
-        if (len(self.__valid_until) == 0):
+        if (len(self.__valid_until) != 20):
             return False
 
         # The Expected Update field is optional.
-        if (self.__expected_update is not None) and (not isinstance(self.__expected_update, str)):
+        if (self.__expected_update is not None) and (not isinstance(self.__expected_update, str) and (len(self.__expected_update) != 20)):
             return False
 
         # The Validity Iteration field is optional.
-        if (not isinstance(self.__validity_iteration, int)):
+        if (not isinstance(self.__validity_iteration, int)) or (self.__validity_iteration < 0):
             return False
 
         return True
