@@ -122,7 +122,30 @@ class MobileSecurityObject(object):
     def is_valid(self) -> bool:
         '''Returns True if the MobileSecurityObject contains valid fields,
            otherwise returns False.'''
-        # TODO
+
+        # Verify the Version field.
+        if (len(self.__version) == 0):
+            return False
+
+        # Verify the Digest Algorithm field.
+        if (len(self.__digest_algorithm) == 0):
+            return False
+
+        # Verify the Value Digests field.
+        if (len(self.__digest_algorithm) == 0):
+            return False
+
+        # Verify the Device Key Info field.
+        if not self.__device_key_info.is_valid():
+            return False
+
+        # Verify the DocType field.
+        if (len(self.__doc_type) == 0):
+            return False
+
+        # Verify the Validity Info field.
+        if not self.__validity_info.is_valid():
+            return False
 
         # The mobile security object is valid.
         return True

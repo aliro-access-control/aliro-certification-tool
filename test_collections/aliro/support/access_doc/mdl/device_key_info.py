@@ -34,27 +34,44 @@ class DeviceKeyInfo(object):
     ############################################################################
     def __init__(self) -> None:
         self.__device_key : COSE_Key = COSE_Key()
-        self.__key_info : KeyInfo
+        self.__key_info : KeyInfo = KeyInfo()
 
     ############################################################################
     @property
     def device_key(self) -> COSE_Key:
-        '''Get the device key.'''
+        '''Get the Device Key.'''
         return self.__device_key
+
+    @device_key.setter
+    def device_key(self, val : COSE_Key) -> None:
+        '''Set the Device Key.'''
+        assert(isinstance(val, COSE_Key))
+        self.__device_key = val
 
     ############################################################################
     @property
     def key_info(self) -> KeyInfo:
-        '''Get the key info.'''
+        '''Get the Key Info.'''
         return self.__key_info
+
+    @key_info.setter
+    def key_info(self, val : KeyInfo) -> None:
+        '''Get the Key Info.'''
+        assert(isinstance(val, KeyInfo))
+        self.__key_info = val
 
     ############################################################################
     def is_valid(self) -> bool:
         '''Returns True if the DeviceKeyInfo contains valid fields,
            otherwise returns False.'''
-        # Verify the info field.
-        if (type(self.version) is not dict):
+        # Verify the Device Key field.
+        if not self.__device_key.is_valid():
             return False
+
+        # Verify the Key Info field.
+        if not self.__key_info.is_valid():
+            return False
+
         return True
 
     ############################################################################
