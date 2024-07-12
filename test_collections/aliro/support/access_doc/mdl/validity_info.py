@@ -116,7 +116,7 @@ class ValidityInfo(object):
         '''Set the validity iteration.'''
         assert(isinstance(val, int))
         if (val < 0):
-            val = 0
+            val = -1 # An invalid validity iteration.
         self.__validity_iteration = int(val)
 
     ############################################################################

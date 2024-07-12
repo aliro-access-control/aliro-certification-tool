@@ -141,12 +141,17 @@ class IssuerSignedItem(object):
         return issuer_signed_item_dict
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, cbor_tag : bytes | bytearray = None) -> bytes:
         '''Convert the IssuerSignedItem to CBOR.'''
         issuer_signed_item_dict = self.to_dict()
         if issuer_signed_item_dict is None:
             return None
-        return cbor2.dumps(issuer_signed_item_dict)
+        cbor = cbor2.dumps(issuer_signed_item_dict)
+        if (cbor_tag is not None) and (len(cbor_tag) > 0):
+            ba = bytearray(cbor_tag)
+            ba.extend(cbor2.dumps(cbor))
+            cbor = ba
+        return cbor
 
     ############################################################################
     def to_json(self) -> str:

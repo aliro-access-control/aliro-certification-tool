@@ -21,10 +21,14 @@ from .issuer_namespaces import IssuerNamespaces
 from .issuer_signed_item import IssuerSignedItem
 from .device_response import DeviceResponse
 from .document import Document
+from .mobile_security_object import MobileSecurityObject
 
 from access_data import AccessData
 from revocation_data import RevocationData
 from utility import Utility
+
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec
 
 ################################################################################
 class DeviceResponseBuilder(object):
@@ -35,8 +39,12 @@ class DeviceResponseBuilder(object):
     def build(
         access_data_elements : list[AccessData],
         revocation_data_elements : list[RevocationData],
+        issuer_public_key : bytes | bytearray,
         issuer_private_key : bytes | bytearray,
-        device_public_key : bytes | bytearray) -> DeviceResponse:
+        device_public_key : bytes | bytearray,
+        valid_from : str | int | float | datetime.date | datetime.datetime,
+        valid_until : str | int | float | datetime.date | datetime.datetime,
+        validity_iteration=-1) -> DeviceResponse:
         '''Build a Device Response from the given Access Data Elements and Revocation Data Elements.'''
 
         device_response = DeviceResponse()
@@ -45,8 +53,12 @@ class DeviceResponseBuilder(object):
             IssuerNamespaces.ALIRO_ACCESS,
             Document.DOC_TYPE_ALIRO_ACCESS,
             access_data_elements,
+            issuer_public_key,
             issuer_private_key,
-            device_public_key)
+            device_public_key,
+            valid_from,
+            valid_until,
+            validity_iteration)
 
         if (doc is not None):
             device_response.documents.append(doc)
@@ -55,8 +67,12 @@ class DeviceResponseBuilder(object):
             IssuerNamespaces.ALIRO_REVOCATION,
             Document.DOC_TYPE_ALIRO_REVOCATION,
             revocation_data_elements,
+            issuer_public_key,
             issuer_private_key,
-            device_public_key)
+            device_public_key,
+            valid_from,
+            valid_until,
+            validity_iteration)
 
         if (doc is not None):
             device_response.documents.append(doc)
@@ -69,40 +85,55 @@ class DeviceResponseBuilder(object):
         namespace : str,
         doc_type : str,
         data_elements : list[AccessData] | list[RevocationData],
+        issuer_public_key : bytes | bytearray,
         issuer_private_key : bytes | bytearray,
-        device_public_key : bytes | bytearray) -> Document:
+        device_public_key : bytes | bytearray,
+        valid_from : str | int | float | datetime.date | datetime.datetime,
+        valid_until : str | int | float | datetime.date | datetime.datetime,
+        validity_iteration) -> Document:
         '''Internal method to build a Document containing the given data elements.'''
 
         doc = None
 
         if (data_elements is not None) and (len(data_elements) > 0):
             digest_id = 1
+            cbor_tag = bytearray([0x24])
+
             doc = Document()
             doc.doc_type = doc_type
-            doc.issuer_signed.issuer_auth.doc_type = doc_type
+
+            mso = MobileSecurityObject()
+            mso.doc_type = doc_type
+
+            (x, y) = Utility.get_ecc_key_components(device_public_key)
+            mso.device_key_info.device_key.x = x
+            mso.device_key_info.device_key.y = y
+
+            mso.validity_info.signed = datetime.datetime.now(datetime.timezone.utc)
+            mso.validity_info.valid_from = valid_from
+            mso.validity_info.valid_until = valid_until
+            mso.validity_info.validity_iteration = validity_iteration
 
             for data_element in data_elements:
                 assert(isinstance(data_element, (AccessData | RevocationData)))
                 issuer_signed_item = IssuerSignedItem()
                 issuer_signed_item.digest_id = digest_id
-                issuer_signed_item.element_identifier = str(digest_id)
-                issuer_signed_item.element_value = data_element
+                issuer_signed_item.element_identifier = str(digest_id) # TODO
+                issuer_signed_item.element_value = data_element # TODO - Is this supposed to be wrapped in an embedded CBOR tag? #6.24 (bstr .cbor)
 
-                issuer_signed_item_bytes = issuer_signed_item.to_cbor()
+                issuer_signed_item_bytes = issuer_signed_item.to_cbor(cbor_tag)
                 digest = hashlib.sha256(issuer_signed_item_bytes).digest()
 
-                doc.issuer_signed.set(namespace, issuer_signed_item)
-                doc.issuer_signed.issuer_auth.value_digests.set(namespace, digest_id, digest)
+                doc.issuer_signed.set(namespace, issuer_signed_item_bytes)
+                mso.value_digests.set(namespace, digest_id, digest)
 
                 digest_id += 1
 
-            (x, y) = Utility.get_ecc_key_components(device_public_key)
-            doc.issuer_signed.issuer_auth.device_key_info.device_key.x = x
-            doc.issuer_signed.issuer_auth.device_key_info.device_key.y = y
+            doc.issuer_signed.issuer_auth.payload = mso.to_cbor(cbor_tag)
 
-            doc.issuer_signed.issuer_auth.validity_info.signed = datetime.datetime.now(datetime.timezone.utc)
-            doc.issuer_signed.issuer_auth.validity_info.valid_from = datetime.datetime.now(datetime.timezone.utc) # TODO
-            doc.issuer_signed.issuer_auth.validity_info.valid_until = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14) # TODO
-            doc.issuer_signed.issuer_auth.validity_info.validity_iteration = 1 # TODO
+            pk = ec.derive_private_key(int.from_bytes(issuer_private_key, byteorder="big"), ec.SECP256R1())
+            sig = pk.sign(doc.issuer_signed.issuer_auth.payload, ec.ECDSA(hashes.SHA256()))
+            doc.issuer_signed.issuer_auth.signature = sig
+            doc.issuer_signed.issuer_auth.key_id = hashlib.sha256(issuer_public_key).digest()[0:8]
 
         return doc

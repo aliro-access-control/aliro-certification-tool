@@ -17,8 +17,7 @@
 import cbor2
 import json
 
-from .issuer_signed_item import IssuerSignedItem
-from .mobile_security_object import MobileSecurityObject
+from .cose_sign1 import COSE_Sign1
 from utility import Utility
 
 ################################################################################
@@ -33,33 +32,35 @@ class IssuerSigned(object):
 
     ############################################################################
     def __init__(self) -> None:
-        self.__namespaces : dict[str, list[IssuerSignedItem]] = {}
-        self.__issuer_auth : MobileSecurityObject = MobileSecurityObject()
+        self.__namespaces : dict[str, list[bytearray]] = {} # Where bytearray is IssuerSignedItemBytes
+        self.__issuer_auth : COSE_Sign1 = COSE_Sign1()
 
     ############################################################################
     @property
-    def namespaces(self) -> dict[str, list[IssuerSignedItem]]:
+    def namespaces(self) -> dict[str, list[bytearray]]: # Where bytearray is IssuerSignedItemBytes
         '''Get the namespaces.'''
         return self.__namespaces
 
     ############################################################################
     @property
-    def issuer_auth(self) -> MobileSecurityObject:
+    def issuer_auth(self) -> COSE_Sign1:
         '''Get the Issuer Auth field.'''
         return self.__issuer_auth
 
     @issuer_auth.setter
-    def issuer_auth(self, val : MobileSecurityObject) -> None:
+    def issuer_auth(self, val : COSE_Sign1) -> None:
         '''Set the Issuer Auth field.'''
-        assert(isinstance(val, MobileSecurityObject))
+        assert(isinstance(val, COSE_Sign1))
         self.__issuer_auth = val
 
     ############################################################################
-    def set(self, namespace, issuer_signed_item):
+    def set(self, namespace : str, issuer_signed_item : bytes | bytearray):
+        assert(isinstance(namespace, str))
+        assert(isinstance(issuer_signed_item, (bytes, bytearray)))
         if namespace in self.__namespaces:
-            self.__namespaces[namespace].append(issuer_signed_item)
+            self.__namespaces[namespace].append(bytearray(issuer_signed_item))
         else:
-            self.__namespaces[namespace] = [issuer_signed_item]
+            self.__namespaces[namespace] = [bytearray(issuer_signed_item)]
 
     ############################################################################
     def is_valid(self) -> bool:
@@ -89,14 +90,14 @@ class IssuerSigned(object):
         for namespace, issuer_signed_items in self.__namespaces.items():
             issuer_signed_items_list = []
             for issuer_signed_item in issuer_signed_items:
-                issuer_signed_items_list.append(issuer_signed_item.to_dict())
+                issuer_signed_items_list.append(issuer_signed_item)
             if (len(issuer_signed_items_list) > 0):
                 namespaces_dict[namespace] = issuer_signed_items_list
         if (len(namespaces_dict) > 0):
             issuer_signed_dict[IssuerSigned.NAMESPACES_LABEL] = namespaces_dict
 
         # Encode the Issuer Auth field.
-        issuer_signed_dict[IssuerSigned.ISSUER_AUTH_LABEL] = self.__issuer_auth.to_dict()
+        issuer_signed_dict[IssuerSigned.ISSUER_AUTH_LABEL] = self.__issuer_auth.to_list()
 
         return issuer_signed_dict
 

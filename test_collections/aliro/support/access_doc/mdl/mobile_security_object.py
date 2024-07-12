@@ -197,12 +197,17 @@ class MobileSecurityObject(object):
         return mobile_security_object_dict
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, cbor_tag : bytes | bytearray = None) -> bytes:
         '''Convert the MobileSecurityObject to CBOR.'''
         mobile_security_object_dict = self.to_dict()
         if mobile_security_object_dict is None:
             return None
-        return cbor2.dumps(mobile_security_object_dict)
+        cbor = cbor2.dumps(mobile_security_object_dict)
+        if (cbor_tag is not None) and (len(cbor_tag) > 0):
+            ba = bytearray(cbor_tag)
+            ba.extend(cbor2.dumps(cbor))
+            cbor = ba
+        return cbor
 
     ############################################################################
     def to_json(self) -> str:
