@@ -96,7 +96,7 @@ class Utility(object):
 
     ############################################################################
     @staticmethod
-    def bytes_to_hex_str(data) -> str:
+    def bytes_to_hex_str(data : bytes | bytearray) -> str:
         '''Convert an array of bytes to a hex string.'''
         assert isinstance(data, (bytes, bytearray))
         return "".join("{:02X}".format(v) for v in data)

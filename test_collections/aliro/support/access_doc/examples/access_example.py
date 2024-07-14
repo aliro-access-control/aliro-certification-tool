@@ -47,6 +47,7 @@ from access_extension_data.secure_pin_extension_data import SecurePinExtensionDa
 from access_extension_data.multiple_users_extension_data import MultipleUsersExtensionData
 
 from mdl.device_response_builder import DeviceResponseBuilder
+from mdl.device_response_builder import ResponseElement
 
 # Create the Access Data Element object.
 access_data = AccessData()
@@ -168,7 +169,7 @@ device_public_key = bytearray([
 
 # Build a Device Response containing the Access Data Element.
 device_response = DeviceResponseBuilder.build(
-    [access_data],
+    [ResponseElement(id="b1.f2", value=access_data)],
     None,
     issuer_public_key,
     issuer_private_key,
