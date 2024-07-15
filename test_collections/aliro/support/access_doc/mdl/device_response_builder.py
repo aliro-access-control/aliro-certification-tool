@@ -131,7 +131,7 @@ class DeviceResponseBuilder(object):
 
         if (data_elements is not None) and (len(data_elements) > 0):
             digest_id = 1
-            cbor_tag = bytearray([0x24])
+            cbor_tag = bytearray([0xD8, 0x18])
 
             doc = Document()
             doc.doc_type = doc_type
@@ -177,9 +177,12 @@ class DeviceResponseBuilder(object):
             sig_bytes.extend(int.to_bytes(s, length=32, byteorder='big'))
 
             # Set the raw signature with concatenated r + s components.
-            doc.issuer_signed.issuer_auth.signature = sig
+            doc.issuer_signed.issuer_auth.signature = sig_bytes
 
-            # Create the issuer public key identifier by hashing the key and keeping the first eight bytes.
-            doc.issuer_signed.issuer_auth.key_id = hashlib.sha256(issuer_public_key).digest()[0:8]
+            # Create the issuer public key identifier by hashing "key-identifier"
+            # concatenated with the issuer public key and keeping the first eight bytes.
+            h = hashlib.new('sha256', "key-identifier".encode())
+            h.update(issuer_public_key)
+            doc.issuer_signed.issuer_auth.key_id = h.digest()[0:8]
 
         return doc
