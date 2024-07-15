@@ -50,11 +50,10 @@ from access_extension_data.multiple_users_extension_data import MultipleUsersExt
 from mdl.device_response_builder import DeviceResponseBuilder
 from mdl.device_response_builder import ResponseElement
 
-from Crypto.Cipher import AES
-
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.hazmat.primitives.serialization import PublicFormat
@@ -183,13 +182,13 @@ derived_key = HKDF(
 # Create a pin keyed hash from the derived symmetric key.
 iv = bytearray(12)
 pin = bytearray([1, 2, 3, 4, 5])
-cipher = AES.new(derived_key, AES.MODE_GCM, nonce=iv)
-cipher_text, derived_pin_keyed_hash = cipher.encrypt_and_digest(pin)
+aesgcm = AESGCM(derived_key)
+derived_pin_keyed_hash = aesgcm.encrypt(nonce=iv, data=pin, associated_data=None)[-16:]
 
 # Create a pin keyed hash from the pre-shared symmetric key.
 preshared_symmetric_key = bytearray(range(0x00, 0x20))
-cipher = AES.new(preshared_symmetric_key, AES.MODE_GCM, nonce=iv)
-cipher_text, pin_keyed_hash = cipher.encrypt_and_digest(pin)
+aesgcm = AESGCM(preshared_symmetric_key)
+pin_keyed_hash = aesgcm.encrypt(nonce=iv, data=pin, associated_data=None)[-16:]
 
 # Create a Secure Pin Access Extension.
 secure_pin_extension = AccessExtension()
