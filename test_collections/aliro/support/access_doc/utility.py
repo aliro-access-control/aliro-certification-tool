@@ -232,6 +232,10 @@ class Utility(object):
     ############################################################################
     @staticmethod
     def get_ecc_key_components(key_bytes : bytes | bytearray) -> tuple[bytes, bytes | bool]:
+        '''
+        Get the x and y components of the given uncompressed ECC key.
+        The ECC key may optionally start with 0x04.
+        '''
         assert(isinstance(key_bytes, (bytes, bytearray)))
         if (key_bytes is None):
             return None
