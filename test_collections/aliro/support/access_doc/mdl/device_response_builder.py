@@ -31,7 +31,9 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import utils
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
+from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.hazmat.primitives.serialization import load_der_private_key
+from cryptography.hazmat.primitives.serialization import PublicFormat
 
 class ResponseElement(object):
     '''Aliro Device Response Element.'''
@@ -153,9 +155,9 @@ class DeviceResponseBuilder(object):
             mso.doc_type = doc_type
 
             # Set the device public key as separate x and y components.
-            device_pub_key = EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), bytes(device_public_key))
-            mso.device_key_info.device_key.x = int.to_bytes(device_pub_key.public_numbers().x, length=32, byteorder='big')
-            mso.device_key_info.device_key.y = int.to_bytes(device_pub_key.public_numbers().y, length=32, byteorder='big')
+            device_public_key_obj = EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), bytes(device_public_key))
+            mso.device_key_info.device_key.x = int.to_bytes(device_public_key_obj.public_numbers().x, length=32, byteorder='big')
+            mso.device_key_info.device_key.y = int.to_bytes(device_public_key_obj.public_numbers().y, length=32, byteorder='big')
 
             # Set the validity information.
             mso.validity_info.signed = datetime.datetime.now(datetime.timezone.utc)
@@ -188,10 +190,10 @@ class DeviceResponseBuilder(object):
             doc.issuer_signed.issuer_auth.payload = mso.to_cbor(embedded_cbor_tag)
 
             if (len(issuer_private_key) == 32):
-                # Convert the raw private key to a signing object.
+                # Convert the raw issuer private key to a signing object.
                 pk = ec.derive_private_key(int.from_bytes(issuer_private_key, byteorder='big'), ec.SECP256R1())
             else:
-                # Convert the DER encoded private key to a signing object.
+                # Convert the DER encoded issuer private key to a signing object.
                 pk = load_der_private_key(issuer_private_key, password=None)
 
             # Sign the payload hash.
@@ -208,8 +210,7 @@ class DeviceResponseBuilder(object):
             # Create the issuer public key identifier by hashing "key-identifier"
             # concatenated with the issuer public key and keeping the first eight bytes.
             h = hashlib.new('sha256', "key-identifier".encode())
-            h.update(int.to_bytes(pk.public_key().public_numbers().x, length=32, byteorder='big'))
-            h.update(int.to_bytes(pk.public_key().public_numbers().y, length=32, byteorder='big'))
+            h.update(pk.public_key().public_bytes(Encoding.X962, PublicFormat.UncompressedPoint)[1:])
             doc.issuer_signed.issuer_auth.key_id = h.digest()[0:8]
 
         return doc

@@ -68,13 +68,13 @@ class ReaderPin(object):
         # Verify the Reader Public Key Hash.
         if ((self.reader_public_key_hash is None) or \
             (not isinstance(self.reader_public_key_hash, (bytes, bytearray))) or \
-            (len(self.reader_public_key_hash) < 16)):
+            (len(self.reader_public_key_hash) < 8)):
             return False
 
         # Verify the PIN Keyed-Hash.
         if ((self.pin_keyed_hash is None) or \
             (not isinstance(self.pin_keyed_hash, (bytes, bytearray))) or \
-            (len(self.pin_keyed_hash) < 16)):
+            (len(self.pin_keyed_hash) < 8)):
             return False
 
         return True
