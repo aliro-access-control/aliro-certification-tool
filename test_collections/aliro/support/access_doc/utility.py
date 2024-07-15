@@ -228,26 +228,3 @@ class Utility(object):
             # Encode the Value.
             ba.extend(data)
         return ba
-
-    ############################################################################
-    @staticmethod
-    def get_ecc_key_components(key_bytes : bytes | bytearray) -> tuple[bytes, bytes | bool]:
-        '''
-        Get the x and y components of the given uncompressed ECC key.
-        The ECC key may optionally start with 0x04.
-        '''
-        assert(isinstance(key_bytes, (bytes, bytearray)))
-        if (key_bytes is None):
-            return None
-        if (len(key_bytes) == 65):
-            if (key_bytes[0] != 0x04):
-                return None
-            x = key_bytes[1:33]
-            y = key_bytes[33:65]
-        elif (len(key_bytes) == 64):
-            x = key_bytes[1:33]
-            y = key_bytes[33:65]
-        else:
-            return None
-
-        return (x, y)

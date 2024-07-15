@@ -30,6 +30,7 @@ from utility import Utility
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import utils
+from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 
 class ResponseElement(object):
@@ -152,9 +153,9 @@ class DeviceResponseBuilder(object):
             mso.doc_type = doc_type
 
             # Set the device public key as separate x and y components.
-            (x, y) = Utility.get_ecc_key_components(device_public_key)
-            mso.device_key_info.device_key.x = x
-            mso.device_key_info.device_key.y = y
+            device_pub_key = EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), bytes(device_public_key))
+            mso.device_key_info.device_key.x = int.to_bytes(device_pub_key.public_numbers().x, length=32, byteorder='big')
+            mso.device_key_info.device_key.y = int.to_bytes(device_pub_key.public_numbers().y, length=32, byteorder='big')
 
             # Set the validity information.
             mso.validity_info.signed = datetime.datetime.now(datetime.timezone.utc)
@@ -188,7 +189,7 @@ class DeviceResponseBuilder(object):
 
             if (len(issuer_private_key) == 32):
                 # Convert the raw private key to a signing object.
-                pk = ec.derive_private_key(int.from_bytes(issuer_private_key, byteorder="big"), ec.SECP256R1())
+                pk = ec.derive_private_key(int.from_bytes(issuer_private_key, byteorder='big'), ec.SECP256R1())
             else:
                 # Convert the DER encoded private key to a signing object.
                 pk = load_der_private_key(issuer_private_key, password=None)
