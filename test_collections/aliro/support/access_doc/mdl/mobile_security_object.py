@@ -68,6 +68,7 @@ class MobileSecurityObject(object):
         self.__device_key_info : DeviceKeyInfo = DeviceKeyInfo()
         self.__doc_type : str = MobileSecurityObject.DOC_TYPE_ALIRO_ACCESS
         self.__validity_info : ValidityInfo = ValidityInfo()
+        self.__time_verification_required : bool = False
         return
 
     ############################################################################
@@ -137,6 +138,18 @@ class MobileSecurityObject(object):
         self.__validity_info = ValidityInfo(val)
 
     ############################################################################
+    @property
+    def time_verification_required(self) -> bool:
+        '''Returns True if time verification is required, otherwise returns False.'''
+        return self.__time_verification_required
+
+    @time_verification_required.setter
+    def time_verification_required(self, val : bool) -> None:
+        '''Set to True if time verification is required, otherwise set to False.'''
+        assert(isinstance(val, bool))
+        self.__time_verification_required = bool(val)
+
+    ############################################################################
     def is_valid(self) -> bool:
         '''Returns True if the MobileSecurityObject contains valid fields,
            otherwise returns False.'''
@@ -163,6 +176,10 @@ class MobileSecurityObject(object):
 
         # Verify the Validity Info field.
         if not self.__validity_info.is_valid():
+            return False
+
+        # Verify the Time Verification Required field.
+        if not isinstance(self.__time_verification_required, bool):
             return False
 
         # The mobile security object is valid.
@@ -193,6 +210,9 @@ class MobileSecurityObject(object):
 
         # Encode the Validity Info field.
         mobile_security_object_dict[MobileSecurityObject.VALIDITY_INFO_LABEL] = self.__validity_info.to_dict()
+
+        # Encode the Time Verification Required field.
+        mobile_security_object_dict[MobileSecurityObject.TIME_VERIFICATION_REQUIRED_LABEL] = self.__time_verification_required
 
         return mobile_security_object_dict
 

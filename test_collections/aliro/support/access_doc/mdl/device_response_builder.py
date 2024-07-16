@@ -81,7 +81,8 @@ class DeviceResponseBuilder(object):
         device_public_key : bytes | bytearray,
         valid_from : str | int | float | datetime.date | datetime.datetime,
         valid_until : str | int | float | datetime.date | datetime.datetime,
-        validity_iteration=-1) -> DeviceResponse:
+        validity_iteration : int = -1,
+        time_verification_required : bool = False) -> DeviceResponse:
         '''Build a Device Response from the given data elements, keys, and validity information.'''
 
         # Verify input parameters.
@@ -94,6 +95,7 @@ class DeviceResponseBuilder(object):
         assert(isinstance(valid_from, (str | int | float | datetime.date | datetime.datetime)))
         assert(isinstance(valid_until, (str | int | float | datetime.date | datetime.datetime)))
         assert(isinstance(validity_iteration, int))
+        assert(isinstance(time_verification_required, bool))
 
         device_response = DeviceResponse()
 
@@ -105,7 +107,8 @@ class DeviceResponseBuilder(object):
             device_public_key,
             valid_from,
             valid_until,
-            validity_iteration)
+            validity_iteration,
+            time_verification_required)
 
         if (doc is not None):
             device_response.documents.append(doc)
@@ -118,7 +121,8 @@ class DeviceResponseBuilder(object):
             device_public_key,
             valid_from,
             valid_until,
-            validity_iteration)
+            validity_iteration,
+            time_verification_required)
 
         if (doc is not None):
             device_response.documents.append(doc)
@@ -135,7 +139,8 @@ class DeviceResponseBuilder(object):
         device_public_key : bytes | bytearray,
         valid_from : str | int | float | datetime.date | datetime.datetime,
         valid_until : str | int | float | datetime.date | datetime.datetime,
-        validity_iteration) -> Document:
+        validity_iteration,
+        time_verification_required) -> Document:
         '''Internal method to build a Document containing the given data elements.'''
 
         doc = None
@@ -153,6 +158,7 @@ class DeviceResponseBuilder(object):
             # and a hash of each issuer signed item.
             mso = MobileSecurityObject()
             mso.doc_type = doc_type
+            mso.time_verification_required = time_verification_required
 
             # Set the device public key as separate x and y components.
             device_public_key_obj = EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), bytes(device_public_key))
