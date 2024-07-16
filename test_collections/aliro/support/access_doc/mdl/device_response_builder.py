@@ -22,6 +22,7 @@ from .document import Document
 from .issuer_namespaces import IssuerNamespaces
 from .issuer_signed_item import IssuerSignedItem
 from .mobile_security_object import MobileSecurityObject
+from .sig_structure import Sig_structure
 
 from access_data import AccessData
 from revocation_data import RevocationData
@@ -202,8 +203,11 @@ class DeviceResponseBuilder(object):
                 # Convert the DER encoded issuer private key to a signing object.
                 pk = load_der_private_key(issuer_private_key, password=None)
 
-            # Sign the payload hash.
-            sig = pk.sign(doc.issuer_signed.issuer_auth.payload, ec.ECDSA(hashes.SHA256()))
+            # Sign the payload.
+            sig_structure = Sig_structure()
+            sig_structure.payload = doc.issuer_signed.issuer_auth.payload
+            to_be_signed = sig_structure.to_cbor()
+            sig = pk.sign(to_be_signed, ec.ECDSA(hashes.SHA256()))
 
             # Convert the signature into a raw bytearray with concatenated r + s components.
             (r, s) = utils.decode_dss_signature(sig)
