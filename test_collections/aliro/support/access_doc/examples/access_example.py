@@ -221,11 +221,8 @@ access_data.access_extensions[0xFA1466] = [secure_pin_extension, multiple_users_
 
 # Output the Access Data Element in JSON, CBOR, and TLV.
 print("\nAccess Data Element")
-print("json: " + access_data.to_json() + "\n")
 cbor = access_data.to_cbor()
 print("cbor: " + Utility.bytes_to_hex_str(cbor) + "\n")
-tlv = access_data.to_tlv()
-print("tlv: " + Utility.bytes_to_hex_str(tlv) + "\n")
 
 # Build a Device Response containing the Access Data Element.
 device_response = DeviceResponseBuilder.build(
@@ -237,12 +234,6 @@ device_response = DeviceResponseBuilder.build(
     valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14))
 
 print("Device Response")
-json = device_response.to_json()
-if (json is not None):
-    print("json: " + json + "\n")
 cbor = device_response.to_cbor()
 if (cbor is not None):
     print("cbor: " + Utility.bytes_to_hex_str(cbor) + "\n")
-tlv = device_response.to_tlv()
-if (tlv is not None):
-    print("tlv: " + Utility.bytes_to_hex_str(tlv) + "\n")

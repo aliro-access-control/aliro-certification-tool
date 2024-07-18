@@ -15,10 +15,8 @@
 #
 
 import cbor2
-import json
 
 from .cose_sign1 import COSE_Sign1
-from utility import Utility
 
 ################################################################################
 class IssuerSigned(object):
@@ -54,13 +52,19 @@ class IssuerSigned(object):
         self.__issuer_auth = val
 
     ############################################################################
-    def set(self, namespace : str, issuer_signed_item : bytes | bytearray):
+    def set(self, namespace : str, issuer_signed_item : bytes | bytearray | cbor2.CBORTag) -> None:
         assert(isinstance(namespace, str))
-        assert(isinstance(issuer_signed_item, (bytes, bytearray)))
+        assert(isinstance(issuer_signed_item, (bytes, bytearray, cbor2.CBORTag)))
         if namespace in self.__namespaces:
-            self.__namespaces[namespace].append(bytearray(issuer_signed_item))
+            if (isinstance(issuer_signed_item, (bytes, bytearray))):
+                self.__namespaces[namespace].append(bytearray(issuer_signed_item))
+            else:
+                self.__namespaces[namespace].append(issuer_signed_item)
         else:
-            self.__namespaces[namespace] = [bytearray(issuer_signed_item)]
+            if (isinstance(issuer_signed_item, (bytes, bytearray))):
+                self.__namespaces[namespace] = [bytearray(issuer_signed_item)]
+            else:
+                self.__namespaces[namespace] = [issuer_signed_item]
 
     ############################################################################
     def is_valid(self) -> bool:
@@ -108,20 +112,3 @@ class IssuerSigned(object):
         if issuer_signed_dict is None:
             return None
         return cbor2.dumps(issuer_signed_dict)
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the IssuerSigned to JSON.'''
-        issuer_signed_dict = self.to_dict()
-        if issuer_signed_dict is None:
-            return None
-        Utility.collection_bytes_to_hex_str(issuer_signed_dict)
-        return json.dumps(issuer_signed_dict)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the IssuerSigned to TLV.'''
-        issuer_signed_dict = self.to_dict()
-        if issuer_signed_dict is None:
-            return None
-        return Utility.dict_to_tlv(issuer_signed_dict)

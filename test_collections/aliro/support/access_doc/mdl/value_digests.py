@@ -16,9 +16,6 @@
 
 import cbor2
 import copy
-import json
-
-from utility import Utility
 
 ################################################################################
 class ValueDigests(object):
@@ -34,7 +31,7 @@ class ValueDigests(object):
         return self.__data
 
     ############################################################################
-    def set(self, namespace : str, id : int, digest : bytes | bytearray):
+    def set(self, namespace : str, id : int, digest : bytes | bytearray) -> None:
         '''Set the Digest with the given ID within the given Namespace.'''
         assert(isinstance(namespace, str))
         assert(isinstance(id, int))
@@ -65,20 +62,3 @@ class ValueDigests(object):
         if value_digests_dict is None:
             return None
         return cbor2.dumps(self.__data)
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the ValueDigests to JSON.'''
-        value_digests_dict = self.to_dict()
-        if value_digests_dict is None:
-            return None
-        Utility.collection_bytes_to_hex_str(value_digests_dict)
-        return json.dumps(self.__data)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the ValueDigests to TLV.'''
-        value_digests_dict = self.to_dict()
-        if value_digests_dict is None:
-            return None
-        return Utility.dict_to_tlv(self.__data)

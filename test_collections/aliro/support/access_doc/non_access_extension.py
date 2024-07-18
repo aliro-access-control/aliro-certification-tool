@@ -15,10 +15,8 @@
 #
 
 import cbor2
-import json
 
 from extension_data import ExtensionData
-from utility import Utility
 
 ################################################################################
 class NonAccessExtension(object):
@@ -114,20 +112,3 @@ class NonAccessExtension(object):
         if access_extension_list is None:
             return None
         return cbor2.dumps(access_extension_list)
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the NonAccessExtension to JSON.'''
-        access_extension_list = self.to_list()
-        if access_extension_list is None:
-            return None
-        Utility.collection_bytes_to_hex_str(access_extension_list)
-        return json.dumps(access_extension_list)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the NonAccessExtension to TLV.'''
-        access_extension_list = self.to_list()
-        if access_extension_list is None:
-            return None
-        return Utility.dict_to_tlv(access_extension_list)

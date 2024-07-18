@@ -15,12 +15,10 @@
 #
 
 import cbor2
-import json
 import secrets
 
 from access_data import AccessData
 from revocation_data import RevocationData
-from utility import Utility
 
 ################################################################################
 class IssuerSignedItem(object):
@@ -141,31 +139,9 @@ class IssuerSignedItem(object):
         return issuer_signed_item_dict
 
     ############################################################################
-    def to_cbor(self, cbor_tag : bytes | bytearray = None) -> bytes:
+    def to_cbor(self) -> bytes:
         '''Convert the IssuerSignedItem to CBOR.'''
         issuer_signed_item_dict = self.to_dict()
         if issuer_signed_item_dict is None:
             return None
-        cbor = cbor2.dumps(issuer_signed_item_dict)
-        if (cbor_tag is not None) and (len(cbor_tag) > 0):
-            ba = bytearray(cbor_tag)
-            ba.extend(cbor2.dumps(cbor))
-            cbor = ba
-        return cbor
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the IssuerSignedItem to JSON.'''
-        issuer_signed_item_dict = self.to_dict()
-        if issuer_signed_item_dict is None:
-            return None
-        Utility.collection_bytes_to_hex_str(issuer_signed_item_dict)
-        return json.dumps(issuer_signed_item_dict)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the IssuerSignedItem to TLV.'''
-        issuer_signed_item_dict = self.to_dict()
-        if issuer_signed_item_dict is None:
-            return None
-        return Utility.dict_to_tlv(issuer_signed_item_dict)
+        return cbor2.dumps(issuer_signed_item_dict)

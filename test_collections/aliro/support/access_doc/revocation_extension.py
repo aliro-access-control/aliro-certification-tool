@@ -15,10 +15,8 @@
 #
 
 import cbor2
-import json
 
 from extension_data import ExtensionData
-from utility import Utility
 
 ################################################################################
 class RevocationExtension(object):
@@ -114,20 +112,3 @@ class RevocationExtension(object):
         if revocation_extension_list is None:
             return None
         return cbor2.dumps(revocation_extension_list)
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the RevocationExtension to JSON.'''
-        revocation_extension_list = self.to_list()
-        if revocation_extension_list is None:
-            return None
-        Utility.collection_bytes_to_hex_str(revocation_extension_list)
-        return json.dumps(revocation_extension_list)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the RevocationExtension to TLV.'''
-        revocation_extension_list = self.to_list()
-        if revocation_extension_list is None:
-            return None
-        return Utility.list_to_tlv(revocation_extension_list)

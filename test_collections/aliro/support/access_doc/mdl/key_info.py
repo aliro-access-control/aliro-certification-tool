@@ -16,10 +16,7 @@
 
 import cbor2
 import copy
-import json
 import typing
-
-from utility import Utility
 
 ################################################################################
 class KeyInfo(object):
@@ -64,20 +61,3 @@ class KeyInfo(object):
         if key_info_dict is None:
             return None
         return cbor2.dumps(key_info_dict)
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the KeyInfo to JSON.'''
-        key_info_dict = self.to_dict()
-        if key_info_dict is None:
-            return None
-        Utility.collection_bytes_to_hex_str(key_info_dict)
-        return json.dumps(key_info_dict)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the KeyInfo to TLV.'''
-        key_info_dict = self.to_dict()
-        if key_info_dict is None:
-            return None
-        return Utility.dict_to_tlv(key_info_dict)

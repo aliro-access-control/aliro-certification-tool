@@ -15,11 +15,9 @@
 #
 
 import cbor2
-import json
 
 from .cose_key import COSE_Key
 from .key_info import KeyInfo
-from utility import Utility
 
 ################################################################################
 class DeviceKeyInfo(object):
@@ -99,20 +97,3 @@ class DeviceKeyInfo(object):
         if device_key_info_dict is None:
             return None
         return cbor2.dumps(device_key_info_dict)
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the DeviceKeyInfo to JSON.'''
-        device_key_info_dict = self.to_dict()
-        if device_key_info_dict is None:
-            return None
-        Utility.collection_bytes_to_hex_str(device_key_info_dict)
-        return json.dumps(device_key_info_dict)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the DeviceKeyInfo to TLV.'''
-        device_key_info_dict = self.to_dict()
-        if device_key_info_dict is None:
-            return None
-        return Utility.dict_to_tlv(device_key_info_dict)

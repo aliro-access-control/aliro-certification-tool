@@ -15,12 +15,10 @@
 #
 
 import cbor2
-import json
 
 from enum import IntEnum
 
 from .document import Document
-from utility import Utility
 
 ################################################################################
 class DeviceResponseStatus(IntEnum):
@@ -141,20 +139,3 @@ class DeviceResponse(object):
         if device_response_dict is None:
             return None
         return cbor2.dumps(device_response_dict)
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the DeviceResponse to JSON.'''
-        device_response_dict = self.to_dict()
-        if device_response_dict is None:
-            return None
-        Utility.collection_bytes_to_hex_str(device_response_dict)
-        return json.dumps(device_response_dict)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the DeviceResponse to TLV.'''
-        device_response_dict = self.to_dict()
-        if device_response_dict is None:
-            return None
-        return Utility.dict_to_tlv(device_response_dict)

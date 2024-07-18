@@ -15,12 +15,10 @@
 #
 
 import cbor2
-import json
 
 from enum import IntFlag
 
 from extension_data import ExtensionData
-from utility import Utility
 
 ################################################################################
 class CriticalityBits(IntFlag):
@@ -143,20 +141,3 @@ class AccessExtension(object):
         if access_extension_list is None:
             return None
         return cbor2.dumps(access_extension_list)
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the AccessExtension to JSON.'''
-        access_extension_list = self.to_list()
-        if access_extension_list is None:
-            return None
-        Utility.collection_bytes_to_hex_str(access_extension_list)
-        return json.dumps(access_extension_list)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the AccessExtension to TLV.'''
-        access_extension_list = self.to_list()
-        if access_extension_list is None:
-            return None
-        return Utility.list_to_tlv(access_extension_list)

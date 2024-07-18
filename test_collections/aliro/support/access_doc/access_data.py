@@ -15,13 +15,11 @@
 #
 
 import cbor2
-import json
 
 from access_rule import AccessRule
 from access_extension import AccessExtension
 from non_access_extension import NonAccessExtension
 from schedule import Schedule
-from utility import Utility
 
 class AccessData(object):
     '''Aliro Access Data Element.'''
@@ -253,20 +251,3 @@ class AccessData(object):
         if access_data_dict is None:
             return None
         return cbor2.dumps(access_data_dict)
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the AccessData to JSON.'''
-        access_data_dict = self.to_dict()
-        if access_data_dict is None:
-            return None
-        Utility.collection_bytes_to_hex_str(access_data_dict)
-        return json.dumps(access_data_dict)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the AccessData to TLV.'''
-        access_data_dict = self.to_dict()
-        if access_data_dict is None:
-            return None
-        return Utility.dict_to_tlv(access_data_dict)

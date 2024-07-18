@@ -34,11 +34,3 @@ class ExtensionData(ABC):
     def to_dict(self) -> dict:
         '''Convert the ExtensionData to a dictionary.'''
         pass
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the ExtensionData to TLV.'''
-        extension_data_dict = self.to_dict()
-        if extension_data_dict is None:
-            return None
-        return Utility.dict_to_tlv(extension_data_dict)

@@ -86,11 +86,8 @@ revocation_data.revocation_extensions[vendorRegisteredId] = [revocation_extensio
 
 # Output the Revocation Data in JSON, CBOR, and TLV.
 print("\nRevocation Data Element")
-print("json: " + revocation_data.to_json() + "\n")
 cbor = revocation_data.to_cbor()
 print("cbor: " + Utility.bytes_to_hex_str(cbor) + "\n")
-tlv = revocation_data.to_tlv()
-print("tlv: " + Utility.bytes_to_hex_str(tlv) + "\n")
 
 # Raw issuer private key.
 # issuer_private_key = bytearray([
@@ -136,12 +133,6 @@ device_response = DeviceResponseBuilder.build(
     valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14))
 
 print("Device Response")
-json = device_response.to_json()
-if (json is not None):
-    print("json: " + json + "\n")
 cbor = device_response.to_cbor()
 if (cbor is not None):
     print("cbor: " + Utility.bytes_to_hex_str(cbor) + "\n")
-tlv = device_response.to_tlv()
-if (tlv is not None):
-    print("tlv: " + Utility.bytes_to_hex_str(tlv) + "\n")

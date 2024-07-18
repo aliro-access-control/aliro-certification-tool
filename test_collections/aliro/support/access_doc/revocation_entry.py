@@ -16,7 +16,6 @@
 
 import cbor2
 import datetime
-import json
 
 from utility import Utility
 
@@ -115,6 +114,7 @@ class RevocationEntry(object):
             return None
 
         revocation_entry_dict = {}
+        cbor_tag_epoch_time= 1
 
         # Encode the Public Key Hash.
         if (self.public_key_hash is not None) and (len(self.public_key_hash) > 0):
@@ -126,7 +126,7 @@ class RevocationEntry(object):
 
         # Encode the Expiry Time.
         if (self.expiry_time is not None) and (self.expiry_time > 0):
-            revocation_entry_dict[RevocationEntry.EXPIRY_TIME_LABEL] = int(self.expiry_time)
+            revocation_entry_dict[RevocationEntry.EXPIRY_TIME_LABEL] = cbor2.CBORTag(cbor_tag_epoch_time, int(self.expiry_time))
 
         return revocation_entry_dict
 
@@ -137,20 +137,3 @@ class RevocationEntry(object):
         if revocation_entry_dict is None:
             return None
         return cbor2.dumps(revocation_entry_dict)
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the RevocationEntry to JSON.'''
-        revocation_entry_dict = self.to_dict()
-        if revocation_entry_dict is None:
-            return None
-        Utility.collection_bytes_to_hex_str(revocation_entry_dict)
-        return json.dumps(revocation_entry_dict)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the RevocationEntry to TLV.'''
-        revocation_entry_dict = self.to_dict()
-        if revocation_entry_dict is None:
-            return None
-        return Utility.dict_to_tlv(revocation_entry_dict)

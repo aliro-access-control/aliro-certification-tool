@@ -15,13 +15,11 @@
 #
 
 import cbor2
-import json
 
 from enum import IntEnum
 
 from revocation_entry import RevocationEntry
 from revocation_extension import RevocationExtension
-from utility import Utility
 
 ################################################################################
 class RevocationChangeMode(IntEnum):
@@ -190,20 +188,3 @@ class RevocationData(object):
         if revocation_data_dict is None:
             return None
         return cbor2.dumps(revocation_data_dict)
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the RevocationData to JSON.'''
-        revocation_data_dict = self.to_dict()
-        if revocation_data_dict is None:
-            return None
-        Utility.collection_bytes_to_hex_str(revocation_data_dict)
-        return json.dumps(revocation_data_dict)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the RevocationData to TLV.'''
-        revocation_data_dict = self.to_dict()
-        if revocation_data_dict is None:
-            return None
-        return Utility.dict_to_tlv(revocation_data_dict)

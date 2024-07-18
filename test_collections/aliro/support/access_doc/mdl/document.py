@@ -15,10 +15,8 @@
 #
 
 import cbor2
-import json
 
 from .issuer_signed import IssuerSigned
-from utility import Utility
 
 ################################################################################
 class Document(object):
@@ -106,20 +104,3 @@ class Document(object):
         if document_dict is None:
             return None
         return cbor2.dumps(document_dict)
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the Document to JSON.'''
-        document_dict = self.to_dict()
-        if document_dict is None:
-            return None
-        Utility.collection_bytes_to_hex_str(document_dict)
-        return json.dumps(document_dict)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the Document to TLV.'''
-        document_dict = self.to_dict()
-        if document_dict is None:
-            return None
-        return Utility.dict_to_tlv(document_dict)

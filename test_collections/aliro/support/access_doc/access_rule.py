@@ -15,12 +15,9 @@
 #
 
 import cbor2
-import json
 
 from enum import IntEnum
 from enum import IntFlag
-
-from utility import Utility
 
 ################################################################################
 class AccessRuleCapabilitiesBits(IntFlag):
@@ -200,20 +197,3 @@ class AccessRule(object):
         if access_rule_dict is None:
             return None
         return cbor2.dumps(access_rule_dict)
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the AccessRule to JSON.'''
-        access_rule_dict = self.to_dict()
-        if access_rule_dict is None:
-            return None
-        Utility.collection_bytes_to_hex_str(access_rule_dict)
-        return json.dumps(access_rule_dict)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the AccessRule to TLV.'''
-        access_rule_dict = self.to_dict()
-        if access_rule_dict is None:
-            return None
-        return Utility.dict_to_tlv(access_rule_dict)

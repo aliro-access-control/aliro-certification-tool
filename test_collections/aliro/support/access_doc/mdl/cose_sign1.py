@@ -15,9 +15,6 @@
 #
 
 import cbor2
-import json
-
-from utility import Utility
 
 ################################################################################
 class COSE_Sign1(object):
@@ -170,20 +167,3 @@ class COSE_Sign1(object):
         if COSE_Sign1_list is None:
             return None
         return cbor2.dumps(COSE_Sign1_list)
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the COSE_Sign1 to JSON.'''
-        COSE_Sign1_list = self.to_list()
-        if COSE_Sign1_list is None:
-            return None
-        Utility.collection_bytes_to_hex_str(COSE_Sign1_list)
-        return json.dumps(COSE_Sign1_list)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the COSE_Sign1 to TLV.'''
-        COSE_Sign1_list = self.to_list()
-        if COSE_Sign1_list is None:
-            return None
-        return Utility.list_to_tlv(COSE_Sign1_list)

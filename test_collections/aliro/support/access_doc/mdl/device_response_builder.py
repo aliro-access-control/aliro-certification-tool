@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 
+import cbor2
 import datetime
 import hashlib
 
@@ -26,7 +27,6 @@ from .sig_structure import Sig_structure
 
 from access_data import AccessData
 from revocation_data import RevocationData
-from utility import Utility
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -148,7 +148,7 @@ class DeviceResponseBuilder(object):
 
         if (data_elements is not None) and (len(data_elements) > 0):
             digest_id = 1
-            embedded_cbor_tag = bytearray([0xD8, 0x18])
+            cbor_tag_encoded_cbor = 24
 
             # Create a document to contain a mobile security object and
             # an issuer signed item for each data element.
@@ -183,18 +183,19 @@ class DeviceResponseBuilder(object):
                 issuer_signed_item.element_value = data_element.value # TODO - Is the element_value supposed to be wrapped in an embedded CBOR tag? #6.24 (bstr .cbor)
 
                 # Convert the issuer signed item to embedded CBOR within a bstr.
-                issuer_signed_item_bytes = issuer_signed_item.to_cbor(embedded_cbor_tag)
+                issuer_signed_item_cbor_obj = cbor2.CBORTag(cbor_tag_encoded_cbor, bytearray(issuer_signed_item.to_cbor()))
+                issuer_signed_item_bytes = cbor2.dumps(issuer_signed_item_cbor_obj)
 
                 # Compute the hash of the issuer signed item embedded CBOR.
                 digest = hashlib.sha256(issuer_signed_item_bytes).digest()
 
-                doc.issuer_signed.set(namespace, issuer_signed_item_bytes)
+                doc.issuer_signed.set(namespace, issuer_signed_item_cbor_obj)
                 mso.value_digests.set(namespace, digest_id, digest)
 
                 digest_id += 1
 
             # Convert the mobile security object to embedded CBOR within a bstr.
-            doc.issuer_signed.issuer_auth.payload = mso.to_cbor(embedded_cbor_tag)
+            doc.issuer_signed.issuer_auth.payload = cbor2.dumps(cbor2.CBORTag(cbor_tag_encoded_cbor, mso.to_cbor()))
 
             if (len(issuer_private_key) == 32):
                 # Convert the raw issuer private key to a signing object.
@@ -205,6 +206,7 @@ class DeviceResponseBuilder(object):
 
             # Sign the payload.
             sig_structure = Sig_structure()
+            sig_structure.body_protected = doc.issuer_signed.issuer_auth.protected
             sig_structure.payload = doc.issuer_signed.issuer_auth.payload
             to_be_signed = sig_structure.to_cbor()
             sig = pk.sign(to_be_signed, ec.ECDSA(hashes.SHA256()))

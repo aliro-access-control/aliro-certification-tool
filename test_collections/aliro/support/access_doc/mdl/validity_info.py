@@ -16,7 +16,6 @@
 
 import cbor2
 import datetime
-import json
 
 from utility import Utility
 
@@ -153,19 +152,20 @@ class ValidityInfo(object):
             return None
 
         validity_info_dict = {}
+        cbor_tag_tdate = 0
 
         # Encode the Signed field.
-        validity_info_dict[ValidityInfo.SIGNED_LABEL] = str(self.__signed)
+        validity_info_dict[ValidityInfo.SIGNED_LABEL] = cbor2.CBORTag(cbor_tag_tdate, str(self.__signed))
 
         # Encode the Valid From field.
-        validity_info_dict[ValidityInfo.VALID_FROM_LABEL] = str(self.__valid_from)
+        validity_info_dict[ValidityInfo.VALID_FROM_LABEL] = cbor2.CBORTag(cbor_tag_tdate, str(self.__valid_from))
 
         # Encode the Valid Until field.
-        validity_info_dict[ValidityInfo.VALID_UNTIL_LABEL] = str(self.__valid_until)
+        validity_info_dict[ValidityInfo.VALID_UNTIL_LABEL] = cbor2.CBORTag(cbor_tag_tdate, str(self.__valid_until))
 
         # Encode the optional Expected Update field.
         if (self.__expected_update is not None) and (len(self.__expected_update) > 0):
-            validity_info_dict[ValidityInfo.EXPECTED_UPDATED_LABEL] = str(self.__expected_update)
+            validity_info_dict[ValidityInfo.EXPECTED_UPDATED_LABEL] = cbor2.CBORTag(cbor_tag_tdate, str(self.__expected_update))
 
         # Encode the Validity Iteration.
         if (self.__validity_iteration >= 0):
@@ -180,20 +180,3 @@ class ValidityInfo(object):
         if validity_info_dict is None:
             return None
         return cbor2.dumps(validity_info_dict)
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the ValidityInfo to JSON.'''
-        validity_info_dict = self.to_dict()
-        if validity_info_dict is None:
-            return None
-        Utility.collection_bytes_to_hex_str(validity_info_dict)
-        return json.dumps(validity_info_dict)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the ValidityInfo to TLV.'''
-        validity_info_dict = self.to_dict()
-        if validity_info_dict is None:
-            return None
-        return Utility.dict_to_tlv(validity_info_dict)

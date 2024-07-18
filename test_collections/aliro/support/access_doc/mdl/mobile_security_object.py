@@ -15,10 +15,8 @@
 #
 
 import cbor2
-import json
 
 from .device_key_info import DeviceKeyInfo
-from utility import Utility
 from .value_digests import ValueDigests
 from .validity_info import ValidityInfo
 
@@ -217,31 +215,9 @@ class MobileSecurityObject(object):
         return mobile_security_object_dict
 
     ############################################################################
-    def to_cbor(self, cbor_tag : bytes | bytearray = None) -> bytes:
+    def to_cbor(self) -> bytes:
         '''Convert the MobileSecurityObject to CBOR.'''
         mobile_security_object_dict = self.to_dict()
         if mobile_security_object_dict is None:
             return None
-        cbor = cbor2.dumps(mobile_security_object_dict)
-        if (cbor_tag is not None) and (len(cbor_tag) > 0):
-            ba = bytearray(cbor_tag)
-            ba.extend(cbor2.dumps(cbor))
-            cbor = ba
-        return cbor
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the MobileSecurityObject to JSON.'''
-        mobile_security_object_dict = self.to_dict()
-        if mobile_security_object_dict is None:
-            return None
-        Utility.collection_bytes_to_hex_str(mobile_security_object_dict)
-        return json.dumps(mobile_security_object_dict)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the MobileSecurityObject to TLV.'''
-        mobile_security_object_dict = self.to_dict()
-        if mobile_security_object_dict is None:
-            return None
-        return Utility.dict_to_tlv(mobile_security_object_dict)
+        return cbor2.dumps(mobile_security_object_dict)
