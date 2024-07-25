@@ -2,8 +2,8 @@ import time
 
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
+    AuthenticationPolicy,
     Transaction,
-    TransactionCode,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -63,7 +63,9 @@ class UD_BLE_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step13: User Device sends AP Message: Initiate AP"),
             TestStep("Step14: Reader sends AP_RQ message: AUTH0 cmd"),
             TestStep("Step15: User Device sends AP_RS message: AUTH0 response"),
-            TestStep("Step16: Reader sends AP message: AP completed"),
+            TestStep("Step16: Reader sends AP_RQ message: EXCHANGE cmd"),
+            TestStep("Step17: User Device sends AP_RS message: EXCHANGE response"),
+            TestStep("Step18: Reader sends AP message: AP completed"),
         ]
 
     async def setup(self) -> None:
@@ -117,7 +119,7 @@ class UD_BLE_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.STANDARD,
-                transaction_code=TransactionCode.USER_DEVICE,
+                authentication_policy=AuthenticationPolicy.USER_DEVICE,
             )
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
@@ -189,7 +191,7 @@ class UD_BLE_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.FAST,
-                transaction_code=TransactionCode.USER_DEVICE,
+                authentication_policy=AuthenticationPolicy.USER_DEVICE,
             )
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
@@ -198,7 +200,17 @@ class UD_BLE_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
         self.next_step()
 
-        # Test step 15
+        # Test step 15 and step 16
+        try:
+            await self.reader.handle_exchange(False, ursk=b"")
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+        self.next_step()
+
+        # Test step 17
         try:
             await self.reader.reader_status_access_protocol_completed(0, 0)
             time.sleep(0.1)

@@ -214,8 +214,9 @@ class AliroReaderTestCase(AliroTestCase):
     READER_GROUP_ID_KEY = "dut_reader_group_identifier"
     READER_SUB_GROUP_ID_KEY = "dut_reader_group_sub_identifier"
     READER_GROUP_RESOLVING_KEY = "dut_reader_group_resolving_key"
-    ENDPOINT_PRIVATE_KEY_KEY = "th_endpoint_private_key"
-    ENDPOINT_PUBLIC_KEY_KEY = "th_endpoint_public_key"
+    ACCESS_CREDENTIAL_PRIVATE_KEY_KEY = "th_access_credential_private_key"
+    ACCESS_CREDENTIAL_PUBLIC_KEY_KEY = "th_access_credential_public_key"
+    READER_ISSUER_PUBLIC_KEY_KEY = "dut_reader_issuer_public_key"
 
     @classmethod
     def default_test_parameters(self) -> dict[str, Any]:
@@ -232,12 +233,15 @@ class AliroReaderTestCase(AliroTestCase):
             "2ee8873c5d34ee",
             self.READER_GROUP_ID_KEY: "00113344667799AA00113344667799AA",
             self.READER_SUB_GROUP_ID_KEY: "113344667799AA00113344667799AA00",
-            self.ENDPOINT_PRIVATE_KEY_KEY: "f6f601cac64e2d4e47e9b2d1d0408680cef95e4e8"
+            self.ACCESS_CREDENTIAL_PRIVATE_KEY_KEY: "f6f601cac64e2d4e47e9b2d1d0408680cef95e4e8"
             "4b5ecee64d3401773bf9426",
-            self.ENDPOINT_PUBLIC_KEY_KEY: "04742df736d0fc9be978c45b00e8fdf7cea684ea10"
+            self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY: "04742df736d0fc9be978c45b00e8fdf7cea684ea10"
             "5ae574c1505a2c24ab6198e3125b7f1b7e1d134c55ece69681ba8ecc18a3836dc5199c75"
             "9f31e8ccf17e3efa",
             self.READER_GROUP_RESOLVING_KEY: "00000000000000000000000000000000",
+            self.READER_ISSUER_PUBLIC_KEY_KEY: "043928f322019d4757893bde6a0fe5e13e3e5"
+            "37b9ca0f549c0bd2f40f79060252a0a4f291192157a95cb6eb202759428c00cd834998c5"
+            "d0eab192ee8873c5d34ee",
         }
 
     def reader_access_credential(self) -> AccessCredential:
@@ -253,26 +257,31 @@ class AliroReaderTestCase(AliroTestCase):
 
         # User Device Key Pair
         logger.info("Generating User Device Key Pair")
-        logger.info(f"Loading public key from '{self.ENDPOINT_PUBLIC_KEY_KEY}'")
+        logger.info(
+            f"Loading public key from '{self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY}'"
+        )
         access_credential_public_key = self.public_key_from_config(
-            self.ENDPOINT_PUBLIC_KEY_KEY
+            self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY
         )
         logger.info(
-            f"TH Using User Device Public Key(hex): \n{access_credential_public_key.as_bytes().hex()}"
+            f"TH Using Access Credential Public Key(hex): \n{access_credential_public_key.as_bytes().hex()}"
         )
         logger.info(
-            f"TH Using User Device Public Key(pem): \n{access_credential_public_key.as_pem()}"
+            f"TH Using Access Credential Public Key(pem): \n{access_credential_public_key.as_pem()}"
         )
 
-        logger.info(f"Loading private key from '{self.ENDPOINT_PRIVATE_KEY_KEY}'")
+        logger.info(
+            f"Loading private key from '{self.ACCESS_CREDENTIAL_PRIVATE_KEY_KEY}'"
+        )
         access_credential_private_key = self.private_key_from_config(
-            self.ENDPOINT_PRIVATE_KEY_KEY, public_key=access_credential_public_key
+            self.ACCESS_CREDENTIAL_PRIVATE_KEY_KEY,
+            public_key=access_credential_public_key,
         )
         logger.info(
-            f"TH Using User Device Private Key(hex): \n{access_credential_private_key.as_bytes().hex()}"
+            f"TH Using Access Credential Private Key(hex): \n{access_credential_private_key.as_bytes().hex()}"
         )
         logger.info(
-            f"TH Using User Device Private Key(pem): \n{access_credential_private_key.as_pem()}"
+            f"TH Using Access Credential Private Key(pem): \n{access_credential_private_key.as_pem()}"
         )
         user_device_key_pair = KeyPair(
             access_credential_private_key, access_credential_public_key
@@ -285,6 +294,20 @@ class AliroReaderTestCase(AliroTestCase):
             f"Using Reader Public Key(hex): \n{reader_public_key.as_bytes().hex()}"
         )
         logger.info(f"Using Reader Public Key(PEM): \n{reader_public_key.as_pem()}")
+
+        # Issuer Public Key
+        logger.info(
+            f"Loading Issuer public key from '{self.READER_ISSUER_PUBLIC_KEY_KEY}'"
+        )
+        reader_issuer_public_key = self.public_key_from_config(
+            self.READER_ISSUER_PUBLIC_KEY_KEY
+        )
+        logger.info(
+            f"Using Reader Issuer Public Key(hex): \n{reader_issuer_public_key.as_bytes().hex()}"
+        )
+        logger.info(
+            f"Using Reader Issuer Public Key(PEM): \n{reader_issuer_public_key.as_pem()}"
+        )
 
         # Group Identifier
         logger.info(
@@ -305,8 +328,11 @@ class AliroReaderTestCase(AliroTestCase):
         )
 
         return AccessCredential(
-            user_device_key_pair=user_device_key_pair,
+            access_credential_key_pair=user_device_key_pair,
             reader_id_key_list=[(reader_group_identifier, reader_public_key)],
+            reader_system_issuer_ca_certificate_id_key_list=[
+                (reader_group_identifier, reader_issuer_public_key)
+            ],
         )
 
     def reader_group_resolving_key(self) -> bytes:

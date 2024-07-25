@@ -1,7 +1,8 @@
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
+    AuthenticationPolicy,
+    ReaderStatus,
     Transaction,
-    TransactionCode,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -64,7 +65,7 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step3: Transaction initiation (standard)"),
             TestStep("Step4: Send/Receive AUTH0 command/response"),
             TestStep("Step5: Send/Receive AUTH1 command/response"),
-            TestStep("Step6: Send/Receive CONTROL_FLOW command/response"),
+            TestStep("Step6: Send/Receive EXCHANGE command/response"),
             TestStep("Step7: Transaction initiation (fast)"),
             TestStep("Step8: Send/Receive AUTH0 Fast command/response"),
         ]
@@ -114,7 +115,7 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.STANDARD,
-                transaction_code=TransactionCode.USER_DEVICE,
+                authentication_policy=AuthenticationPolicy.USER_DEVICE,
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
@@ -133,8 +134,8 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 6
         try:
-            await self.reader.handle_control_flow(
-                success=True,
+            await self.reader.handle_exchange(
+                False, reader_status=ReaderStatus.READER_STATE_UNSECURED
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
@@ -161,7 +162,7 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.FAST,
-                transaction_code=TransactionCode.USER_DEVICE,
+                authentication_policy=AuthenticationPolicy.USER_DEVICE,
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
