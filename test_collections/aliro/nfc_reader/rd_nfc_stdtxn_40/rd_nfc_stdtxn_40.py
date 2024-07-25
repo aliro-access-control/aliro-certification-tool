@@ -16,12 +16,13 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class RD_NFC_STDTXN_21(AliroReaderTestCase, UserPromptSupport):
+class RD_NFC_STDTXN_40(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-STDTXN-2.1",
+        "public_id": "RD-NFC-STDTXN-4.0",
         "version": "0.0.1",
-        "title": "RD-NFC-STDTXN-2.1",
-        "description": """Verify conformance of Reader UT in AUTH1 command, using keyslot""",
+        "title": "RD-NFC-STDTXN-4.0",
+        "description": """Verify conformance of Reader during NFC standard """
+        """"transaction using alternative LOAD CERT protocol.""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -47,7 +48,8 @@ class RD_NFC_STDTXN_21(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step2: Set Reader Device Under Test in polling mode"),
             TestStep("Step3: Transaction initiation"),
             TestStep("Step4: Receive/Send AUTH0 command/response"),
-            TestStep("Step5: Receive/Send AUTH1 command/response"),
+            TestStep("Step5: Receive/Send LOAD_CERT command/response"),
+            TestStep("Step6: Receive/Send AUTH1 command/response"),
         ]
 
     async def setup(self) -> None:
@@ -109,16 +111,24 @@ class RD_NFC_STDTXN_21(AliroReaderTestCase, UserPromptSupport):
             )
         self.next_step()
 
-        # Test step 5 Receive/Send Auth1 command/response
+        # Test step 5 Receive/Send LOAD CERT command/response
         try:
             cmds_auth1 = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:
             self.mark_step_failure(str(error))
             return
-        if cmds_auth1.expected_response != Auth1Response.KEY_SLOT:
-            self.mark_step_failure(
-                "Access Credential key type request is not key slot!"
-            )
+        try:
+            await self.userdevice.handle_load_cert(cmds_auth1)
+        except AccessProtocolError as error:
+            self.mark_step_failure(str(error))
+            return
+        self.next_step()
+
+        # Test step 6 Receive/Send Auth1 command/response
+        try:
+            cmds_auth1 = await self.userdevice.wait_for_command()
+        except InvalidCommandError as error:
+            self.mark_step_failure(str(error))
             return
         try:
             await self.userdevice.handle_auth1(cmds_auth1)
@@ -128,5 +138,5 @@ class RD_NFC_STDTXN_21(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_STDTXN_21 Cleanup")
+        logger.info("RD_NFC_STDTXN_40 Cleanup")
         await self.userdevice.transaction_termination()

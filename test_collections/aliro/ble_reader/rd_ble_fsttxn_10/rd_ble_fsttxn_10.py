@@ -57,7 +57,9 @@ class RD_BLE_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step13: User Device sends AP Message: Initiate AP"),
             TestStep("Step14: Reader sends AP_RQ message: AUTH0 cmd"),
             TestStep("Step15: User Device sends AP_RS message: AUTH0 response"),
-            TestStep("Step16: Reader sends AP message: AP completed"),
+            TestStep("Step16: Reader sends AP_RQ message: EXCHANGE cmd"),
+            TestStep("Step17: User Device sends AP_RS message: EXCHANGE response"),
+            TestStep("Step18: Reader sends AP message: AP completed"),
         ]
 
     async def setup(self) -> None:
@@ -175,7 +177,6 @@ class RD_BLE_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
         try:
             cmds_exchange = await self.userdevice.wait_for_command(
                 expected_command=INS.EXCHANGE,
-                encryption=self.userdevice.session.encryption,
             )
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
@@ -254,6 +255,30 @@ class RD_BLE_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 16
+        try:
+            cmds_exchange = await self.userdevice.wait_for_command(
+                expected_command=INS.EXCHANGE
+            )
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+
+        # Test step 17
+        try:
+            await self.userdevice.handle_exchange(cmds_exchange)
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        if cmds_exchange.ursk is None:
+            self.mark_step_failure(
+                "EXCHANGE command does not contain tag 0x98 (make URSK available)"
+            )
+        self.next_step()
+
+        # Test step 18
         try:
             message_ap_completed = await self.userdevice.wait_for_ble_message()
             self.userdevice.handle_reader_status_access_protocol_completed_message(

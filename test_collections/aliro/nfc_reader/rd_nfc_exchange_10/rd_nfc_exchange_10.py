@@ -16,12 +16,12 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class RD_NFC_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
+class RD_NFC_EXCHANGE_10(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-STDTXN-3.0",
+        "public_id": "RD-NFC-EXCHANGE-1.0",
         "version": "0.0.1",
-        "title": "RD-NFC-STDTXN-3.0",
-        "description": """Verify conformance of Reader UT in CONTROL FLOW command.""",
+        "title": "RD-NFC-EXCHANGE-1.0",
+        "description": """Verify conformance of Reader UT in EXCHANGE command.""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -48,7 +48,7 @@ class RD_NFC_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step3: Transaction initiation"),
             TestStep("Step4: Receive/Send AUTH0 command/response"),
             TestStep("Step5: Receive/Send AUTH1 command/response"),
-            TestStep("Step6: Receive/Send CONTROL FLOW command/response"),
+            TestStep("Step6: Receive/Send EXCHANGE command/response"),
         ]
 
     async def setup(self) -> None:
@@ -126,30 +126,31 @@ class RD_NFC_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
         # Test step 6
         while True:
             try:
-                cmds_control_flow = await self.userdevice.wait_for_command()
+                cmds_exchange = await self.userdevice.wait_for_command()
             except InvalidCommandError as error:
                 self.mark_step_failure(str(error))
                 return
 
-            if cmds_control_flow.ins == INS.CONTROL_FLOW:
+            if cmds_exchange.ins == INS.EXCHANGE:
                 try:
-                    await self.userdevice.handle_control_flow(cmds_control_flow)
+                    await self.userdevice.handle_exchange(cmds_exchange)
                 except AccessProtocolError as error:
                     self.mark_step_failure(str(error))
                     return
-                self.next_step()
-                break
-            elif cmds_control_flow.ins == INS.EXCHANGE:
-                try:
-                    await self.userdevice.handle_exchange(cmds_control_flow)
-                except AccessProtocolError as error:
-                    self.mark_step_failure(str(error))
-                    return
+                if self.userdevice.session.state_valid(
+                    UserSessionState.TRANSACTION_COMPLETE
+                ):
+                    break
                 # re-enter loop waiting for control flow
             else:
-                self.mark_step_failure(f"Unexpected command {cmds_control_flow.ins}")
+                self.mark_step_failure(f"Unexpected command {cmds_exchange.ins}")
                 return
+        logger.info(
+            "Received EXCHANGE command with reader status: 0x{:04x}".format(
+                cmds_exchange.reader_status.value
+            )
+        )
 
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_STDTXN_30 Cleanup")
+        logger.info("RD_NFC_EXCHANGE_1.0 Cleanup")
         await self.userdevice.transaction_termination()

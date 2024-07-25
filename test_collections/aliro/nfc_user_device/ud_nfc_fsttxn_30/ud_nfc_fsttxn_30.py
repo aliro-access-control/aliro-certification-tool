@@ -1,7 +1,8 @@
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
+    AuthenticationPolicy,
+    ReaderStatus,
     Transaction,
-    TransactionCode,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -65,10 +66,10 @@ class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step3: Transaction initiation"),
             TestStep("Step4: Send/Receive AUTH0 Standard command/response"),
             TestStep("Step5: Send/Receive AUTH1 Standard command/response"),
-            TestStep("Step6: Send/Receive Control flow Standard command/response"),
+            TestStep("Step6: Send/Receive EXCHANGE Standard command/response"),
             TestStep("Step7: Transaction initiation"),
             TestStep("Step8: Send/Receive AUTH0 Fast command/response"),
-            TestStep("Step9: Send/Receive CONTROL_FLOW Fast command/response"),
+            TestStep("Step9: Send/Receive EXCHANGE Fast command/response"),
         ]
 
     async def setup(self) -> None:
@@ -119,7 +120,7 @@ class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.STANDARD,
-                transaction_code=TransactionCode.USER_DEVICE,
+                authentication_policy=AuthenticationPolicy.USER_DEVICE,
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
@@ -142,8 +143,8 @@ class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 6
         try:
-            await self.reader.handle_control_flow(
-                success=True,
+            await self.reader.handle_exchange(
+                False, reader_status=ReaderStatus.READER_STATE_UNSECURED
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
@@ -172,7 +173,7 @@ class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.FAST,
-                transaction_code=TransactionCode.USER_DEVICE,
+                authentication_policy=AuthenticationPolicy.USER_DEVICE,
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
@@ -185,8 +186,8 @@ class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test Step 9
         try:
-            await self.reader.handle_control_flow(
-                success=True,
+            await self.reader.handle_exchange(
+                False, reader_status=ReaderStatus.READER_STATE_UNSECURED
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
