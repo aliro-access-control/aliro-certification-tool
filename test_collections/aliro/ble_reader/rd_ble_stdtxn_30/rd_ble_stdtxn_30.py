@@ -5,6 +5,10 @@ from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
 )
+from aliro_actuator.transport_protocol.ble_message_format import (
+    Notification_ID,
+    UWB_RangingService_ID,
+)
 from aliro_actuator.access_protocol.user_device import UserDevice
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
@@ -146,15 +150,25 @@ class RD_BLE_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 8: Reader sends AP message: Status changed
-        try:
-            message = await self.userdevice.wait_for_ble_message()
-            self.userdevice.handle_reader_status_changed_message(message)
-            await self.userdevice.transport_protocol.stop_ranging()
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-        self.next_step()
+        while True:
+            try:
+                message = await self.userdevice.wait_for_ble_message()
+                if message.id == Notification_ID.READER_STATUS_CHANGED:
+                    self.userdevice.handle_reader_status_changed_message(message)
+                    # If we receive Reader Status Changed then we end the test
+                    break
+                elif message.id == UWB_RangingService_ID.RANGING_SESSION_SUSPEND_REQUEST:
+                    await self.userdevice.handle_ranging_session_suspend_request(message)
+                elif message.id == UWB_RangingService_ID.RANGING_SESSION_SUSPEND_RESPONSE:
+                    await self.userdevice.handle_ranging_session_suspend_response(message)
+                elif message.id == UWB_RangingService_ID.RANGING_SESSION_RESUME_REQUEST:
+                    await self.userdevice.handle_ranging_session_resume_request(message)
+                elif message.id == UWB_RangingService_ID.RANGING_SESSION_RESUME_RESPONSE:
+                    await self.userdevice.handle_ranging_session_resume_response(message)
+            except Exception as error:
+                error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+                self.mark_step_failure(error_str)
+                return
 
     async def cleanup(self) -> None:
         logger.info("RD_BLE_STDTXN_30 Cleanup")
