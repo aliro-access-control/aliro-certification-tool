@@ -30,3 +30,7 @@ make install
 # Install ACWG Actuator python dependencies
 cd $COLLECTION_PATH/support/aliro_actuator
 poetry install --no-root
+
+# Install certification tool python dependencies
+cd $COLLECTION_PATH
+poetry install --no-root
