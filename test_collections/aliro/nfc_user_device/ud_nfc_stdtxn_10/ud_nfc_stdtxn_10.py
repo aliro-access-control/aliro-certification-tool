@@ -56,6 +56,7 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         ]
 
     async def setup(self) -> None:
+        self.log_git_info()
         logger.info("This is a test case setup")
         # load parameters from project config
         group_id = self.th_group_identifier()

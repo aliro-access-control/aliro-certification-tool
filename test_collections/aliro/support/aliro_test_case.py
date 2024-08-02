@@ -14,12 +14,19 @@
 # limitations under the License.
 #
 
+from pathlib import Path
 from typing import Any, Awaitable, Callable
 
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.key import KeyPair, PrivateKey, PublicKey
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestCase
+from git import Repo
+
+DRIVER_PATH = Path(__file__).parent
+TOOL_ROOT_PATH = DRIVER_PATH.parents[
+    2
+]  # 3 levels up: aliro-certification-tool/test_collections/aliro/support/
 
 
 class AliroTestParameterError(Exception):
@@ -47,6 +54,16 @@ class AliroTestCase(TestCase):
     Class include helpers to get string and byte values from test parameters in project
     config.
     """
+
+    def log_git_info(self) -> None:
+        repo = Repo(TOOL_ROOT_PATH)
+        logger.info(
+            "certification-tool is on branch: {}".format(repo.active_branch.name)
+        )
+        logger.info(
+            "certification-tool is on commit: {}".format(repo.active_branch.commit)
+        )
+        logger.info("certification-tool is dirty: {}".format(repo.is_dirty()))
 
     def string_from_config(self, parameter_name: str) -> str:
         """Get a specific string value from test parameters.
