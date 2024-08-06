@@ -16,7 +16,6 @@
 
 import cbor2
 import datetime
-import json
 
 from enum import IntFlag
 
@@ -145,13 +144,14 @@ class Schedule(object):
             return None
 
         schedule_dict = {}
+        cbor_tag_epoch_time = 1
 
         # Encode the start time.
-        schedule_dict[Schedule.START_TIME_LABEL] = int(self.start_time)
+        schedule_dict[Schedule.START_TIME_LABEL] = cbor2.CBORTag(cbor_tag_epoch_time, int(self.start_time))
 
         # Encode the end time.
         if self.end_time > 0:
-            schedule_dict[Schedule.END_TIME_LABEL] = int(self.end_time)
+            schedule_dict[Schedule.END_TIME_LABEL] = cbor2.CBORTag(cbor_tag_epoch_time, int(self.end_time))
 
         # Encode the recurrence rule.
         if self.rrule.is_valid():
@@ -169,20 +169,3 @@ class Schedule(object):
         if schedule_dict is None:
             return None
         return cbor2.dumps(schedule_dict)
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the Schedule to JSON.'''
-        schedule_dict = self.to_dict()
-        if schedule_dict is None:
-            return None
-        Utility.collection_bytes_to_hex_str(schedule_dict)
-        return json.dumps(schedule_dict)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the Schedule to TLV.'''
-        schedule_dict = self.to_dict()
-        if schedule_dict is None:
-            return None
-        return Utility.dict_to_tlv(schedule_dict)

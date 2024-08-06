@@ -15,13 +15,11 @@
 #
 
 import cbor2
-import json
 
 from enum import IntEnum
 
 from revocation_entry import RevocationEntry
 from revocation_extension import RevocationExtension
-from utility import Utility
 
 ################################################################################
 class RevocationChangeMode(IntEnum):
@@ -176,7 +174,7 @@ class RevocationData(object):
             for vendor_registered_id, extensions in self.revocation_extensions.items():
                 revocation_extensions_list = []
                 for revocation_extension in extensions:
-                    revocation_extensions_list.append(revocation_extension.to_dict())
+                    revocation_extensions_list.append(revocation_extension.to_list())
                 if (len(revocation_extensions_list) > 0):
                     revocation_extensions_dict[vendor_registered_id] = revocation_extensions_list
             revocation_data_dict[RevocationData.REVOCATION_EXTENSIONS_LABEL] = revocation_extensions_dict
@@ -190,20 +188,3 @@ class RevocationData(object):
         if revocation_data_dict is None:
             return None
         return cbor2.dumps(revocation_data_dict)
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the RevocationData to JSON.'''
-        revocation_data_dict = self.to_dict()
-        if revocation_data_dict is None:
-            return None
-        Utility.collection_bytes_to_hex_str(revocation_data_dict)
-        return json.dumps(revocation_data_dict)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the RevocationData to TLV.'''
-        revocation_data_dict = self.to_dict()
-        if revocation_data_dict is None:
-            return None
-        return Utility.dict_to_tlv(revocation_data_dict)

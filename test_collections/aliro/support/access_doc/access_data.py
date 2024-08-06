@@ -15,13 +15,11 @@
 #
 
 import cbor2
-import json
 
 from access_rule import AccessRule
 from access_extension import AccessExtension
 from non_access_extension import NonAccessExtension
 from schedule import Schedule
-from utility import Utility
 
 class AccessData(object):
     '''Aliro Access Data Element.'''
@@ -228,7 +226,7 @@ class AccessData(object):
             for vendor_registered_id, extensions in self.non_access_extensions.items():
                 non_access_extensions_list = []
                 for non_access_extension in extensions:
-                    non_access_extensions_list.append(non_access_extension.to_dict())
+                    non_access_extensions_list.append(non_access_extension.to_list())
                 if (len(non_access_extensions_list) > 0):
                     non_access_extensions_dict[vendor_registered_id] = non_access_extensions_list
             access_data_dict[AccessData.NON_ACCESS_EXTENSIONS_LABEL] = non_access_extensions_dict
@@ -239,7 +237,7 @@ class AccessData(object):
             for vendor_registered_id, extensions in self.access_extensions.items():
                 access_extensions_list = []
                 for access_extension in extensions:
-                    access_extensions_list.append(access_extension.to_dict())
+                    access_extensions_list.append(access_extension.to_list())
                 if (len(access_extensions_list) > 0):
                     access_extensions_dict[vendor_registered_id] = access_extensions_list
             access_data_dict[AccessData.ACCESS_EXTENSIONS_LABEL] = access_extensions_dict
@@ -253,20 +251,3 @@ class AccessData(object):
         if access_data_dict is None:
             return None
         return cbor2.dumps(access_data_dict)
-
-    ############################################################################
-    def to_json(self) -> str:
-        '''Convert the AccessData to JSON.'''
-        access_data_dict = self.to_dict()
-        if access_data_dict is None:
-            return None
-        Utility.collection_bytes_to_hex_str(access_data_dict)
-        return json.dumps(access_data_dict)
-
-    ############################################################################
-    def to_tlv(self) -> bytearray:
-        '''Convert the AccessData to TLV.'''
-        access_data_dict = self.to_dict()
-        if access_data_dict is None:
-            return None
-        return Utility.dict_to_tlv(access_data_dict)

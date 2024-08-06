@@ -40,6 +40,22 @@ class Utility(object):
 
     ############################################################################
     @staticmethod
+    def time_val_to_tdate(val : int | float | datetime.date | datetime.datetime) -> str:
+        '''Convert the date / time to tdate with format "YYYY-mm-ddTHH:MM:SSZ".'''
+        assert isinstance(val, (int, float, datetime.date, datetime.datetime))
+        if isinstance(val, (int, float)):
+            dt = datetime.datetime.fromtimestamp(val)
+        elif type(val) is datetime.datetime:
+            dt = val
+        elif type(val) is datetime.date:
+            dt = datetime.datetime(year=val.year, month=val.month, day=val.day)
+        else:
+            raise TypeError
+
+        return dt.astimezone(datetime.timezone.utc).isoformat('T', 'seconds').replace('+00:00', 'Z')
+
+    ############################################################################
+    @staticmethod
     def uint_to_bytes(value : int, byteorder='big') -> bytes:
         '''
         Convert a non-negative integer to an array of bytes,
@@ -53,11 +69,34 @@ class Utility(object):
         while value > mask:
             mask = (mask << 8) | 0xFF
             length += 1
-        return value.to_bytes(length, byteorder=byteorder)
+        return value.to_bytes(length, byteorder=byteorder, signed=False)
 
     ############################################################################
     @staticmethod
-    def bytes_to_hex_str(data) -> str:
+    def int_to_bytes(value : int, byteorder='big') -> bytes:
+        '''
+        Convert an integer to an array of bytes,
+        using the minimum number of bytes.
+        '''
+        assert isinstance(value, int)
+        if (value >= 0):
+            return Utility.uint_to_bytes(value, byteorder)
+        else:
+            if (value >= -128):
+                length = 1
+            elif (value >= -32768):
+                length = 2
+            elif (value >= -8388608):
+                length = 3
+            elif (value >= -2147483648):
+                length = 4
+            else:
+                return None
+            return value.to_bytes(length, byteorder=byteorder, signed=True)
+
+    ############################################################################
+    @staticmethod
+    def bytes_to_hex_str(data : bytes | bytearray) -> str:
         '''Convert an array of bytes to a hex string.'''
         assert isinstance(data, (bytes, bytearray))
         return "".join("{:02X}".format(v) for v in data)
@@ -92,7 +131,7 @@ class Utility(object):
             if isinstance(val, dict):
                 data = Utility.dict_to_tlv(val)
             elif isinstance(val, list):
-                data = Utility.__list_to_tlv(val)
+                data = Utility.list_to_tlv(val)
             elif isinstance(val, (bytes, bytearray)):
                 data = val
             elif isinstance(val, int):
@@ -114,7 +153,10 @@ class Utility(object):
 
             # Encode the Tag.
             if isinstance(key, int):
-                ba.extend(Utility.uint_to_bytes(key))
+                if (key >= 0):
+                    ba.extend(Utility.uint_to_bytes(key))
+                else:
+                    ba.extend(Utility.int_to_bytes(key))
             elif isinstance(key, str):
                 ba.extend(key.encode())
             else:
@@ -139,7 +181,7 @@ class Utility(object):
 
     ############################################################################
     @staticmethod
-    def __list_to_tlv(collection : list) -> bytearray:
+    def list_to_tlv(collection : list) -> bytearray:
         '''Recursively convert a list to TLV.'''
         assert(isinstance(collection, list))
         ba = bytearray()
@@ -147,7 +189,7 @@ class Utility(object):
             if isinstance(item, dict):
                 data = Utility.dict_to_tlv(item)
             elif isinstance(item, list):
-                data = Utility.__list_to_tlv(item)
+                data = Utility.list_to_tlv(item)
             elif isinstance(item, (bytes, bytearray)):
                 data = item
             elif isinstance(item, int):
