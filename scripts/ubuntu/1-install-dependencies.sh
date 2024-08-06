@@ -15,9 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Install Docker Package Repo
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor --yes -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+ROOT_DIR=$(realpath $(dirname "$0")/../..)
+SCRIPT_DIR="$ROOT_DIR/scripts"
+UBUNTU_SCRIPT_DIR="$SCRIPT_DIR/ubuntu"
+
+printf "\n\n**********"
+printf "\n*** Installing Dependencies ***\n"
+$UBUNTU_SCRIPT_DIR/1.1-install-docker-repository.sh
 
 # Silence user prompts about reboot and service restart required (script will prompt user to reboot in the end)
 sudo sed -i "s/#\$nrconf{kernelhints} = -1;/\$nrconf{kernelhints} = -1;/g" /etc/needrestart/needrestart.conf
