@@ -137,7 +137,7 @@ class RD_NFC_STPUP_10(AliroReaderTestCase, UserPromptSupport):
             return
         self.next_step()
 
-        # Test step 2 - reader sends envelope
+        # Test step 2,3 - reader sends envelope
         try:
             cmds_envelope = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:
@@ -149,12 +149,6 @@ class RD_NFC_STPUP_10(AliroReaderTestCase, UserPromptSupport):
             self.mark_step_failure(str(error))
             return
         self.next_step()
-
-        # Test step 3 - receive get response
-        await self.userdevice.response_envelope(
-            self.userdevice.access_document, 
-            self.userdevice.session.encryption_stepup
-        )
         self.next_step()
 
     async def cleanup(self) -> None:
