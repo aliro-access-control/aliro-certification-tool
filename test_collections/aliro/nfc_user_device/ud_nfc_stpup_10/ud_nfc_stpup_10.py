@@ -63,7 +63,6 @@ class UD_NFC_STPUP_10(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step1: Prerequisites"),
             TestStep("Step2: Receive Envelope"),
             TestStep("Step3: Send Get Response"),
-            TestStep("Step3: Send Get Response"),
         ]
 
     async def setup(self) -> None:
