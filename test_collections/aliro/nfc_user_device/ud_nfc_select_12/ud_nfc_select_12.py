@@ -18,7 +18,7 @@ class UD_NFC_SELECT_12(AliroUserDeviceTestCase, UserPromptSupport):
         "public_id": "UD-NFC-SELECT-1.2",
         "version": "0.0.1",
         "title": "UD-NFC-SELECT-1.2",
-        "description": """Verify conformance of User Device UT SELECT command ssing Step-up Phase AID. Precondition: successful standard transaction not done.""",
+        "description": """Verify conformance of User Device UT SELECT command using Step-up Phase AID. Precondition: successful standard transaction not done.""",
     }
 
     reader_ePuBK = bytes.fromhex(
