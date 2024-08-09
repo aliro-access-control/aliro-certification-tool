@@ -5,6 +5,7 @@ from aliro_actuator.access_protocol.apdu import (
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
+    PROTOCOL_VERSION,
     TransportProtocol,
 )
 from aliro_actuator.access_protocol.errors import (
@@ -21,12 +22,12 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_NFC_AUTH0_11(AliroUserDeviceTestCase, UserPromptSupport):
+class UD_NFC_AUTH0_12(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-NFC-AUTH0-1.1",
+        "public_id": "UD-NFC-AUTH0-1.2",
         "version": "0.0.1",
-        "title": "UD-NFC-AUTH0-1.1",
-        "description": """Verify conformance of User Device UT in AUTH0 command, expedited_phase_protocol_version different from  0x0100, not part of SELECT response.""",
+        "title": "UD-NFC-AUTH0-1.2",
+        "description": """Verify conformance of User Device UT in AUTH0 command, invalid reader_ePubK.""",
     }
 
     reader_ePuBK = bytes.fromhex(
@@ -57,7 +58,7 @@ class UD_NFC_AUTH0_11(AliroUserDeviceTestCase, UserPromptSupport):
         ]
 
     async def setup(self) -> None:
-        logger.info("UD_NFC_AUTH0_11 setup")
+        logger.info("UD_NFC_AUTH0_12 setup")
         # load parameters from project config
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
@@ -77,7 +78,10 @@ class UD_NFC_AUTH0_11(AliroUserDeviceTestCase, UserPromptSupport):
     async def execute(self) -> None:
         # Test step 1
         # Done in setup
-        protocol_version = 0x0001
+        reader_epubkey = bytes.fromhex(
+            "04eb35d27c5f808bc565c9e03fd8cbcb6bac292f5300db4adf27ff90829669eafdfa95e16b"
+            "1ee7052eb276d29c43e4f9633686201238de4e640ce9ff19d2ff4478"
+        )
         self.next_step()
 
         # Test step 2
@@ -100,15 +104,6 @@ class UD_NFC_AUTH0_11(AliroUserDeviceTestCase, UserPromptSupport):
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
-        if (
-            protocol_version
-            in self.reader.session.expedited_phase_supported_protocol_versions
-        ):
-            self.mark_step_failure(
-                "version 0x{:04x} is supported by the device, but this version does "
-                "not exist".format(protocol_version)
-            )
-            return
         self.next_step()
 
         # Test step 5
@@ -116,15 +111,15 @@ class UD_NFC_AUTH0_11(AliroUserDeviceTestCase, UserPromptSupport):
             auth0_response = await self.command_auth0(
                 transaction=Transaction.STANDARD,
                 transaction_code=AuthenticationPolicy.USER_DEVICE,
-                protocol_version=protocol_version,
-                reader_epubk=self.reader.session.get_reader_epubkey().as_bytes(),
+                protocol_version=PROTOCOL_VERSION,
+                reader_epubk=reader_epubkey,
                 transaction_identifier=self.reader.session.transaction_identifier,
                 reader_identifier=self.reader.reader_group_identifier
                 + self.reader.reader_group_sub_identifier,
             )
             self.mark_step_failure(
-                "Invalid protocol version send, but it was accepted as a valid "
-                "protocol version"
+                "Invalid reader ephemeral key send, but it was accepted as a valid "
+                "key"
             )
             return
         except InvalidStatusError as error:
@@ -139,5 +134,5 @@ class UD_NFC_AUTH0_11(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_NFC_AUTH0_11 Cleanup")
+        logger.info("UD_NFC_AUTH0_12 Cleanup")
         await self.reader.transaction_termination()
