@@ -1,8 +1,3 @@
-from aliro_actuator.access_protocol.apdu import (
-    Auth1Response,
-    AuthenticationPolicy,
-    Transaction,
-)
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
@@ -25,7 +20,7 @@ class UD_NFC_SELECT_10(AliroUserDeviceTestCase, UserPromptSupport):
         "public_id": "UD-NFC-SELECT-1.0",
         "version": "0.0.1",
         "title": "UD-NFC-SELECT-1.0",
-        "description": """Verify conformance of User Device UT SELECT command using Expedited Phase AID..""",
+        "description": """Verify conformance of User Device UT SELECT command using Expedited Phase AID.""",
     }
 
     reader_ePuBK = bytes.fromhex(
