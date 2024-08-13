@@ -108,7 +108,7 @@ class UD_NFC_AUTH0_12(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 5
         try:
-            auth0_response = await self.command_auth0(
+            auth0_response = await self.reader.command_auth0(
                 transaction=Transaction.STANDARD,
                 transaction_code=AuthenticationPolicy.USER_DEVICE,
                 protocol_version=PROTOCOL_VERSION,
