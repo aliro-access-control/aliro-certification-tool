@@ -110,7 +110,7 @@ class UD_NFC_AUTH0_12(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             auth0_response = await self.reader.command_auth0(
                 transaction=Transaction.STANDARD,
-                transaction_code=AuthenticationPolicy.USER_DEVICE,
+                authentication_policy=AuthenticationPolicy.USER_DEVICE,
                 protocol_version=PROTOCOL_VERSION,
                 reader_epubk=reader_epubkey,
                 transaction_identifier=self.reader.session.transaction_identifier,
