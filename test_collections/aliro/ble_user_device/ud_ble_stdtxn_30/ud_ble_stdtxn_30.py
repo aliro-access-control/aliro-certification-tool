@@ -62,6 +62,13 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step8: Reader sends AP message: Status changed"),
         ]
 
+    def print_uwb_configuration(self, uwb_config: dict) -> None:
+        logger.info("UWB Configuration is:")
+        logger.info("-" * 50)
+        for key, value in uwb_config.items():
+            logger.info(f"{key:<12}: {value}")
+        logger.info("-" * 50)
+
     async def setup(self) -> None:
         logger.info("This is a test case setup")
         group_id = self.th_group_identifier()
@@ -164,8 +171,18 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         # Test step 7: Reader acquires UWB ranging result
         try:
             await self.reader.transport_protocol.start_ranging()
-            await self.reader.transport_protocol.get_ranging_data()
+            range = await self.reader.transport_protocol.get_ranging_data()
+            logger.info(f"Ranging value is: {range}")
             await self.reader.transport_protocol.stop_ranging()
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+
+        # Print UWB configuration 
+        try:
+            uwb_configuration = await self.reader.transport_protocol.get_uwb_configuration()
+            self.print_uwb_configuration(uwb_configuration)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
