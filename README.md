@@ -30,7 +30,7 @@ Following this section should take a couple hours, mostly depending on internet 
 > * usb keyboard
 
 > [!IMPORTANT]
-> See https://github.com/csa-access-control/aliro-actuator/tree/main/third_party/murata_fw for instructions on updating the murata FW. 
+> See https://github.com/csa-access-control/aliro-actuator/tree/27-add-uwb-support/third_party for instructions on updating the murata FW. 
 
 
 ## A - Installing Ubuntu on SD-Card
