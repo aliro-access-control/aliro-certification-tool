@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .ud_nfc_select_10 import UD_NFC_SELECT_10
+from .ud_nfc_select_20 import UD_NFC_SELECT_20

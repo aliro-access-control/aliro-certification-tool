@@ -13,7 +13,7 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_NFC_SELECT_10(AliroUserDeviceTestCase, UserPromptSupport):
+class UD_NFC_SELECT_11(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
         "public_id": "UD-NFC-SELECT-1.1",
         "version": "0.0.1",
