@@ -36,6 +36,8 @@ from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from cryptography.hazmat.primitives.serialization import PublicFormat
 
+
+################################################################################
 class ResponseElement(object):
     '''Aliro Device Response Element.'''
 

@@ -18,51 +18,63 @@ import cbor2
 import copy
 
 ################################################################################
-class ValueDigests(object):
+class Namespaces(object):
+    '''Aliro Namespaces within a Device Request.'''
 
     ############################################################################
     def __init__(self) -> None:
-        self.__data : dict[str, dict[int, bytearray]] = {}
+        self.__data : dict[str, dict[str, bool]] = {}
 
     ############################################################################
     @property
-    def data(self) -> dict[str, dict[int, bytearray]]:
-        '''Get the Value Digests.'''
+    def data(self) -> dict[str, dict[str, bool]]:
+        '''Get the Namespaces with their values.'''
         return self.__data
 
     ############################################################################
-    def set(self, namespace : str, id : int, digest : bytes | bytearray) -> None:
-        '''Set the Digest with the given ID within the given Namespace.'''
+    def set(self, namespace : str, data_element_id : str, intent_to_retain : bool) -> None:
+        '''
+        Within the given Namespace, set the Intent-to-Retain
+        for the given Data Element Identifier.
+        '''
         assert(isinstance(namespace, str))
-        assert(isinstance(id, int))
-        assert(isinstance(digest, (bytes, bytearray)))
+        assert(isinstance(data_element_id, str))
+        assert(isinstance(intent_to_retain, bool))
         assert(len(namespace) > 0)
-        assert(len(digest) > 0)
+        assert(len(data_element_id) > 0)
         if namespace in self.__data:
-            self.__data[namespace][id] = bytearray(digest)
+            self.__data[namespace][str(data_element_id)] = bool(intent_to_retain)
         else:
-            self.__data[namespace] = {id : bytearray(digest)}
+            self.__data[str(namespace)] = {str(data_element_id) : bool(intent_to_retain)}
 
     ############################################################################
     def is_valid(self) -> bool:
-        '''Returns True if the ValueDigests contains valid fields,
+        '''Returns True if the Namespaces contains valid fields,
            otherwise returns False.'''
         # Verify the Data field.
         if (type(self.__data) is not dict) or (len(self.__data) == 0):
             return False
+        for namespace in self.__data.keys():
+            if (type(namespace) is not str) or (len(namespace) == 0):
+                return False
+            for data_element_id, intent_to_retain in self.__data[namespace].items():
+                if (type(data_element_id) is not str) or (len(data_element_id) == 0):
+                    return False
+                if (type(intent_to_retain) is not bool):
+                    return False
         return True
 
     ############################################################################
     def to_dict(self) -> dict:
-        '''Convert the ValueDigests to a dictionary.'''
+        '''Convert the Namespaces to a dictionary.'''
         if not self.is_valid():
             return None
         return copy.deepcopy(self.__data)
 
     ############################################################################
     def to_cbor(self) -> bytes:
-        '''Convert the ValueDigests to CBOR.'''
-        value_digests_dict = self.to_dict()
-        if value_digests_dict is None:
+        '''Convert the Namespaces to CBOR.'''
+        namespaces_dict = self.to_dict()
+        if namespaces_dict is None:
             return None
-        return cbor2.dumps(value_digests_dict)
+        return cbor2.dumps(namespaces_dict)
