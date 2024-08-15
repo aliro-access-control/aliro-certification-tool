@@ -101,9 +101,52 @@ class DeviceRequest(object):
         return device_request_dict
 
     ############################################################################
+    def from_dict(self, device_request_dict : dict) -> bool:
+        '''Parse a dictionary to populate the DeviceRequest.'''
+        # Clear existing DeviceRequest data.
+        self.__version = ""
+        self.__doc_requests = []
+
+        # Verify input parameters.
+        if (not isinstance(device_request_dict, dict)):
+            return False
+
+        # Get the Version from the given dictionary.
+        version = device_request_dict.get(DeviceRequest.VERSION_LABEL)
+
+        # Get the Doc Requests from the given dictionary.
+        doc_requests_list = device_request_dict.get(DeviceRequest.DOC_REQUESTS_LABEL)
+
+        # The Version field is required.
+        if (version is None) or (not isinstance(version, str)) or (len(version) == 0):
+            return False
+
+        # The Doc Requests field is required.
+        if (doc_requests_list is None) or (not isinstance(doc_requests_list, list)) or (len(doc_requests_list) == 0):
+            return False
+
+        # Store the Version.
+        self.__version = str(version)
+
+        # Decode and store each Doc Request.
+        for doc_request_dict in doc_requests_list:
+            doc_request = DocRequest()
+            if doc_request.from_dict(doc_request_dict) == False:
+                return False
+            self.__doc_requests.append(doc_request)
+
+        return self.is_valid()
+
+    ############################################################################
     def to_cbor(self) -> bytes:
         '''Convert the DeviceRequest to CBOR.'''
         device_request_dict = self.to_dict()
         if device_request_dict is None:
             return None
         return cbor2.dumps(device_request_dict)
+
+    ############################################################################
+    def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
+        '''Parse CBOR to populate the DeviceRequest.'''
+        assert(isinstance(cbor_data, (bytes, bytearray)))
+        return self.from_dict(cbor2.loads(cbor_data))

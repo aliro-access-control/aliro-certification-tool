@@ -69,9 +69,46 @@ class DocRequest(object):
         return doc_request_dict
 
     ############################################################################
+    def from_dict(self, doc_request_dict : dict) -> bool:
+        '''Parse a dictionary to populate the DocRequest.'''
+        # Clear existing DocRequest data.
+        self.__items_request = ItemsRequest()
+
+        # Verify input parameters.
+        if (not isinstance(doc_request_dict, dict)):
+            return False
+
+        # Get the Items Request CBOR data from the given dictionary.
+        items_request_cbor = doc_request_dict.get(DocRequest.ITEMS_REQUEST_LABEL)
+
+        # The Items Request is required.
+        if (items_request_cbor is None) or (not isinstance(items_request_cbor, (bytes, bytearray))) or (len(items_request_cbor) == 0):
+            return False
+
+        # The Items Request should be inside a CBOR tag.
+        cbor_tag_encoded_cbor = 24
+        cbor_tag = cbor2.loads(items_request_cbor)
+
+        # Verify the CBOR tag and its value.
+        if (not isinstance(cbor_tag, cbor2.CBORTag)) or (cbor_tag.tag != cbor_tag_encoded_cbor) or (not isinstance(cbor_tag.value, (bytes | bytearray))):
+            return False
+
+        # Populate the Items Request from the CBOR data.
+        if not self.__items_request.from_cbor(cbor_tag.value):
+            return False
+
+        return self.is_valid()
+
+    ############################################################################
     def to_cbor(self) -> bytes:
         '''Convert the DocRequest to CBOR.'''
         doc_request_dict = self.to_dict()
         if doc_request_dict is None:
             return None
         return cbor2.dumps(doc_request_dict)
+
+    ############################################################################
+    def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
+        '''Parse CBOR to populate the DocRequest.'''
+        assert(isinstance(cbor_data, (bytes, bytearray)))
+        return self.from_dict(cbor2.loads(cbor_data))

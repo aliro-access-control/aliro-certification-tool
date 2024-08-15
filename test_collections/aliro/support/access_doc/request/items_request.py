@@ -104,11 +104,56 @@ class ItemsRequest(object):
         # Encode the Namespaces.
         items_request_dict[ItemsRequest.NAMESPACES_LABEL] = self.__namespaces.to_dict()
 
-        # Encode the Request Info.
-        if (len(self.__request_info) > 0):
+        # Encode the optional Request Info.
+        if (self.__request_info is not None) and (len(self.__request_info) > 0):
             items_request_dict[ItemsRequest.REQUEST_INFO_LABEL] = copy.deepcopy(self.__request_info)
 
         return items_request_dict
+
+    ############################################################################
+    def from_dict(self, items_request_dict : dict) -> bool:
+        '''Parse a dictionary to populate the ItemsRequest.'''
+        # Clear existing ItemsRequest data.
+        self.__doc_type = ""
+        self.__namespaces = Namespaces()
+        self.__request_info = {}
+
+        # Verify input parameters.
+        if (not isinstance(items_request_dict, dict)):
+            return False
+
+        # Get the Doc Type from the given dictionary.
+        doc_type = items_request_dict.get(ItemsRequest.DOC_TYPE_LABEL)
+
+        # Get the Namespaces from the given dictionary.
+        namespaces_dict = items_request_dict.get(ItemsRequest.NAMESPACES_LABEL)
+
+        # Get the optional Request Info from the given dictionary.
+        request_info_dict = items_request_dict.get(ItemsRequest.REQUEST_INFO_LABEL)
+
+        # The Doc Type field is required.
+        if (doc_type is None) or (not isinstance(doc_type, str)) or (len(doc_type) == 0):
+            return False
+
+        # The Namespaces field is required.
+        if (namespaces_dict is None) or (not isinstance(namespaces_dict, dict)) or (len(namespaces_dict) == 0):
+            return False
+
+        # The Request Info field is optional.
+        if (request_info_dict is not None):
+            if (not (isinstance(request_info_dict, dict))):
+                return False
+            # Store the Request Info.
+            self.__request_info = request_info_dict
+
+        # Store the Doc Type.
+        self.__doc_type = str(doc_type)
+
+        # Populate the Namespaces from the dictionary data.
+        if not self.__namespaces.from_dict(namespaces_dict):
+            return False
+
+        return self.is_valid()
 
     ############################################################################
     def to_cbor(self) -> bytes:
@@ -117,3 +162,9 @@ class ItemsRequest(object):
         if items_request_dict is None:
             return None
         return cbor2.dumps(items_request_dict)
+
+    ############################################################################
+    def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
+        '''Parse CBOR to populate the ItemsRequest.'''
+        assert(isinstance(cbor_data, (bytes, bytearray)))
+        return self.from_dict(cbor2.loads(cbor_data))

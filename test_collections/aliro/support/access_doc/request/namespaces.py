@@ -72,9 +72,25 @@ class Namespaces(object):
         return copy.deepcopy(self.__data)
 
     ############################################################################
+    def from_dict(self, namespaces_dict : dict) -> bool:
+        '''Parse a dictionary to populate the Namespaces.'''
+        if (isinstance(namespaces_dict, dict)):
+            self.__data = copy.deepcopy(namespaces_dict)
+        else:
+            self.__data = {}
+            return False
+        return self.is_valid()
+
+    ############################################################################
     def to_cbor(self) -> bytes:
         '''Convert the Namespaces to CBOR.'''
         namespaces_dict = self.to_dict()
         if namespaces_dict is None:
             return None
         return cbor2.dumps(namespaces_dict)
+
+    ############################################################################
+    def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
+        '''Parse CBOR to populate the Namespaces.'''
+        assert(isinstance(cbor_data, (bytes, bytearray)))
+        return self.from_dict(cbor2.loads(cbor_data))

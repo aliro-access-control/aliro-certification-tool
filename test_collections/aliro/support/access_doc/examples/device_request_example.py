@@ -30,16 +30,29 @@ sys.path.append(source_dir_path)
 # Change the working directory to the directory above the 'examples' directory.
 os.chdir(source_dir_path)
 
+from request.device_request import DeviceRequest
 from request.device_request_builder import RequestElement
 from request.device_request_builder import DeviceRequestBuilder
 from utility import Utility
 
+# Create an Access Data Element request.
 access_request = RequestElement(data_element_id='b1.f2', intent_to_retain=False)
+
+# Create a Revocation Data Element request.
 revocation_request = RequestElement(data_element_id='b2', intent_to_retain=True)
 
+# Build the Device Request.
 device_request = DeviceRequestBuilder.build([access_request], [revocation_request])
 
-print("\nDevice Request")
+# Convert the Device Request to CBOR and output to the console.
+print("Device Request")
 cbor = device_request.to_cbor()
 if (cbor is not None):
-    print("cbor: " + Utility.bytes_to_hex_str(cbor) + "\n")
+    print("cbor: " + Utility.bytes_to_hex_str(cbor))
+
+# Parse the CBOR to populate a Device Request.
+device_request_2 = DeviceRequest()
+if device_request_2.from_cbor(cbor):
+    print("Successfully parsed the CBOR to populate a Device Request.")
+else:
+    print("Failed to parse the CBOR.")
