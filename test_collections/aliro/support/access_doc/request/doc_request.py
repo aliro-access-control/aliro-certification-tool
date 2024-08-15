@@ -64,7 +64,7 @@ class DocRequest(object):
 
         # Encode the Item Request.
         cbor_tag_encoded_cbor = 24
-        doc_request_dict[DocRequest.ITEMS_REQUEST_LABEL] = cbor2.dumps(cbor2.CBORTag(cbor_tag_encoded_cbor, self.__items_request.to_cbor()))
+        doc_request_dict[DocRequest.ITEMS_REQUEST_LABEL] = cbor2.CBORTag(cbor_tag_encoded_cbor, self.__items_request.to_cbor())
 
         return doc_request_dict
 
@@ -78,22 +78,15 @@ class DocRequest(object):
         if (not isinstance(doc_request_dict, dict)):
             return False
 
-        # Get the Items Request CBOR data from the given dictionary.
-        items_request_cbor = doc_request_dict.get(DocRequest.ITEMS_REQUEST_LABEL)
-
-        # The Items Request is required.
-        if (items_request_cbor is None) or (not isinstance(items_request_cbor, (bytes, bytearray))) or (len(items_request_cbor) == 0):
-            return False
-
-        # The Items Request should be inside a CBOR tag.
-        cbor_tag_encoded_cbor = 24
-        cbor_tag = cbor2.loads(items_request_cbor)
+        # Get the Items Request tagged CBOR data from the given dictionary.
+        cbor_tag = doc_request_dict.get(DocRequest.ITEMS_REQUEST_LABEL)
 
         # Verify the CBOR tag and its value.
-        if (not isinstance(cbor_tag, cbor2.CBORTag)) or (cbor_tag.tag != cbor_tag_encoded_cbor) or (not isinstance(cbor_tag.value, (bytes | bytearray))):
+        cbor_tag_encoded_cbor = 24
+        if (cbor_tag is None) or (not isinstance(cbor_tag, cbor2.CBORTag)) or (cbor_tag.tag != cbor_tag_encoded_cbor) or (not isinstance(cbor_tag.value, (bytes | bytearray))):
             return False
 
-        # Populate the Items Request from the CBOR data.
+        # Populate the Items Request from the tagged CBOR data.
         if not self.__items_request.from_cbor(cbor_tag.value):
             return False
 
