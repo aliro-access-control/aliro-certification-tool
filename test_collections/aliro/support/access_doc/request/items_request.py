@@ -131,27 +131,23 @@ class ItemsRequest(object):
         # Get the optional Request Info from the given dictionary.
         request_info_dict = items_request_dict.get(ItemsRequest.REQUEST_INFO_LABEL)
 
-        # The Doc Type field is required.
+        # Decode the required Doc Type.
         if (doc_type is None) or (not isinstance(doc_type, str)) or (len(doc_type) == 0):
             return False
+        self.__doc_type = str(doc_type)
 
-        # The Namespaces field is required.
+        # Decode the required Namespaces.
         if (namespaces_dict is None) or (not isinstance(namespaces_dict, dict)) or (len(namespaces_dict) == 0):
             return False
+        if (not self.__namespaces.from_dict(namespaces_dict)):
+            return False
 
-        # The Request Info field is optional.
+        # Decode the optional Request Info.
         if (request_info_dict is not None):
             if (not (isinstance(request_info_dict, dict))):
                 return False
             # Store the Request Info.
             self.__request_info = request_info_dict
-
-        # Store the Doc Type.
-        self.__doc_type = str(doc_type)
-
-        # Populate the Namespaces from the dictionary data.
-        if not self.__namespaces.from_dict(namespaces_dict):
-            return False
 
         return self.is_valid()
 

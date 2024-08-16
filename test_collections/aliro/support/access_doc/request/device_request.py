@@ -117,18 +117,14 @@ class DeviceRequest(object):
         # Get the Doc Requests from the given dictionary.
         doc_requests_list = device_request_dict.get(DeviceRequest.DOC_REQUESTS_LABEL)
 
-        # The Version field is required.
+        # Decode the required Version.
         if (version is None) or (not isinstance(version, str)) or (len(version) == 0):
             return False
-
-        # The Doc Requests field is required.
-        if (doc_requests_list is None) or (not isinstance(doc_requests_list, list)) or (len(doc_requests_list) == 0):
-            return False
-
-        # Store the Version.
         self.__version = str(version)
 
-        # Decode and store each Doc Request.
+        # Decode the required Doc Requests.
+        if (doc_requests_list is None) or (not isinstance(doc_requests_list, list)) or (len(doc_requests_list) == 0):
+            return False
         for doc_request_dict in doc_requests_list:
             doc_request = DocRequest()
             if doc_request.from_dict(doc_request_dict) == False:

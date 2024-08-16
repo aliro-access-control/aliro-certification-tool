@@ -74,17 +74,17 @@ class DeviceRequestBuilder(object):
         if (revocation_data_elements is not None):
             assert(isinstance(revocation_data_elements, list))
 
+        # Create the Device Request to populate with
+        # data from the given request elements.
         device_request = DeviceRequest()
 
+        # Setup the Access Doc request.
         if len(access_data_elements) > 0:
             access_doc_request = DocRequest()
             access_doc_request.items_request.doc_type = Document.DOC_TYPE_ALIRO_ACCESS
             device_request.doc_requests.append(access_doc_request)
-        if (len(revocation_data_elements) > 0):
-            revocation_doc_request = DocRequest()
-            revocation_doc_request.items_request.doc_type = Document.DOC_TYPE_ALIRO_REVOCATION
-            device_request.doc_requests.append(revocation_doc_request)
 
+        # Specify which Access Docs to request.
         for access_request in access_data_elements:
             assert(isinstance(access_request, RequestElement))
             access_doc_request.items_request.namespaces.set(
@@ -92,6 +92,13 @@ class DeviceRequestBuilder(object):
                 access_request.data_element_id,
                 access_request.intent_to_retain)
 
+        # Setup the Revocation request.
+        if (len(revocation_data_elements) > 0):
+            revocation_doc_request = DocRequest()
+            revocation_doc_request.items_request.doc_type = Document.DOC_TYPE_ALIRO_REVOCATION
+            device_request.doc_requests.append(revocation_doc_request)
+
+        # Specify which Revocation Docs to request.
         for revocation_request in revocation_data_elements:
             assert(isinstance(revocation_request, RequestElement))
             revocation_doc_request.items_request.namespaces.set(
