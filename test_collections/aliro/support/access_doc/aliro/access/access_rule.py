@@ -147,8 +147,10 @@ class AccessRule(object):
     def is_valid(self) -> bool:
         '''Returns True if the access rule fields contains valid values,
         otherwise returns False.'''
-        # Verify the capabilities.
-        if (type(self.capabilities) is not int) or (self.capabilities <= 0) or ((self.capabilities & ~(int(AccessRuleCapabilitiesBits.ALL_CAPABILITIES))) != 0):
+        # Verify the Capabilities.
+        if ((type(self.capabilities) is not int) or
+            (self.capabilities <= 0) or
+            ((self.capabilities & ~(int(AccessRuleCapabilitiesBits.ALL_CAPABILITIES))) != 0)):
             return False
 
         # Verify the Allow Schedule IDs.
@@ -163,7 +165,7 @@ class AccessRule(object):
             if (not isinstance(id, (int, AccessRuleScheduleIds))) or (id < AccessRule.SCHEDULE_ID_MIN) or (id > AccessRule.SCHEDULE_ID_MAX):
                 return False
 
-        # The access rule is valid.
+        # The Access Rule is valid.
         return True
 
     ############################################################################
@@ -181,14 +183,57 @@ class AccessRule(object):
         # Encode the Allow Schedule IDs.
         allow_schedule_id_bits = self.allow_schedule_id_bits
         if (allow_schedule_id_bits != 0):
-            access_rule_dict[AccessRule.ALLOW_SCHEDULE_IDS_LABEL] = allow_schedule_id_bits
+            access_rule_dict[AccessRule.ALLOW_SCHEDULE_IDS_LABEL] = int(allow_schedule_id_bits)
 
         # Encode the Deny Schedule IDs.
         deny_schedule_id_bits = self.deny_schedule_id_bits
         if (deny_schedule_id_bits != 0):
-            access_rule_dict[AccessRule.DENY_SCHEDULE_IDS_LABEL] = deny_schedule_id_bits
+            access_rule_dict[AccessRule.DENY_SCHEDULE_IDS_LABEL] = int(deny_schedule_id_bits)
 
         return access_rule_dict
+
+    ############################################################################
+    def from_dict(self, access_rule_dict : dict) -> bool:
+        '''Parse a dictionary to populate the AccessRule.'''
+        # Clear existing AccessRule data.
+        self.__capabilities = 0
+        self.__allow_schedule_ids = []
+        self.__deny_schedule_ids = []
+
+        # Verify input parameters.
+        if (not isinstance(access_rule_dict, dict)):
+            return False
+
+        # Get the optional Capabilities from the given dictionary.
+        capabilities = access_rule_dict.get(AccessRule.CAPABILITIES_LABEL)
+
+        # Get the optional Allow Schedule IDs from the given dictionary.
+        allow_schedule_id_bits = access_rule_dict.get(AccessRule.ALLOW_SCHEDULE_IDS_LABEL)
+
+        # Get the optional Deny Schedule IDs from the given dictionary.
+        deny_schedule_id_bits = access_rule_dict.get(AccessRule.DENY_SCHEDULE_IDS_LABEL)
+
+        # Decode the optional Capabilities.
+        if (capabilities is not None):
+            if ((not isinstance(capabilities, int)) or
+                (capabilities <= 0) or
+                ((capabilities & ~(int(AccessRuleCapabilitiesBits.ALL_CAPABILITIES))) != 0)):
+                return False
+            self.capabilities = capabilities
+
+        # Decode the optional Allow Schedule IDs.
+        if (allow_schedule_id_bits is not None):
+            if (not isinstance(allow_schedule_id_bits, int)):
+                return False
+            self.allow_schedule_id_bits = allow_schedule_id_bits
+
+        # Decode the optional Deny Schedule IDs.
+        if (deny_schedule_id_bits is not None):
+            if (not isinstance(deny_schedule_id_bits, int)):
+                return False
+            self.deny_schedule_id_bits = deny_schedule_id_bits
+
+        return self.is_valid()
 
     ############################################################################
     def to_cbor(self) -> bytes:
@@ -197,3 +242,9 @@ class AccessRule(object):
         if access_rule_dict is None:
             return None
         return cbor2.dumps(access_rule_dict)
+
+    ############################################################################
+    def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
+        '''Parse CBOR to populate the AccessRule.'''
+        assert(isinstance(cbor_data, (bytes, bytearray)))
+        return self.from_dict(cbor2.loads(cbor_data))

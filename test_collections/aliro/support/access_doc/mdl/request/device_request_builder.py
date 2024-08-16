@@ -93,7 +93,11 @@ class DeviceRequestBuilder(object):
         # Setup the Revocation request.
         if (len(revocation_data_elements) > 0):
             revocation_doc_request = DocRequest()
+<<<<<<< HEAD:test_collections/aliro/support/access_doc/mdl/request/device_request_builder.py
             revocation_doc_request.items_request.doc_type = DocTypes.ALIRO_REVOCATION
+=======
+            revocation_doc_request.items_request.doc_type = Document.DOC_TYPE_ALIRO_REVOCATION
+>>>>>>> 1742984 (Added functions to decode Access Data Element components from CBOR. Extensions are not yet decoded.):test_collections/aliro/support/access_doc/request/device_request_builder.py
             device_request.doc_requests.append(revocation_doc_request)
 
         # Specify which Revocation Docs to request.

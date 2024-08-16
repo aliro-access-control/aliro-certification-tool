@@ -318,16 +318,22 @@ class RecurrenceRule(object):
         ba.append(self.interval & 0xFF)
 
         # Encode the Ordinal.
-        ba.append(self.ordinal & 0xFF)
+        ba.append(int.to_bytes(self.ordinal, length=1, signed=True)[0])
 
         return ba
 
     ############################################################################
     def from_bytes(self, data : bytes | bytearray, index : int = 0) -> bool:
         '''Deserialize the RecurrenceRule from an array of bytes.'''
-        assert isinstance(data, (bytes, bytearray))
+        # Clear existing RecurrenceRule data.
+        self.__duration_seconds = 0
+        self.__mask = 0
+        self.__pattern = 0
+        self.__interval = 1
+        self.__ordinal = 0
 
-        if (len(data) < (index + RecurrenceRule.BYTE_COUNT)):
+        # Verify input parameters.
+        if (data is None) or (not isinstance(data, (bytes, bytearray))) or (len(data) < (index + RecurrenceRule.BYTE_COUNT)):
             return False
 
         # Decode the Duration.
@@ -347,6 +353,6 @@ class RecurrenceRule(object):
         index += RecurrenceRule.INTERVAL_BYTE_COUNT
 
         # Decode the Ordinal.
-        self.ordinal = data[index]
+        self.ordinal = int.from_bytes([data[index]], signed=True)
 
         return self.is_valid()
