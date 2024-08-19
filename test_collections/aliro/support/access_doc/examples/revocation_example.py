@@ -28,16 +28,16 @@ source_dir_path = os.path.abspath(os.path.join(current_file_dir_path, '..'))
 # above may be imported.
 sys.path.append(source_dir_path)
 
-from revocation_data import RevocationData
-from revocation_data import RevocationChangeMode
-from revocation_entry import RevocationEntry
-from revocation_extension import RevocationExtension
+from aliro.revocation.revocation_data import RevocationData
+from aliro.revocation.revocation_data import RevocationChangeMode
+from aliro.revocation.revocation_entry import RevocationEntry
+from aliro.revocation.revocation_extension import RevocationExtension
 from extension_data_example import ExtensionDataExample
 
 from utility import Utility
 
-from mdl.device_response_builder import DeviceResponseBuilder
-from mdl.device_response_builder import ResponseElement
+from mdl.response.device_response_builder import DeviceResponseBuilder
+from mdl.response.device_response_builder import ResponseElement
 
 # Setup the root revocation data object.
 revocation_data = RevocationData()
@@ -126,7 +126,7 @@ device_public_key = bytearray([
 # Build a Device Response containing the Revocation Data Element.
 device_response = DeviceResponseBuilder.build(
     None,
-    [ResponseElement(id="b1.f2", value=revocation_data)],
+    [ResponseElement(data_element_id="b1.f2", value=revocation_data)],
     issuer_private_key,
     device_public_key,
     valid_from=datetime.datetime.now(datetime.timezone.utc),

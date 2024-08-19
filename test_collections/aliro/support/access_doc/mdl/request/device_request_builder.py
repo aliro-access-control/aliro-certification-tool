@@ -16,11 +16,9 @@
 
 from .device_request import DeviceRequest
 from .doc_request import DocRequest
-from .items_request import ItemsRequest
 
-from mdl.document import Document
-from mdl.issuer_namespaces import IssuerNamespaces
-
+from mdl.common.doc_types import DocTypes
+from mdl.common.issuer_namespaces import IssuerNamespaces
 
 ################################################################################
 class RequestElement(object):
@@ -81,7 +79,7 @@ class DeviceRequestBuilder(object):
         # Setup the Access Doc request.
         if len(access_data_elements) > 0:
             access_doc_request = DocRequest()
-            access_doc_request.items_request.doc_type = Document.DOC_TYPE_ALIRO_ACCESS
+            access_doc_request.items_request.doc_type = DocTypes.ALIRO_ACCESS
             device_request.doc_requests.append(access_doc_request)
 
         # Specify which Access Docs to request.
@@ -95,7 +93,7 @@ class DeviceRequestBuilder(object):
         # Setup the Revocation request.
         if (len(revocation_data_elements) > 0):
             revocation_doc_request = DocRequest()
-            revocation_doc_request.items_request.doc_type = Document.DOC_TYPE_ALIRO_REVOCATION
+            revocation_doc_request.items_request.doc_type = DocTypes.ALIRO_REVOCATION
             device_request.doc_requests.append(revocation_doc_request)
 
         # Specify which Revocation Docs to request.

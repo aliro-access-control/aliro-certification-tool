@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-from extension_data import ExtensionData
+from aliro.common.extension_data import ExtensionData
 
 ################################################################################
 class ReaderPin(object):

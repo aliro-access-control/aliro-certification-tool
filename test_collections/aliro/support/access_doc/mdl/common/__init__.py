@@ -14,4 +14,5 @@
 # limitations under the License.
 #
 
-from .utility import Utility
+from .doc_types import DocTypes
+from .issuer_namespaces import IssuerNamespaces

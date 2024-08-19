@@ -14,4 +14,10 @@
 # limitations under the License.
 #
 
-from .utility import Utility
+################################################################################
+class DocTypes(object):
+    ALIRO_ACCESS = "aliro-a"
+    '''The DocType for the Aliro Access Document.'''
+
+    ALIRO_REVOCATION = "aliro-r"
+    '''The Doctype for the Aliro Revocation Document.'''

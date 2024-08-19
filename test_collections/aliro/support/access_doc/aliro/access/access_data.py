@@ -16,10 +16,10 @@
 
 import cbor2
 
-from access_rule import AccessRule
-from access_extension import AccessExtension
-from non_access_extension import NonAccessExtension
-from schedule import Schedule
+from .access_extension import AccessExtension
+from .access_rule import AccessRule
+from .non_access_extension import NonAccessExtension
+from .schedule import Schedule
 
 class AccessData(object):
     '''Aliro Access Data Element.'''

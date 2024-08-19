@@ -20,13 +20,14 @@ import dateutil.relativedelta
 import os
 
 from icalendar import Calendar
-from schedule import Schedule
-from utility import Utility
 
-from recurrence_rule import RecurrenceRulePatternType
-from recurrence_rule import RecurrenceRuleMaskBits_Weekdays
-from recurrence_rule import RecurrenceRuleMaskBits_Months
-from recurrence_rule import RecurrenceRuleMaskBits_Dates
+from .recurrence_rule import RecurrenceRulePatternType
+from .recurrence_rule import RecurrenceRuleMaskBits_Weekdays
+from .recurrence_rule import RecurrenceRuleMaskBits_Months
+from .recurrence_rule import RecurrenceRuleMaskBits_Dates
+from .schedule import Schedule
+
+from utility import Utility
 
 class ScheduleConverter(object):
     '''

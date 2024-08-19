@@ -30,9 +30,10 @@ sys.path.append(source_dir_path)
 # Change the working directory to the directory above the 'examples' directory.
 os.chdir(source_dir_path)
 
-from request.device_request import DeviceRequest
-from request.device_request_builder import RequestElement
-from request.device_request_builder import DeviceRequestBuilder
+from mdl.request.device_request import DeviceRequest
+from mdl.request.device_request_builder import RequestElement
+from mdl.request.device_request_builder import DeviceRequestBuilder
+
 from utility import Utility
 
 # Create an Access Data Element request.

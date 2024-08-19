@@ -18,8 +18,8 @@ import cbor2
 
 from enum import IntEnum
 
-from revocation_entry import RevocationEntry
-from revocation_extension import RevocationExtension
+from .revocation_entry import RevocationEntry
+from .revocation_extension import RevocationExtension
 
 ################################################################################
 class RevocationChangeMode(IntEnum):

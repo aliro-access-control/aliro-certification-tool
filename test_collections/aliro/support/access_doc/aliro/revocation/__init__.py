@@ -14,4 +14,9 @@
 # limitations under the License.
 #
 
-from .utility import Utility
+from .revocation_data import RevocationChangeMode
+from .revocation_data import RevocationData
+
+from .revocation_entry import RevocationEntry
+
+from .revocation_extension import RevocationExtension

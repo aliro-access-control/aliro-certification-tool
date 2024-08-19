@@ -18,7 +18,8 @@ import cbor2
 import copy
 import typing
 
-from mdl.document import Document
+from mdl.common.doc_types import DocTypes
+
 from .namespaces import Namespaces
 
 ################################################################################
@@ -36,7 +37,7 @@ class ItemsRequest(object):
 
     ############################################################################
     def __init__(self) -> None:
-        self.__doc_type : str = Document.DOC_TYPE_ALIRO_ACCESS
+        self.__doc_type : str = DocTypes.ALIRO_ACCESS
         self.__namespaces : Namespaces = Namespaces()
         self.__request_info : dict[str, typing.Any] = {}
 
@@ -76,7 +77,7 @@ class ItemsRequest(object):
            otherwise returns False.'''
 
         # Verify the Doc Type field.
-        if (self.__doc_type != Document.DOC_TYPE_ALIRO_ACCESS) and (self.__doc_type != Document.DOC_TYPE_ALIRO_REVOCATION):
+        if (self.__doc_type != DocTypes.ALIRO_ACCESS) and (self.__doc_type != DocTypes.ALIRO_REVOCATION):
             return False
 
         # Verify the Namespaces field.

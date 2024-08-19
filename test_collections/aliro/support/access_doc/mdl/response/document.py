@@ -18,6 +18,8 @@ import cbor2
 
 from .issuer_signed import IssuerSigned
 
+from mdl.common.doc_types import DocTypes
+
 ################################################################################
 class Document(object):
     '''Aliro Document.'''
@@ -28,16 +30,9 @@ class Document(object):
     ISSUER_SIGNED_LABEL = "1"
     '''The label for the Issuer Signed field.'''
 
-
-    DOC_TYPE_ALIRO_ACCESS = "aliro-a"
-    '''The DocType for the Aliro Access Document.'''
-
-    DOC_TYPE_ALIRO_REVOCATION = "aliro-r"
-    '''The Doctype for the Aliro Revocation Document.'''
-
     ############################################################################
     def __init__(self) -> None:
-        self.__doc_type : str = Document.DOC_TYPE_ALIRO_ACCESS
+        self.__doc_type : str = DocTypes.ALIRO_ACCESS
         self.__issuer_signed : IssuerSigned = IssuerSigned()
 
     ############################################################################
@@ -72,7 +67,7 @@ class Document(object):
         # Verify the DocType field.
         if (self.__doc_type is None) or (len(self.__doc_type) == 0):
             return False
-        if not ((self.__doc_type == Document.DOC_TYPE_ALIRO_ACCESS) or (self.__doc_type == Document.DOC_TYPE_ALIRO_REVOCATION)):
+        if not ((self.__doc_type == DocTypes.ALIRO_ACCESS) or (self.__doc_type == DocTypes.ALIRO_REVOCATION)):
             return False
 
         # Verify the Issuer Signed field.
@@ -89,7 +84,7 @@ class Document(object):
 
         document_dict = {}
 
-        # Encode the Signed field.
+        # Encode the Doc Type field.
         document_dict[Document.DOC_TYPE_LABEL] = str(self.__doc_type)
 
         # Encode the Issuer Signed field.
