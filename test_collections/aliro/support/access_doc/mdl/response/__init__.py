@@ -15,10 +15,10 @@
 #
 
 from .cose_key import COSE_Key
+from .cose_sign1 import COSE_Sign1
 from .device_key_info import DeviceKeyInfo
 from .device_response import DeviceResponse
 from .document import Document
-from .issuer_namespaces import IssuerNamespaces
 from .issuer_signed import IssuerSigned
 from .issuer_signed_item import IssuerSignedItem
 from .key_info import KeyInfo

@@ -14,4 +14,4 @@
 # limitations under the License.
 #
 
-from .utility import Utility
+from .extension_data import ExtensionData

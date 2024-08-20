@@ -19,7 +19,8 @@ import datetime
 
 from enum import IntFlag
 
-from recurrence_rule import RecurrenceRule
+from .recurrence_rule import RecurrenceRule
+
 from utility import Utility
 
 ################################################################################

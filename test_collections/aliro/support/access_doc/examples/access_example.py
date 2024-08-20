@@ -29,26 +29,26 @@ source_dir_path = os.path.abspath(os.path.join(current_file_dir_path, '..'))
 # above may be imported.
 sys.path.append(source_dir_path)
 
-from access_data import AccessData
-from access_extension import AccessExtension
-from access_rule import AccessRule
-from access_rule import AccessRuleCapabilitiesBits
-from access_rule import AccessRuleScheduleIds
-from access_rule import AccessRuleScheduleIdsBits
-from non_access_extension import NonAccessExtension
-from recurrence_rule import RecurrenceRuleMaskBits_Weekdays
-from recurrence_rule import RecurrenceRulePatternType
-from schedule import Schedule
-from schedule import ScheduleFlagBits
+from aliro.access.access_data import AccessData
+from aliro.access.access_extension import AccessExtension
+from aliro.access.access_rule import AccessRule
+from aliro.access.access_rule import AccessRuleCapabilitiesBits
+from aliro.access.access_rule import AccessRuleScheduleIds
+from aliro.access.access_rule import AccessRuleScheduleIdsBits
+from aliro.access.non_access_extension import NonAccessExtension
+from aliro.access.recurrence_rule import RecurrenceRuleMaskBits_Weekdays
+from aliro.access.recurrence_rule import RecurrenceRulePatternType
+from aliro.access.schedule import Schedule
+from aliro.access.schedule import ScheduleFlagBits
 from utility import Utility
 
-from access_extension_data.secure_pin_extension_data import ReaderPin
-from access_extension_data.secure_pin_extension_data import SecurePinExtensionData
+from aliro.access.extension_data.secure_pin_extension_data import ReaderPin
+from aliro.access.extension_data.secure_pin_extension_data import SecurePinExtensionData
 
-from access_extension_data.multiple_users_extension_data import MultipleUsersExtensionData
+from aliro.access.extension_data.multiple_users_extension_data import MultipleUsersExtensionData
 
-from mdl.device_response_builder import DeviceResponseBuilder
-from mdl.device_response_builder import ResponseElement
+from mdl.response.device_response_builder import DeviceResponseBuilder
+from mdl.response.device_response_builder import ResponseElement
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -226,7 +226,7 @@ print("cbor: " + Utility.bytes_to_hex_str(cbor) + "\n")
 
 # Build a Device Response containing the Access Data Element.
 device_response = DeviceResponseBuilder.build(
-    [ResponseElement(id="b1.f2", value=access_data)],
+    [ResponseElement(data_element_id="b1.f2", value=access_data)],
     None,
     issuer_private_key,
     device_public_key,

@@ -16,11 +16,11 @@
 
 import cbor2
 
-from extension_data import ExtensionData
+from aliro.common.extension_data import ExtensionData
 
 ################################################################################
-class RevocationExtension(object):
-    '''Aliro Revocation Extension.'''
+class NonAccessExtension(object):
+    '''Aliro Non-Access Extension.'''
 
     ############################################################################
     def __init__(self):
@@ -69,7 +69,7 @@ class RevocationExtension(object):
 
     ############################################################################
     def is_valid(self) -> bool:
-        '''Returns True if the RevocationExtension contains valid fields,
+        '''Returns True if the NonAccessExtension contains valid fields,
            otherwise returns False.'''
         # Verify the ID.
         if (type(self.id) is not int) or (self.id < 0):
@@ -83,32 +83,32 @@ class RevocationExtension(object):
         if (self.data is None) or (not self.data.is_valid()):
             return False
 
-        # The revocation extension is valid.
+        # The access extension is valid.
         return True
 
     ############################################################################
     def to_list(self) -> list:
-        '''Convert the RevocationExtension to a list.'''
+        '''Convert the NonAccessExtension to a list.'''
         if not self.is_valid():
             return None
 
-        revocation_extension_list = []
+        access_extension_list = {}
 
         # Encode the Extension ID.
-        revocation_extension_list.append(int(self.id))
+        access_extension_list.append(int(self.id))
 
         # Encode the Version.
-        revocation_extension_list.append(int(self.version))
+        access_extension_list.append(int(self.version))
 
         # Encode the Data.
-        revocation_extension_list.append(self.data.to_dict())
+        access_extension_list.append(self.data.to_dict())
 
-        return revocation_extension_list
+        return access_extension_list
 
     ############################################################################
     def to_cbor(self) -> bytes:
-        '''Convert the RevocationExtension to CBOR.'''
-        revocation_extension_list = self.to_list()
-        if revocation_extension_list is None:
+        '''Convert the NonAccessExtension to CBOR.'''
+        access_extension_list = self.to_list()
+        if access_extension_list is None:
             return None
-        return cbor2.dumps(revocation_extension_list)
+        return cbor2.dumps(access_extension_list)

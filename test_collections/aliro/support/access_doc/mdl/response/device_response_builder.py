@@ -18,16 +18,6 @@ import cbor2
 import datetime
 import hashlib
 
-from .device_response import DeviceResponse
-from .document import Document
-from .issuer_namespaces import IssuerNamespaces
-from .issuer_signed_item import IssuerSignedItem
-from .mobile_security_object import MobileSecurityObject
-from .sig_structure import Sig_structure
-
-from access_data import AccessData
-from revocation_data import RevocationData
-
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import utils
@@ -36,25 +26,38 @@ from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.hazmat.primitives.serialization import load_der_private_key
 from cryptography.hazmat.primitives.serialization import PublicFormat
 
+from .device_response import DeviceResponse
+from .document import Document
+from .issuer_signed_item import IssuerSignedItem
+from .mobile_security_object import MobileSecurityObject
+from .sig_structure import Sig_structure
+
+from aliro.access.access_data import AccessData
+from aliro.revocation.revocation_data import RevocationData
+
+from mdl.common.doc_types import DocTypes
+from mdl.common.issuer_namespaces import IssuerNamespaces
+
+################################################################################
 class ResponseElement(object):
     '''Aliro Device Response Element.'''
 
     ############################################################################
-    def __init__(self, id : str = "", value : AccessData | RevocationData = None) -> None:
-        self.__id : str = id
+    def __init__(self, data_element_id : str = "", value : AccessData | RevocationData = None) -> None:
+        self.__data_element_id : str = data_element_id
         self.__value : AccessData | RevocationData = value
 
     ############################################################################
     @property
-    def id(self) -> str:
-        '''Get the element identifier.'''
-        return self.__id
+    def data_element_id(self) -> str:
+        '''Get the Data Element Identifier.'''
+        return self.__data_element_id
 
-    @id.setter
-    def id(self, val : str) -> None:
-        '''Set the element identifier.'''
+    @data_element_id.setter
+    def data_element_id(self, val : str) -> None:
+        '''Set the Data Element Identifier.'''
         assert(isinstance(val, str))
-        self.__id = str(val)
+        self.__data_element_id = str(val)
 
     ############################################################################
     @property
@@ -102,7 +105,7 @@ class DeviceResponseBuilder(object):
 
         doc = DeviceResponseBuilder.__build_doc(
             IssuerNamespaces.ALIRO_ACCESS,
-            Document.DOC_TYPE_ALIRO_ACCESS,
+            DocTypes.ALIRO_ACCESS,
             access_data_elements,
             issuer_private_key,
             device_public_key,
@@ -116,7 +119,7 @@ class DeviceResponseBuilder(object):
 
         doc = DeviceResponseBuilder.__build_doc(
             IssuerNamespaces.ALIRO_REVOCATION,
-            Document.DOC_TYPE_ALIRO_REVOCATION,
+            DocTypes.ALIRO_REVOCATION,
             revocation_data_elements,
             issuer_private_key,
             device_public_key,
@@ -179,7 +182,7 @@ class DeviceResponseBuilder(object):
                 # Create an issuer signed item to contain the data element.
                 issuer_signed_item = IssuerSignedItem()
                 issuer_signed_item.digest_id = digest_id
-                issuer_signed_item.element_identifier = data_element.id
+                issuer_signed_item.element_identifier = data_element.data_element_id
                 issuer_signed_item.element_value = data_element.value # TODO - Is the element_value supposed to be wrapped in an embedded CBOR tag? #6.24 (bstr .cbor)
 
                 # Convert the issuer signed item to embedded CBOR within a bstr.

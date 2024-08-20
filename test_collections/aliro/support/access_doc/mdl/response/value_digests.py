@@ -36,6 +36,8 @@ class ValueDigests(object):
         assert(isinstance(namespace, str))
         assert(isinstance(id, int))
         assert(isinstance(digest, (bytes, bytearray)))
+        assert(len(namespace) > 0)
+        assert(len(digest) > 0)
         if namespace in self.__data:
             self.__data[namespace][id] = bytearray(digest)
         else:
@@ -53,6 +55,8 @@ class ValueDigests(object):
     ############################################################################
     def to_dict(self) -> dict:
         '''Convert the ValueDigests to a dictionary.'''
+        if not self.is_valid():
+            return None
         return copy.deepcopy(self.__data)
 
     ############################################################################
@@ -61,4 +65,4 @@ class ValueDigests(object):
         value_digests_dict = self.to_dict()
         if value_digests_dict is None:
             return None
-        return cbor2.dumps(self.__data)
+        return cbor2.dumps(value_digests_dict)
