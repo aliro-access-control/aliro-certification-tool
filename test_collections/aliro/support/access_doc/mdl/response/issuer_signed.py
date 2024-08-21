@@ -106,9 +106,50 @@ class IssuerSigned(object):
         return issuer_signed_dict
 
     ############################################################################
+    def from_dict(self, issuer_signed_dict: dict) -> bool:
+        '''Parse a dictionary to populate the IssuerSigned.'''
+        # Clear existing IssuerSigned data.
+        self.__namespaces = {} 
+        self.__issuer_auth = COSE_Sign1()
+
+        # Get Namespaces field.
+        namespaces_dict = issuer_signed_dict.get(IssuerSigned.NAMESPACES_LABEL)
+
+        # Get Issuer Auth field.
+        issuer_auth_list = issuer_signed_dict.get(IssuerSigned.ISSUER_AUTH_LABEL)
+
+        # Decode namespaces.
+        if (namespaces_dict is not None):
+            for namespace, issuer_signed_items in namespaces_dict.items():
+                issuer_signed_items_list = []
+                for issuer_signed_item in issuer_signed_items:
+                    issuer_signed_items_list.append(issuer_signed_item)
+                if (namespace is None) or (not isinstance(namespace, str)) or (not len(issuer_signed_items_list) == 0):
+                    self.__namespaces[namespace] = issuer_signed_items_list
+
+        print("parsed IssuerSigned0")
+
+        # Decode issuer auth list.
+        issuer_auth = COSE_Sign1()
+        if (not issuer_auth.from_list(issuer_auth_list)):
+            print("parsed IssuerSigned0.1")
+            return False
+        self.__issuer_auth = issuer_auth
+
+        print("parsed IssuerSigned1")
+
+        return self.is_valid()
+
+    ############################################################################
     def to_cbor(self) -> bytes:
         '''Convert the IssuerSigned to CBOR.'''
         issuer_signed_dict = self.to_dict()
         if issuer_signed_dict is None:
             return None
         return cbor2.dumps(issuer_signed_dict)
+
+    ############################################################################
+    def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
+        '''Parse CBOR to populate the IssuerSigned.'''
+        assert(isinstance(cbor_data, (bytes, bytearray)))
+        return self.from_dict(cbor2.loads(cbor_data))

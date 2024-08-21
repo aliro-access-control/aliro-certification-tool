@@ -128,7 +128,7 @@ class COSE_Sign1(object):
             return False
 
         # Verify the Signature field.
-        if (len(self.__payload) == 0):
+        if (len(self.__signature) == 0):
             return False
 
         return True
@@ -159,6 +159,57 @@ class COSE_Sign1(object):
         COSE_Sign1_list.append(bytearray(self.__signature))
 
         return COSE_Sign1_list
+
+    ############################################################################
+    def from_list(self, cose_sign1_list: list) -> bool:
+        '''Parse a list to populate the COSE_Sign1.'''
+
+        # Get Protected field.
+        protected = bytearray(cose_sign1_list[0])
+
+        # Get unprotected dictionary.
+        unprotected_dict = cose_sign1_list[1]
+
+        # Get Payload field.
+        payload = cose_sign1_list[2]
+
+        # Get Signature field.
+        signature = cose_sign1_list[3]
+        
+        # Decode protected field.
+        if (protected is None) or (not isinstance(protected, bytearray)):
+            return False
+        self.__protected = protected
+
+        print("parsed COSE_Sign0")
+
+        # Decode Unprotected field.
+        key_id = unprotected_dict.get(COSE_Sign1.KEY_ID_LABEL)
+        x5chain = unprotected_dict.get(COSE_Sign1.X5CHAIN_CERTIFICATE_LABEL)
+
+        if (key_id is None) or (not isinstance(key_id, bytearray)):
+            print("parsed COSE_Sign0.1")
+            return False
+
+        if (x5chain is None) or (not isinstance(x5chain, bytearray)):
+            print("parsed COSE_Sign0.2")
+            return False
+        self.__key_id = key_id
+        self.__x5chain = x5chain
+
+        # Decode Payload.
+        if (payload is None) or (not isinstance(payload, bytearray)):
+            print("parsed COSE_Sign0.3")
+            return False
+        self.__payload = payload
+
+        # Decode Signature.
+        if (signature is None) or (not isinstance(signature, bytearray)):
+            print("parsed COSE_Sign0.4")
+            return False
+        self.__signature = signature
+
+        return self.is_valid()
 
     ############################################################################
     def to_cbor(self) -> bytes:

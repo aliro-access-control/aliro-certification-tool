@@ -93,9 +93,45 @@ class Document(object):
         return document_dict
 
     ############################################################################
+    def from_dict(self, document_dict: dict) -> bool:
+        '''Parse a dictionary to populate the Document.'''
+        # Clear existing Document data.
+        self.__doc_type = ""
+        self.__issuer_signed = IssuerSigned()
+
+        # Get the document type from the given dictionary.
+        doc_type = document_dict.get(Document.DOC_TYPE_LABEL)
+
+        issuer_signed_dict = document_dict.get(Document.ISSUER_SIGNED_LABEL)
+
+        # Decode the document type.
+        if (doc_type is None) or (not isinstance(doc_type, str)):
+            return False
+        self.__doc_type = doc_type
+
+        print("parsed Document0")
+
+        # Decode the issuer signed.
+        issuer_signed = IssuerSigned()
+        if (not issuer_signed.from_dict(issuer_signed_dict)):
+            print("parsed Document0.1")
+            return False
+        self.__issuer_signed = issuer_signed
+
+        print("parsed Document1")
+
+        return self.is_valid()
+
+    ############################################################################
     def to_cbor(self) -> bytes:
         '''Convert the Document to CBOR.'''
         document_dict = self.to_dict()
         if document_dict is None:
             return None
         return cbor2.dumps(document_dict)
+
+    ############################################################################
+    def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
+        '''Parse CBOR to populate the Document.'''
+        assert(isinstance(cbor_data, (bytes, bytearray)))
+        return self.from_dict(cbor2.loads(cbor_data))
