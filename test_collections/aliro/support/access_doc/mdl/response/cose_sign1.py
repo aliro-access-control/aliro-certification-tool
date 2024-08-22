@@ -120,8 +120,9 @@ class COSE_Sign1(object):
             return False
 
         # Verify the x5 certificate chain field.
-        if (self.__x5chain is not None) and (len(self.__x5chain) == 0):
-            return False
+        # TODO: is this check required ? 
+        # if (self.__x5chain is not None) and (len(self.__x5chain) == 0):
+        #     return False
 
         # Verify the Payload field.
         if (len(self.__payload) == 0):
@@ -187,24 +188,21 @@ class COSE_Sign1(object):
         key_id = unprotected_dict.get(COSE_Sign1.KEY_ID_LABEL)
         x5chain = unprotected_dict.get(COSE_Sign1.X5CHAIN_CERTIFICATE_LABEL)
 
-        if (key_id is None) or (not isinstance(key_id, bytearray)):
+        if (key_id is None) or (not isinstance(key_id, (bytes, bytearray))):
             print("parsed COSE_Sign0.1")
             return False
 
-        if (x5chain is None) or (not isinstance(x5chain, bytearray)):
-            print("parsed COSE_Sign0.2")
-            return False
         self.__key_id = key_id
         self.__x5chain = x5chain
 
         # Decode Payload.
-        if (payload is None) or (not isinstance(payload, bytearray)):
+        if (payload is None) or (not isinstance(payload, (bytes, bytearray))):
             print("parsed COSE_Sign0.3")
             return False
         self.__payload = payload
 
         # Decode Signature.
-        if (signature is None) or (not isinstance(signature, bytearray)):
+        if (signature is None) or (not isinstance(signature, (bytes, bytearray))):
             print("parsed COSE_Sign0.4")
             return False
         self.__signature = signature
