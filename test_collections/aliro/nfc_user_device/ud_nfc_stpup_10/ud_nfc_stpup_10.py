@@ -19,6 +19,7 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
+from ...support.access_doc.mdl.response import DeviceResponse
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
@@ -41,13 +42,9 @@ class UD_NFC_STPUP_10(AliroUserDeviceTestCase, UserPromptSupport):
     transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
 
     request = bytes.fromhex(
-        "A6000101481234567890ABCDEF0282A3000301050202A200183F01050383A400C11A66AB89CF01"
-        "C11A672230CF024B00000E10000000150203000301A400C11A66AB89D001C11A672230D0024B00"
-        "001C200000006A0201000300A400C11A66AB89D101C11A672230D1024B00000708000000100402"
-        "FF03010482187B1901C806A11A00FA14668284010101A300815013AC8FF518435D4128C29D7B27"
-        "41FBE501584104281F30EA16C1F1B2102B5C3F273F7AFE60A92D827019D3B876AD5CB164D811B3"
-        "C49AAC1EF7B6FA4540E31924B031B491165A2708A4A650D1B76F10FF581B260F0281A20048DB8C"
-        "47BD724B6CD70150C50D5BE962F62E79F293B06D20B586F184010201A400181E010102020302"
+        "A2613163312E30613282A16131D818581FA2613567616C69726F2D616131A"
+        "167616C69726F2D61A166666C6F6F7231F4A16131D818581FA2613567616C"
+        "69726F2D726131A167616C69726F2D72A166666C6F6F7232F5"
     )
 
     @classmethod
@@ -112,10 +109,24 @@ class UD_NFC_STPUP_10(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 2 and 3
         try:
-            await self.reader.handle_envelope(self.request)
+            response = await self.reader.handle_envelope(self.request)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
+
+        # Parse response
+        device_response = DeviceResponse()
+        if device_response.from_cbor(response):
+            logger.info("Successfully parsed the CBOR to populate a Device Response.")
+        else:
+            self.mark_step_failure("Failed to parse the CBOR.")
+            return
+
+        # Validate response
+        if not device_response.is_valid():
+            self.mark_step_failure("Failed to validate device response.")
+            return
+
         self.next_step()
         self.next_step()
 
