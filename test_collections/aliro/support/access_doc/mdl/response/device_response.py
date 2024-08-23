@@ -163,24 +163,17 @@ class DeviceResponse(object):
             return False
         self.__status = status
 
-        print("parsed DeviceResponse0")
-
         # Decode the Documents
         if (documents_list is not None):
             if (not isinstance(documents_list, list)):
-                print("parsed DeviceResponse0.1")
                 return False
             for documents_dict in documents_list:
                 if (not isinstance(documents_dict, dict)):
-                    print("parsed DeviceResponse0.2")
                     return False
                 document = Document()
                 if (not document.from_dict(documents_dict)):
-                    print("parsed DeviceResponse0.3")
                     return False
                 self.__documents.append(document)
-
-        print("parsed DeviceResponse1")
 
         return self.is_valid()
 

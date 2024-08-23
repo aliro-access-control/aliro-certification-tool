@@ -127,16 +127,11 @@ class IssuerSigned(object):
                 if (namespace is None) or (not isinstance(namespace, str)) or (not len(issuer_signed_items_list) == 0):
                     self.__namespaces[namespace] = issuer_signed_items_list
 
-        print("parsed IssuerSigned0")
-
         # Decode issuer auth list.
         issuer_auth = COSE_Sign1()
         if (not issuer_auth.from_list(issuer_auth_list)):
-            print("parsed IssuerSigned0.1")
             return False
         self.__issuer_auth = issuer_auth
-
-        print("parsed IssuerSigned1")
 
         return self.is_valid()
 

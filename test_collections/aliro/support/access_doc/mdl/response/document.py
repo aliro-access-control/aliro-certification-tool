@@ -109,16 +109,11 @@ class Document(object):
             return False
         self.__doc_type = doc_type
 
-        print("parsed Document0")
-
         # Decode the issuer signed.
         issuer_signed = IssuerSigned()
         if (not issuer_signed.from_dict(issuer_signed_dict)):
-            print("parsed Document0.1")
             return False
         self.__issuer_signed = issuer_signed
-
-        print("parsed Document1")
 
         return self.is_valid()
 
