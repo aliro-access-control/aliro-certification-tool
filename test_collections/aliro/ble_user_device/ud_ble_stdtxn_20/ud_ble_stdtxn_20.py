@@ -155,7 +155,7 @@ class UD_BLE_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 12
         try:
-            await self.reader.reader_status_access_protocol_completed(0, 0)
+            await self.reader.reader_status_access_protocol_completed(1, 0)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)

@@ -107,7 +107,7 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
                 authentication_policy=AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
             )
             await self.reader.reader_status_access_protocol_completed(
-                UnsolicitedReaderStatusReporting_Values.DO_NOT_SEND,
+                UnsolicitedReaderStatusReporting_Values.SEND_TO_EACH_CONNECTED,
                 ReaderStatusInformation_Values.SECURED,
             )
         except Exception as error:
@@ -179,9 +179,11 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
             self.mark_step_failure(error_str)
             return
 
-        # Print UWB configuration 
+        # Print UWB configuration
         try:
-            uwb_configuration = await self.reader.transport_protocol.get_uwb_configuration()
+            uwb_configuration = (
+                await self.reader.transport_protocol.get_uwb_configuration()
+            )
             self.print_uwb_configuration(uwb_configuration)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
