@@ -16,7 +16,7 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
-from ...support.access_doc.mdl.request import DeviceRequest
+from mdl.request import DeviceRequest
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
