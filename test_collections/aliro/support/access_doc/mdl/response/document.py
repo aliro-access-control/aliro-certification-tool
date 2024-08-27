@@ -99,6 +99,8 @@ class Document(object):
         self.__doc_type = ""
         self.__issuer_signed = IssuerSigned()
 
+        print("parse document")
+
         # Get the document type from the given dictionary.
         doc_type = document_dict.get(Document.DOC_TYPE_LABEL)
 
@@ -114,6 +116,8 @@ class Document(object):
         if (not issuer_signed.from_dict(issuer_signed_dict)):
             return False
         self.__issuer_signed = issuer_signed
+
+        print("parsed document")
 
         return self.is_valid()
 

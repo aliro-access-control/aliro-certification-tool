@@ -16,7 +16,7 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
-from mdl.request import DeviceRequest
+from ...support.access_doc.mdl.request import DeviceRequest
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
@@ -173,15 +173,8 @@ class RD_NFC_STPUP_10(AliroReaderTestCase, UserPromptSupport):
             self.mark_step_failure(str(error))
             return
 
-        # Parse request
-        request = self.userdevice.apdu.parse_response(
-            cmds_envelope,
-            INS.ENVELOPE,
-            self.userdevice.session.encryption_stepup
-        )
-
         device_request = DeviceRequest()
-        if not device_request.from_cbor(request.decrypted_payload):
+        if not device_request.from_cbor(cmds_envelope.decrypted_payload):
             self.mark_step_failure("Failed to parse device request.")
             return
 

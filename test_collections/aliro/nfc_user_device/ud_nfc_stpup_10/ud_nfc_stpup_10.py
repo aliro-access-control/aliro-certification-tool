@@ -19,7 +19,8 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
-from mdl.response import DeviceResponse
+from ...support.access_doc.mdl.response import DeviceResponse
+from ...support.access_doc.mdl.response.device_response import DeviceResponseStatus
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
@@ -115,6 +116,7 @@ class UD_NFC_STPUP_10(AliroUserDeviceTestCase, UserPromptSupport):
             return
 
         # Parse response
+        logger.info(f"Cbor = {response}")
         device_response = DeviceResponse()
         if device_response.from_cbor(response):
             logger.info("Successfully parsed the CBOR to populate a Device Response.")

@@ -97,16 +97,22 @@ class DeviceResponse(object):
         if (len(self.__version) == 0):
             return False
 
+        print("validate cbor")
+
         # Verify the Documents are valid.
         for document in self.__documents:
             if not isinstance(document, Document):
                 return False
             if not document.is_valid():
                 return False
+        
+        print("validate cbor2")
 
         # Verify the Status field.
         if self.__status not in DeviceResponseStatus:
             return False
+
+        print("validate cbor3")
 
         return True
 
@@ -144,6 +150,8 @@ class DeviceResponse(object):
         if (not isinstance(device_response_dict, dict)):
             return False
 
+        print("parse Device response")
+
         # Get the Version from the given dictionary.
         version = device_response_dict.get(DeviceResponse.VERSION_LABEL)
 
@@ -161,7 +169,7 @@ class DeviceResponse(object):
         # Decode the required Status.
         if (status is None) or (not isinstance(status, int)) or (status < 0):
             return False
-        self.__status = status
+        self.__status = DeviceResponseStatus(status)
 
         # Decode the Documents
         if (documents_list is not None):
@@ -174,6 +182,8 @@ class DeviceResponse(object):
                 if (not document.from_dict(documents_dict)):
                     return False
                 self.__documents.append(document)
+
+        print("parsed Device response")
 
         return self.is_valid()
 
