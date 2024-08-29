@@ -24,12 +24,12 @@ from ...support.access_doc.mdl.response.device_response import DeviceResponseSta
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_NFC_STPUP_10(AliroUserDeviceTestCase, UserPromptSupport):
+class UD_NFC_ENVELOPE_10(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-NFC-STPUP-1.0",
+        "public_id": "UD-NFC-ENVELOPE-1.0",
         "version": "0.0.1",
-        "title": "UD-NFC-STPUP-1.0",
-        "description": """Verify conformance of User Device UT in GET RESPONSE command.""",
+        "title": "UD-NFC-ENVELOPE-1.0",
+        "description": """Verify conformance of User Device UT in ENVELOPE and GET RESPONSE command.""",
     }
 
     reader_ePuBK = bytes.fromhex(
@@ -59,8 +59,9 @@ class UD_NFC_STPUP_10(AliroUserDeviceTestCase, UserPromptSupport):
     def create_test_steps(self) -> None:
         self.test_steps = [
             TestStep("Step1: Prerequisites"),
-            TestStep("Step2: Receive Envelope"),
-            TestStep("Step3: Send Get Response"),
+            TestStep("Step2: Send select command if signaling bitmap is set"),
+            TestStep("Step3: Receive Envelope"),
+            TestStep("Step4: Send Get Response"),
         ]
 
     async def setup(self) -> None:
@@ -99,6 +100,7 @@ class UD_NFC_STPUP_10(AliroUserDeviceTestCase, UserPromptSupport):
             self.mark_step_failure(str(error))
             return
 
+        # Test step 2
         try:
             await self.reader.expedited_transaction_standard(
                 AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
@@ -108,7 +110,7 @@ class UD_NFC_STPUP_10(AliroUserDeviceTestCase, UserPromptSupport):
             return
         self.next_step()
 
-        # Test step 2 and 3
+        # Test step 3 and 4
         try:
             response = await self.reader.handle_envelope(self.request)
         except (AccessProtocolError, InvalidResponseError) as error:

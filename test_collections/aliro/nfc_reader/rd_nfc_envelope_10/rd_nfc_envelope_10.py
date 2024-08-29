@@ -20,11 +20,11 @@ from ...support.access_doc.mdl.request import DeviceRequest
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class RD_NFC_STPUP_10(AliroReaderTestCase, UserPromptSupport):
+class RD_NFC_ENVELOPE_10(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-STPUP-1.0",
+        "public_id": "RD-NFC-ENVELOPE-1.0",
         "version": "0.0.1",
-        "title": "RD-NFC-STPUP-1.0",
+        "title": "RD-NFC-ENVELOPE-1.0",
         "description": """Verify conformance of Reader UT in ENVELOPE command.""",
     }
 
@@ -94,6 +94,7 @@ class RD_NFC_STPUP_10(AliroReaderTestCase, UserPromptSupport):
     def create_test_steps(self) -> None:
         self.test_steps = [
             TestStep("Step1: Prerequisites"),
+            TestStep("Step2: Send SELECT id signaling bitmap is set"),
             TestStep("Step2: Send Envelope command"),
             TestStep("Step3: Receive get response"),
         ]
@@ -159,6 +160,8 @@ class RD_NFC_STPUP_10(AliroReaderTestCase, UserPromptSupport):
                 "Access Credential key type request is not endpoint public key!"
             )
             return
+
+        # Test step 2
         try:
             await self.userdevice.handle_auth1(cmds_auth1)
         except AccessProtocolError as error:
@@ -166,7 +169,7 @@ class RD_NFC_STPUP_10(AliroReaderTestCase, UserPromptSupport):
             return
         self.next_step()
 
-        # Test step 2,3 - reader sends envelope
+        # Test step 3,4 - reader sends envelope
         try:
             cmds_envelope = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:

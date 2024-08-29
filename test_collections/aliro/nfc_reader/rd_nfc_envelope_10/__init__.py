@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .ud_nfc_stpup_10 import UD_NFC_STPUP_10
+from .rd_nfc_envelope_10 import RD_NFC_ENVELOPE_10
