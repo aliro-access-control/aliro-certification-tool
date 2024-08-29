@@ -343,7 +343,8 @@ tests, in the 'Reader SPSM and AC BLE UWB Protocol Version Characteristic Value
 declaration'.
   * Supported Format: 
     * HEX string
-* `th_endpoint_public_key` Endpoint public key, for the key slot lookup table used byb the tool. 
+* `th_access_credential_public_key` Access credential public key, for the key slot 
+lookup table used by the tool. 
   * Supported Format: 
     * DER encoded HEX string
     * PEM string (including `\n` as for line breaks)

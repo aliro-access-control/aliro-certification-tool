@@ -61,7 +61,7 @@ class UD_NFC_STDTXN_21(AliroUserDeviceTestCase, UserPromptSupport):
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
         key = self.th_reader_keypair()
-        endpoint_key = self.th_endpoint_public_key()
+        endpoint_key = self.th_access_credential_public_key()
 
         # Initialize Aliro NFC Reader
         self.reader = Reader(

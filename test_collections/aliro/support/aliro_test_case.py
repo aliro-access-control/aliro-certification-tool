@@ -376,7 +376,7 @@ class AliroUserDeviceTestCase(AliroTestCase):
     READER_CERTIFICATE_KEY = "th_reader_certificate"
     READER_GROUP_RESOLVING_KEY = "th_reader_group_resolving_key"
     READER_SPSM = "th_reader_spsm"
-    ENDPOINT_PUBLIC_KEY_KEY = "th_endpoint_public_key"
+    ACCESS_CREDENTIAL_PUBLIC_KEY_KEY = "th_access_credential_public_key"
 
     @classmethod
     def default_test_parameters(self) -> dict[str, Any]:
@@ -407,9 +407,9 @@ class AliroUserDeviceTestCase(AliroTestCase):
             "d14ae5ead738e2e92a78ef4f9d384be863535484d5151",
             self.READER_GROUP_RESOLVING_KEY: "00000000000000000000000000000000",
             self.READER_SPSM: "0080",
-            self.ENDPOINT_PUBLIC_KEY_KEY: "044dc6e1f1b0e879b487063d7e24e26e4c75854a140f"
-            "ab5c5a6d4d8a582909d75f360de1dd16e6f113299d44900243901f2041fd82661ad6742128"
-            "fe3b7a02c35d",
+            self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY: "044dc6e1f1b0e879b487063d7e24e26e4c7"
+            "5854a140fab5c5a6d4d8a582909d75f360de1dd16e6f113299d44900243901f2041fd82661"
+            "ad6742128fe3b7a02c35d",
         }
 
     def th_reader_keypair(self) -> KeyPair:
@@ -520,27 +520,32 @@ class AliroUserDeviceTestCase(AliroTestCase):
         logger.info(f"Using Reader spsm(hex): {spsm.hex()}")
         return spsm
 
-    def th_endpoint_public_key(self) -> PublicKey:
-        """Load TH Endpoint public key from test parameters.
+    def th_access_credential_public_key(self) -> PublicKey:
+        """Load TH access credential public key from test parameters.
         When testing a UserDevice, the TH will be the Reader. Keys for this reader
         will be configurable in test_paramters of project configuration.
 
         Returns:
-            PublicKey: Endpoint public key for TH reader. This key will be used to
-            generate the key slot list.
+            PublicKey: access credential public key for TH reader. This key will be
+            used to generate the key slot list.
         """
         logger.info("Loading public key for Test Harness use on simulated Reader.")
 
         # Public Key
         logger.info(
-            f"Loading Endpoint public key from '{self.ENDPOINT_PUBLIC_KEY_KEY}'"
+            f"Loading access credential public key from "
+            f"'{self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY}'"
         )
-        endpoint_public_key = self.public_key_from_config(self.ENDPOINT_PUBLIC_KEY_KEY)
-        logger.info(
-            f"TH Using Endpoint Public Key(hex): \n{endpoint_public_key.as_bytes().hex()}"
+        access_credential_public_key = self.public_key_from_config(
+            self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY
         )
         logger.info(
-            f"TH Using Endpoint Public Key(pem): \n{endpoint_public_key.as_pem()}"
+            f"TH Using access credential Public Key(hex): \n"
+            f"{access_credential_public_key.as_bytes().hex()}"
+        )
+        logger.info(
+            f"TH Using access credential Public Key(pem): \n"
+            f"{access_credential_public_key.as_pem()}"
         )
 
-        return endpoint_public_key
+        return access_credential_public_key
