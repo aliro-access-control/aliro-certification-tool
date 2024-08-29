@@ -112,8 +112,6 @@ class IssuerSigned(object):
         self.__namespaces = {} 
         self.__issuer_auth = COSE_Sign1()
 
-        print("parse IssuerSigned")
-
         # Get Namespaces field.
         namespaces_dict = issuer_signed_dict.get(IssuerSigned.NAMESPACES_LABEL)
 
@@ -134,8 +132,6 @@ class IssuerSigned(object):
         if (not issuer_auth.from_list(issuer_auth_list)):
             return False
         self.__issuer_auth = issuer_auth
-
-        print("parsed IssuerSigned")
 
         return self.is_valid()
 

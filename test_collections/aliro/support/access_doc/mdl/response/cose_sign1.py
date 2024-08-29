@@ -182,14 +182,11 @@ class COSE_Sign1(object):
             return False
         self.__protected = protected
 
-        print("parsed COSE_Sign0")
-
         # Decode Unprotected field.
         key_id = unprotected_dict.get(COSE_Sign1.KEY_ID_LABEL)
         x5chain = unprotected_dict.get(COSE_Sign1.X5CHAIN_CERTIFICATE_LABEL)
 
         if (key_id is None) or (not isinstance(key_id, (bytes, bytearray))):
-            print("parsed COSE_Sign0.1")
             return False
 
         self.__key_id = key_id
@@ -197,13 +194,11 @@ class COSE_Sign1(object):
 
         # Decode Payload.
         if (payload is None) or (not isinstance(payload, (bytes, bytearray))):
-            print("parsed COSE_Sign0.3")
             return False
         self.__payload = payload
 
         # Decode Signature.
         if (signature is None) or (not isinstance(signature, (bytes, bytearray))):
-            print("parsed COSE_Sign0.4")
             return False
         self.__signature = signature
 
