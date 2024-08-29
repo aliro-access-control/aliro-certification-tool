@@ -66,7 +66,6 @@ class UD_NFC_STDTXN_40(AliroUserDeviceTestCase, UserPromptSupport):
         sub_group_id = self.th_sub_group_identifier()
         key = self.th_reader_keypair()
         cert = self.th_reader_certificate()
-        reader_issuer_public_key = self.th_reader_issuer_public_key()
 
         # Initialize Aliro NFC Reader
         self.reader = Reader(
@@ -77,7 +76,6 @@ class UD_NFC_STDTXN_40(AliroUserDeviceTestCase, UserPromptSupport):
             reader_cert=cert,
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
-            reader_system_issuer_ca=reader_issuer_public_key,
         )
 
     @log_errors
