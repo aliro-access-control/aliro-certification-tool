@@ -348,6 +348,11 @@ lookup table used by the tool.
   * Supported Format: 
     * DER encoded HEX string
     * PEM string (including `\n` as for line breaks)
+* `th_reader_issuer_public_key` Reader System Issuer CA certificate public key, used 
+for key generation, when certificates are used.  
+  * Supported Format: 
+    * DER encoded HEX string
+    * PEM string (including `\n` as for line breaks)
 
 # Updating the Tool
 
