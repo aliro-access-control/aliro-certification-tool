@@ -6,6 +6,7 @@ from aliro_actuator.access_protocol.apdu import (
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
+    STEPUP_PHASE_AID,
     TransportProtocol,
 )
 from aliro_actuator.access_protocol.errors import (
@@ -100,11 +101,19 @@ class UD_NFC_ENVELOPE_10(AliroUserDeviceTestCase, UserPromptSupport):
             self.mark_step_failure(str(error))
             return
 
-        # Test step 2
         try:
             await self.reader.expedited_transaction_standard(
                 AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
             )
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
+
+        # Test step 2
+        try:
+            if self.reader.session.step_up_aid_select_required():
+                logger.info("Step-up AID SELECT command required")
+                await self.reader.handle_select(STEPUP_PHASE_AID)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
