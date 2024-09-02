@@ -186,9 +186,6 @@ class COSE_Sign1(object):
         key_id = unprotected_dict.get(COSE_Sign1.KEY_ID_LABEL)
         x5chain = unprotected_dict.get(COSE_Sign1.X5CHAIN_CERTIFICATE_LABEL)
 
-        if (key_id is None) or (not isinstance(key_id, (bytes, bytearray))):
-            return False
-
         self.__key_id = key_id
         self.__x5chain = x5chain
 
