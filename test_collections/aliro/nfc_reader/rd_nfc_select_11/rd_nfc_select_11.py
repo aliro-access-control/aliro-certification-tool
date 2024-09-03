@@ -122,7 +122,9 @@ class RD_NFC_SELECT_11(AliroReaderTestCase, UserPromptSupport):
                 "Response contains TLV structure: {}".format(data_bytes.to_print())
             )
             select_response = Response.create_from_parameters(data_bytes.to_bytes())
-            self.userdevice.transport_protocol.send_message(select_response.to_bytes())
+            await self.userdevice.transport_protocol.send_message(
+                select_response.to_bytes()
+            )
         except AccessProtocolError as error:
             self.mark_step_failure(str(error))
             return
