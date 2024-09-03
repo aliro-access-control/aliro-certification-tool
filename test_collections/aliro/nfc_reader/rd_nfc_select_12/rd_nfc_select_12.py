@@ -105,7 +105,7 @@ class RD_NFC_SELECT_12(AliroReaderTestCase, UserPromptSupport):
                 logger.warning("Invalid AID")
                 raise InvalidAIDError(cmds_select.to_bytes(), cmds_select.aid)
 
-            self.userdevice.response_select(
+            await self.userdevice.response_select(
                 bytes.fromhex("A000000909ACCE55FE"),
                 CSA_APPLICATION_TYPE,
                 [PROTOCOL_VERSION],
