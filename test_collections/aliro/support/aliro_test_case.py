@@ -216,7 +216,6 @@ class AliroReaderTestCase(AliroTestCase):
     READER_GROUP_RESOLVING_KEY = "dut_reader_group_resolving_key"
     ACCESS_CREDENTIAL_PRIVATE_KEY_KEY = "th_access_credential_private_key"
     ACCESS_CREDENTIAL_PUBLIC_KEY_KEY = "th_access_credential_public_key"
-    READER_ISSUER_PUBLIC_KEY_KEY = "dut_reader_issuer_public_key"
 
     @classmethod
     def default_test_parameters(self) -> dict[str, Any]:
@@ -239,9 +238,6 @@ class AliroReaderTestCase(AliroTestCase):
             "5ae574c1505a2c24ab6198e3125b7f1b7e1d134c55ece69681ba8ecc18a3836dc5199c75"
             "9f31e8ccf17e3efa",
             self.READER_GROUP_RESOLVING_KEY: "00000000000000000000000000000000",
-            self.READER_ISSUER_PUBLIC_KEY_KEY: "043928f322019d4757893bde6a0fe5e13e3e5"
-            "37b9ca0f549c0bd2f40f79060252a0a4f291192157a95cb6eb202759428c00cd834998c5"
-            "d0eab192ee8873c5d34ee",
         }
 
     def reader_access_credential(self) -> AccessCredential:
@@ -295,20 +291,6 @@ class AliroReaderTestCase(AliroTestCase):
         )
         logger.info(f"Using Reader Public Key(PEM): \n{reader_public_key.as_pem()}")
 
-        # Issuer Public Key
-        logger.info(
-            f"Loading Issuer public key from '{self.READER_ISSUER_PUBLIC_KEY_KEY}'"
-        )
-        reader_issuer_public_key = self.public_key_from_config(
-            self.READER_ISSUER_PUBLIC_KEY_KEY
-        )
-        logger.info(
-            f"Using Reader Issuer Public Key(hex): \n{reader_issuer_public_key.as_bytes().hex()}"
-        )
-        logger.info(
-            f"Using Reader Issuer Public Key(PEM): \n{reader_issuer_public_key.as_pem()}"
-        )
-
         # Group Identifier
         logger.info(
             f"Loading Reader group identifier from '{self.READER_GROUP_ID_KEY}'"
@@ -330,9 +312,6 @@ class AliroReaderTestCase(AliroTestCase):
         return AccessCredential(
             access_credential_key_pair=user_device_key_pair,
             reader_id_key_list=[(reader_group_identifier, reader_public_key)],
-            reader_system_issuer_ca_certificate_id_key_list=[
-                (reader_group_identifier, reader_issuer_public_key)
-            ],
         )
 
     def reader_group_resolving_key(self) -> bytes:
