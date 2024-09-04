@@ -1,18 +1,11 @@
-from aliro_actuator.access_protocol.apdu import S1, S2, Response
 from aliro_actuator.access_protocol.defines import (
-    CSA_APPLICATION_TYPE,
     EXPEDITED_PHASE_AID,
-    PROTOCOL_VERSION,
-    Select,
     TransportProtocol,
 )
-from aliro_actuator.access_protocol.encryption import create_proprietary_information
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
-    InvalidAIDError,
     InvalidCommandError,
 )
-from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
@@ -22,12 +15,12 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class RD_NFC_SELECT_12(AliroReaderTestCase, UserPromptSupport):
+class RD_NFC_SELECT_20(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-SELECT-1.2",
+        "public_id": "RD-NFC-SELECT-2.0",
         "version": "0.0.1",
-        "title": "RD-NFC-SELECT-1.2",
-        "description": """Verify conformance of Reader UT in SELECT command with response AID.""",
+        "title": "RD-NFC-SELECT-2.0",
+        "description": """Verify conformance of Reader UT in SELECT command with extended length.""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -52,12 +45,11 @@ class RD_NFC_SELECT_12(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step1: Initialization"),
             TestStep("Step2: Set Reader Device Under Test in polling mode"),
             TestStep("Step3: Bring Test Harness above Reader Device Under Test"),
-            TestStep("Step4: Receive/Send SELECT command/response"),
-            TestStep("Step5: Receive/Send CONTROL FLOW command/response"),
+            TestStep("Step4: Receive/Send Select command/response"),
         ]
 
     async def setup(self) -> None:
-        logger.info("RD_NFC_SELECT_12 setup")
+        logger.info("RD_NFC_SELECT_20 setup")
         access_credential = self.reader_access_credential()
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,
@@ -101,39 +93,12 @@ class RD_NFC_SELECT_12(AliroReaderTestCase, UserPromptSupport):
             self.mark_step_failure(str(error))
             return
         try:
-            if cmds_select.aid != EXPEDITED_PHASE_AID:
-                logger.warning("Invalid AID")
-                raise InvalidAIDError(cmds_select.to_bytes(), cmds_select.aid)
-
-            await self.userdevice.response_select(
-                bytes.fromhex("A000000909ACCE55FE"),
-                CSA_APPLICATION_TYPE,
-                [PROTOCOL_VERSION],
-            )
+            await self.userdevice.handle_select(cmds_select)
         except AccessProtocolError as error:
             self.mark_step_failure(str(error))
             return
-        self.next_step()
-
-        # Test step 5 Receive/Send CONTROL FLOW command/response
-        try:
-            cmds_control_flow = await self.userdevice.wait_for_command()
-        except InvalidCommandError as error:
-            self.mark_step_failure(str(error))
-            return
-        try:
-            await self.userdevice.handle_control_flow(cmds_control_flow)
-        except AccessProtocolError as error:
-            self.mark_step_failure(str(error))
-            return
-        if cmds_control_flow.s1 != S1.FINISHED_WITH_FAILURE:
-            self.mark_step_failure(
-                "control flow did not indicate finished with failure"
-            )
-        if cmds_control_flow.s2 != S2.NONE:
-            self.mark_step_failure("control flow did not indicate no information")
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_SELECT_12 Cleanup")
+        logger.info("RD_NFC_SELECT_20 Cleanup")
         await self.userdevice.transaction_termination()

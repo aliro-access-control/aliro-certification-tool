@@ -22,12 +22,12 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class RD_NFC_SELECT_12(AliroReaderTestCase, UserPromptSupport):
+class RD_NFC_SELECT_13(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-SELECT-1.2",
+        "public_id": "RD-NFC-SELECT-1.3",
         "version": "0.0.1",
-        "title": "RD-NFC-SELECT-1.2",
-        "description": """Verify conformance of Reader UT in SELECT command with response AID.""",
+        "title": "RD-NFC-SELECT-1.3",
+        "description": """Verify conformance of Reader UT in SELECT command with wrong application type.""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -57,7 +57,7 @@ class RD_NFC_SELECT_12(AliroReaderTestCase, UserPromptSupport):
         ]
 
     async def setup(self) -> None:
-        logger.info("RD_NFC_SELECT_12 setup")
+        logger.info("RD_NFC_SELECT_13 setup")
         access_credential = self.reader_access_credential()
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,
@@ -106,8 +106,8 @@ class RD_NFC_SELECT_12(AliroReaderTestCase, UserPromptSupport):
                 raise InvalidAIDError(cmds_select.to_bytes(), cmds_select.aid)
 
             await self.userdevice.response_select(
-                bytes.fromhex("A000000909ACCE55FE"),
-                CSA_APPLICATION_TYPE,
+                cmds_select.aid,
+                0x0001,
                 [PROTOCOL_VERSION],
             )
         except AccessProtocolError as error:
@@ -135,5 +135,5 @@ class RD_NFC_SELECT_12(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_SELECT_12 Cleanup")
+        logger.info("RD_NFC_SELECT_13 Cleanup")
         await self.userdevice.transaction_termination()

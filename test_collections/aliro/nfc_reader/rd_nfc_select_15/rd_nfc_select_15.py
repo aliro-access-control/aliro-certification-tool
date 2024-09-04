@@ -22,12 +22,12 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class RD_NFC_SELECT_12(AliroReaderTestCase, UserPromptSupport):
+class RD_NFC_SELECT_15(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-SELECT-1.2",
+        "public_id": "RD-NFC-SELECT-1.5",
         "version": "0.0.1",
-        "title": "RD-NFC-SELECT-1.2",
-        "description": """Verify conformance of Reader UT in SELECT command with response AID.""",
+        "title": "RD-NFC-SELECT-1.5",
+        "description": """Verify conformance of Reader UT in SELECT command with unsupported versions.""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -57,7 +57,7 @@ class RD_NFC_SELECT_12(AliroReaderTestCase, UserPromptSupport):
         ]
 
     async def setup(self) -> None:
-        logger.info("RD_NFC_SELECT_12 setup")
+        logger.info("RD_NFC_SELECT_15 setup")
         access_credential = self.reader_access_credential()
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,
@@ -106,9 +106,9 @@ class RD_NFC_SELECT_12(AliroReaderTestCase, UserPromptSupport):
                 raise InvalidAIDError(cmds_select.to_bytes(), cmds_select.aid)
 
             await self.userdevice.response_select(
-                bytes.fromhex("A000000909ACCE55FE"),
+                cmds_select.aid,
                 CSA_APPLICATION_TYPE,
-                [PROTOCOL_VERSION],
+                [0x0000],
             )
         except AccessProtocolError as error:
             self.mark_step_failure(str(error))
@@ -130,10 +130,12 @@ class RD_NFC_SELECT_12(AliroReaderTestCase, UserPromptSupport):
             self.mark_step_failure(
                 "control flow did not indicate finished with failure"
             )
-        if cmds_control_flow.s2 != S2.NONE:
-            self.mark_step_failure("control flow did not indicate no information")
+        if cmds_control_flow.s2 != S2.PROTOCOL_VERSION_NOT_SUPPORTED:
+            self.mark_step_failure(
+                "control flow did not indicate protocol version not supported"
+            )
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_SELECT_12 Cleanup")
+        logger.info("RD_NFC_SELECT_15 Cleanup")
         await self.userdevice.transaction_termination()
