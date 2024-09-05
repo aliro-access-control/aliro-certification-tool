@@ -278,7 +278,8 @@ You can edit test parameters for a Project during project creation, but you can 
 
 ## Test Parameters for Reader Tests
 
-* `dut_reader_public_key` Public key for the Reader DUT. 
+* `dut_reader_public_key` Public key for the Reader DUT. This key is used for en/decryption
+and to verify the certificate.
   * Supported Format: 
     * DER encoded HEX string
     * PEM string (including `\n` as for line breaks)
@@ -300,11 +301,6 @@ simulated by the tool.
 * `th_access_credential_public_key` Public key for the User access credential, 
 simulated by the tool.  
   * Supported Format:
-    * DER encoded HEX string
-    * PEM string (including `\n` as for line breaks)
-* `dut_reader_issuer_public_key` Reader System Issuer CA certificate public key, used 
-for certificate verification.  
-  * Supported Format: 
     * DER encoded HEX string
     * PEM string (including `\n` as for line breaks)
 
