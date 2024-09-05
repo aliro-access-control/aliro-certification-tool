@@ -15,10 +15,21 @@
 #
 
 import cbor2
+import hashlib
 
 from .issuer_signed import IssuerSigned
 
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.asymmetric import utils
+from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
+from cryptography.hazmat.primitives.serialization import Encoding
+from cryptography.hazmat.primitives.serialization import load_der_private_key
+from cryptography.hazmat.primitives.serialization import PublicFormat
+
 from mdl.common.doc_types import DocTypes
+from mdl.response.mobile_security_object import MobileSecurityObject
+from mdl.response.sig_structure import Sig_structure
 
 ################################################################################
 class Document(object):
@@ -102,7 +113,7 @@ class Document(object):
         # Get the document type from the given dictionary.
         doc_type = document_dict.get(Document.DOC_TYPE_LABEL)
 
-        issuer_signed_dict = document_dict.get(Document.ISSUER_SIGNED_LABEL)
+        self.issuer_signed_dict = document_dict.get(Document.ISSUER_SIGNED_LABEL)
 
         # Decode the document type.
         if (doc_type is None) or (not isinstance(doc_type, str)):
@@ -111,7 +122,7 @@ class Document(object):
 
         # Decode the issuer signed.
         issuer_signed = IssuerSigned()
-        if (not issuer_signed.from_dict(issuer_signed_dict)):
+        if (not issuer_signed.from_dict(self.issuer_signed_dict)):
             return False
         self.__issuer_signed = issuer_signed
 
@@ -130,3 +141,48 @@ class Document(object):
         '''Parse CBOR to populate the Document.'''
         assert(isinstance(cbor_data, (bytes, bytearray)))
         return self.from_dict(cbor2.loads(cbor_data))
+
+    ############################################################################
+    def check_signature(self, issuer_private_key, reader_public_key):
+        mso = MobileSecurityObject()
+        
+        if not mso.from_cbor(cbor2.loads(self.issuer_signed.issuer_auth.payload).value):
+            print("Mobile security object is invalid.")
+            print(mso.to_dict)
+            return False
+
+        if (len(issuer_private_key) == 32):
+            # Convert the raw issuer private key to a signing object.
+            pk = ec.derive_private_key(int.from_bytes(issuer_private_key, byteorder='big'), ec.SECP256R1())
+        else:
+            # Convert the DER encoded issuer private key to a signing object.
+            pk = load_der_private_key(issuer_private_key, password=None)
+
+        # Sign the payload.
+        sig_structure = Sig_structure()
+        sig_structure.body_protected = self.issuer_signed.issuer_auth.protected
+        sig_structure.payload = self.issuer_signed.issuer_auth.payload
+        to_be_signed = sig_structure.to_cbor()
+        sig = pk.sign(to_be_signed, ec.ECDSA(hashes.SHA256()))
+
+        # Convert the signature into a raw bytearray with concatenated r + s components.
+        (r, s) = utils.decode_dss_signature(sig)
+        sig_bytes = bytearray(int.to_bytes(r, length=32, byteorder='big'))
+        sig_bytes.extend(int.to_bytes(s, length=32, byteorder='big'))
+
+        print(f"sig_bytes: {sig_bytes}")
+        print(f"signature: {self.issuer_signed.issuer_auth.signature}")
+        # check the raw signature with concatenated r + s components.
+        if (self.issuer_signed.issuer_auth.signature != sig_bytes):
+            print("Signature does not match")
+            # return False
+
+        # Create the issuer public key identifier by hashing "key-identifier"
+        # concatenated with the issuer public key and keeping the first eight bytes.
+        h = hashlib.new('sha256', "key-identifier".encode())
+        h.update(pk.public_key().public_bytes(Encoding.X962, PublicFormat.UncompressedPoint)[1:])
+
+        # Check if issuer public key id is valid
+        if (self.issuer_signed.issuer_auth.key_id != h.digest()[0:8]):
+            print("Issuer public key id is invalid.")
+            return False

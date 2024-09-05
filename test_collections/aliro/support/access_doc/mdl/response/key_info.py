@@ -55,6 +55,13 @@ class KeyInfo(object):
         return copy.deepcopy(self.__data)
 
     ############################################################################
+    def from_dict(self, key_info_dict: dict) -> bool:
+        if (key_info_dict is not None):
+            self.__data = copy.deepcopy(key_info_dict)
+
+        return self.is_valid()
+
+    ############################################################################
     def to_cbor(self) -> bytes:
         '''Convert the KeyInfo to CBOR.'''
         key_info_dict = self.to_dict()

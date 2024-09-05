@@ -174,7 +174,7 @@ class COSE_Sign1(object):
         payload = cose_sign1_list[2]
 
         # Get Signature field.
-        signature = cose_sign1_list[3]
+        signature = bytearray(cose_sign1_list[3])
         
         # Decode protected field.
         if (protected is None) or (not isinstance(protected, bytearray)):

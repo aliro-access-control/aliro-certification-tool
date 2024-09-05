@@ -161,7 +161,7 @@ class MobileSecurityObject(object):
             return False
 
         # Verify the Value Digests field.
-        if (len(self.__digest_algorithm) == 0):
+        if (self.__value_digests is None):
             return False
 
         # Verify the Device Key Info field.
@@ -214,6 +214,44 @@ class MobileSecurityObject(object):
 
         return mobile_security_object_dict
 
+        ############################################################################
+    def from_dict(self,  mobile_security_object_dict: dict) -> bool:
+        '''Parse a dictionary to populate the Document.'''
+
+        # Verify input parameters.
+        if (not isinstance(mobile_security_object_dict, dict)):
+            return False
+
+        self.__version = str(mobile_security_object_dict.get(MobileSecurityObject.VERSION_LABEL))
+
+        digest_algorithm = str(mobile_security_object_dict.get(MobileSecurityObject.DIGEST_ALGORITHM_LABEL))
+        if (len(digest_algorithm) > 0):
+            self.__digest_algorithm = digest_algorithm
+
+        value_digests = mobile_security_object_dict.get(MobileSecurityObject.VALUE_DIGESTS_LABEL)   
+        if (value_digests is None) or (not isinstance(value_digests, dict)):
+            return False 
+        self.__value_digests.from_dict(value_digests)
+
+        device_key_info = mobile_security_object_dict.get(MobileSecurityObject.DEVICE_KEY_INFO_LABEL)
+        if (device_key_info is None) or (not isinstance(device_key_info, dict)):
+            return False
+        self.__device_key_info.from_dict(device_key_info)
+
+        doc_type = str(mobile_security_object_dict.get(MobileSecurityObject.DOC_TYPE_LABEL))
+        if (doc_type is None) or (not isinstance(doc_type, str)):
+            return False
+        self.__doc_type = doc_type
+
+        validity_info = mobile_security_object_dict.get(MobileSecurityObject.VALIDITY_INFO_LABEL)
+        if (validity_info is None) or (not isinstance(validity_info, dict)):
+            return False
+        self.__validity_info.from_dict(validity_info)
+
+        self.__time_verification_required = mobile_security_object_dict.get(MobileSecurityObject.TIME_VERIFICATION_REQUIRED_LABEL)
+
+        return self.is_valid()
+
     ############################################################################
     def to_cbor(self) -> bytes:
         '''Convert the MobileSecurityObject to CBOR.'''
@@ -221,3 +259,9 @@ class MobileSecurityObject(object):
         if mobile_security_object_dict is None:
             return None
         return cbor2.dumps(mobile_security_object_dict)
+
+    ############################################################################
+    def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
+        '''Parse CBOR to populate the Document.'''
+        assert(isinstance(cbor_data, (bytes, bytearray)))
+        return self.from_dict(cbor2.loads(cbor_data))  
