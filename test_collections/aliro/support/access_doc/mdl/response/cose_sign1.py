@@ -73,10 +73,10 @@ class COSE_Sign1(object):
         return self.__x5chain
 
     @x5chain.setter
-    def x5chain(self, val : int) -> None:
+    def x5chain(self, val : bytes) -> None:
         '''Set the x5 certificate chain.'''
-        assert(isinstance(val, int))
-        self.__x5chain = int(val)
+        assert(isinstance(val, bytes))
+        self.__x5chain = val
 
     ############################################################################
     @property
@@ -120,9 +120,8 @@ class COSE_Sign1(object):
             return False
 
         # Verify the x5 certificate chain field.
-        # TODO: is this check required ? 
-        # if (self.__x5chain is not None) and (len(self.__x5chain) == 0):
-        #     return False
+        if (self.__x5chain is not None) and (len(self.__x5chain) == 0):
+            return False
 
         # Verify the Payload field.
         if (len(self.__payload) == 0):

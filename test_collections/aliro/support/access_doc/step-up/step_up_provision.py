@@ -29,6 +29,9 @@ source_dir_path = os.path.abspath(os.path.join(current_file_dir_path, '..'))
 # above may be imported.
 sys.path.append(source_dir_path)
 
+source_dir_path = os.path.abspath(os.path.join(current_file_dir_path, '../../aliro_actuator/src/'))
+sys.path.append(source_dir_path)
+
 from aliro.access.access_data import AccessData
 from aliro.access.access_extension import AccessExtension
 from aliro.access.access_rule import AccessRule
@@ -69,12 +72,15 @@ from mdl.request.device_request import DeviceRequest
 from mdl.request.device_request_builder import RequestElement
 from mdl.request.device_request_builder import DeviceRequestBuilder
 
+from aliro_actuator.trust_framework.certificate import Certificate
+from aliro_actuator.trust_framework.key import KeyPair
+
 # Raw issuer private key.
-# issuer_private_key = bytearray([
-#     0x4B, 0x45, 0xDF, 0x37, 0xA3, 0x27, 0xA3, 0x13, 0x03, 0x11,
-#     0x3F, 0x99, 0x65, 0xD1, 0x4D, 0xE9, 0x4F, 0x02, 0x5F, 0x88,
-#     0x15, 0x15, 0xE1, 0x30, 0x34, 0xA3, 0xD8, 0xA9, 0xAC, 0x47,
-#     0xE4, 0x3E])
+issuer_private_key_raw = bytearray([
+    0x4B, 0x45, 0xDF, 0x37, 0xA3, 0x27, 0xA3, 0x13, 0x03, 0x11,
+    0x3F, 0x99, 0x65, 0xD1, 0x4D, 0xE9, 0x4F, 0x02, 0x5F, 0x88,
+    0x15, 0x15, 0xE1, 0x30, 0x34, 0xA3, 0xD8, 0xA9, 0xAC, 0x47,
+    0xE4, 0x3E])
 
 # DER encoded issuer private key.
 issuer_private_key = bytearray([
@@ -305,7 +311,8 @@ def create_request(
 
 def create_response(
         access_list: list[dict[str, AccessData]],
-        revocation_list: list[dict[str, RevocationData]]) -> DeviceResponse:
+        revocation_list: list[dict[str, RevocationData]],
+        x509_cert) -> DeviceResponse:
     response_access_list = []
     response_revocation_list = []
     for access_item in access_list:
@@ -330,7 +337,8 @@ def create_response(
         issuer_private_key,
         device_public_key,
         valid_from=datetime.datetime.now(datetime.timezone.utc),
-        valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14))
+        valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
+        x509_cert=x509_cert)
 
     return device_response
 
@@ -361,9 +369,30 @@ access_data_list = [
 revocation_data_list = [
     {"id": "floor2", "revocation_data": revocation_data},
 ]
+
+cert_issuer = KeyPair(
+    bytes([byte for byte in issuer_private_key]),
+)
+
+x509_cert = Certificate.generate(
+    serial_number=bytes.fromhex("01"),
+    issuer=bytes.fromhex("697373756572"),
+    validity_not_before=bytes.fromhex("3230303130313030303030305A"),
+    validity_not_after=bytes.fromhex("3439303130313030303030305A"),
+    subject=bytes.fromhex("7375626a656374"),
+    key_info_subject_public_key=bytes.fromhex(
+        (
+            "0004842242f6182ba1c1138d32b77fb9f7f37b70034b9f04443a5bea3c188beadb"
+            "36490a7e95f91a4c162acfc3401c3a4f4e5a59251d45243ac8544a665cb951422f"
+        )
+    ),
+    issuer_keypair=cert_issuer,
+)
+
 device_response = create_response(
     access_list=access_data_list,
-    revocation_list=revocation_data_list
+    revocation_list=revocation_data_list,
+    x509_cert=x509_cert
 )
 print("Device Response")
 cbor = device_response.to_cbor()
