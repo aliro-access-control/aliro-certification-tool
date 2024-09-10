@@ -14,4 +14,8 @@
 # limitations under the License.
 #
 
-from .utility import Utility
+from .device_request_builder import DeviceRequestBuilder
+from .device_request import DeviceRequest
+from .doc_request import DocRequest
+from .items_request import ItemsRequest
+from .namespaces import Namespaces

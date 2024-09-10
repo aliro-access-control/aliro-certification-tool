@@ -14,4 +14,7 @@
 # limitations under the License.
 #
 
-from .utility import Utility
+from .multiple_users_extension_data import MultipleUsersExtensionData
+
+from .secure_pin_extension_data import ReaderPin
+from .secure_pin_extension_data import SecurePinExtensionData

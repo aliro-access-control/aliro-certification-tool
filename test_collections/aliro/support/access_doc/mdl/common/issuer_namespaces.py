@@ -14,4 +14,10 @@
 # limitations under the License.
 #
 
-from .utility import Utility
+################################################################################
+class IssuerNamespaces(object):
+    ALIRO_ACCESS = "aliro-a"
+    '''The namespace for the Aliro Access Data Elements.'''
+
+    ALIRO_REVOCATION = "aliro-r"
+    '''The namespace for the Aliro Revocation Data Elements.'''
