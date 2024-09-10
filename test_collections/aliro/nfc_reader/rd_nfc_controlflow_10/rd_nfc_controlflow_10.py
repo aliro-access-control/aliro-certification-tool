@@ -133,7 +133,7 @@ class RD_NFC_CONTROLFLOW_10(AliroReaderTestCase, UserPromptSupport):
             self.mark_step_failure(
                 "S1 value of CONTROL FLOW not '0x00 transaction finished with failure'"
             )
-        if cmds_controlflow.s1 != S2.NONE:
+        if cmds_controlflow.s2 != S2.NONE:
             self.mark_step_failure("S2 value of CONTROL FLOW not '0x00 no information'")
         self.next_step()
 

@@ -117,7 +117,7 @@ class RD_NFC_CONTROLFLOW_20(AliroReaderTestCase, UserPromptSupport):
             self.mark_step_failure(
                 "S1 value of CONTROL FLOW not '0x00 transaction finished with failure'"
             )
-        if cmds_controlflow.s1 != S2.PROTOCOL_VERSION_NOT_SUPPORTED:
+        if cmds_controlflow.s2 != S2.PROTOCOL_VERSION_NOT_SUPPORTED:
             self.mark_step_failure(
                 "S2 value of CONTROL FLOW not '0x27 protocol version not supported.'"
             )
