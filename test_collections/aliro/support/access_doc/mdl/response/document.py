@@ -24,8 +24,12 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import utils
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
 from cryptography.hazmat.primitives.serialization import Encoding
-from cryptography.hazmat.primitives.serialization import load_der_private_key
+from cryptography.hazmat.primitives.serialization import (
+    load_der_private_key,
+    load_der_public_key,
+)
 from cryptography.hazmat.primitives.serialization import PublicFormat
+from cryptography.exceptions import InvalidSignature
 
 from mdl.common.doc_types import DocTypes
 from mdl.response.mobile_security_object import MobileSecurityObject
@@ -143,12 +147,10 @@ class Document(object):
         return self.from_dict(cbor2.loads(cbor_data))
 
     ############################################################################
-    def check_signature(self, issuer_private_key, reader_public_key):
+    def check_signature(self, issuer_private_key):
         mso = MobileSecurityObject()
-        
         if not mso.from_cbor(cbor2.loads(self.issuer_signed.issuer_auth.payload).value):
             print("Mobile security object is invalid.")
-            print(mso.to_dict)
             return False
 
         if (len(issuer_private_key) == 32):
@@ -162,20 +164,18 @@ class Document(object):
         sig_structure = Sig_structure()
         sig_structure.body_protected = self.issuer_signed.issuer_auth.protected
         sig_structure.payload = self.issuer_signed.issuer_auth.payload
-        to_be_signed = sig_structure.to_cbor()
-        sig = pk.sign(to_be_signed, ec.ECDSA(hashes.SHA256()))
+        signed_data = sig_structure.to_cbor()
 
-        # Convert the signature into a raw bytearray with concatenated r + s components.
-        (r, s) = utils.decode_dss_signature(sig)
-        sig_bytes = bytearray(int.to_bytes(r, length=32, byteorder='big'))
-        sig_bytes.extend(int.to_bytes(s, length=32, byteorder='big'))
-
-        print(f"sig_bytes: {sig_bytes}")
-        print(f"signature: {self.issuer_signed.issuer_auth.signature}")
-        # check the raw signature with concatenated r + s components.
-        if (self.issuer_signed.issuer_auth.signature != sig_bytes):
-            print("Signature does not match")
-            # return False
+        public_key = pk.public_key()
+        sig = self.issuer_signed.issuer_auth.signature
+        r = int.from_bytes(sig[:32], byteorder='big')
+        s = int.from_bytes(sig[32:], byteorder='big')
+        signature = utils.encode_dss_signature(r, s)
+        try:
+            public_key.verify(signature, signed_data, ec.ECDSA(hashes.SHA256()))
+        except InvalidSignature:
+            print("Invalid signature for document.")
+            return False
 
         # Create the issuer public key identifier by hashing "key-identifier"
         # concatenated with the issuer public key and keeping the first eight bytes.

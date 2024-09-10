@@ -403,5 +403,5 @@ device_response2 = DeviceResponse()
 device_response2.from_cbor(cbor)
 
 for document in device_response2.documents:
-    document.check_signature(issuer_private_key, reader_public_key)
+    document.check_signature(issuer_private_key)
 

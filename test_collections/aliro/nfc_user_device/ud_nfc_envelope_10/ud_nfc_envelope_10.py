@@ -167,8 +167,8 @@ class UD_NFC_ENVELOPE_10(AliroUserDeviceTestCase, UserPromptSupport):
             return
 
         # Validate hash and signature
-        for document in device_response.documents():
-            if document.check_signature(self.issuer_private_key, self.reader_public_key):
+        for document in device_response.documents:
+            if document.check_signature(self.issuer_private_key):
                 self.mark_step_failure("Document signature is invalid.")
                 return
 
