@@ -85,6 +85,7 @@ class DeviceResponseBuilder(object):
         device_public_key : bytes | bytearray,
         valid_from : str | int | float | datetime.date | datetime.datetime,
         valid_until : str | int | float | datetime.date | datetime.datetime,
+        x509_cert: bytes,
         validity_iteration : int = -1,
         time_verification_required : bool = False) -> DeviceResponse:
         '''Build a Device Response from the given data elements, keys, and validity information.'''
@@ -112,7 +113,8 @@ class DeviceResponseBuilder(object):
             valid_from,
             valid_until,
             validity_iteration,
-            time_verification_required)
+            time_verification_required,
+            x509_cert)
 
         if (doc is not None):
             device_response.documents.append(doc)
@@ -126,7 +128,8 @@ class DeviceResponseBuilder(object):
             valid_from,
             valid_until,
             validity_iteration,
-            time_verification_required)
+            time_verification_required,
+            x509_cert)
 
         if (doc is not None):
             device_response.documents.append(doc)
@@ -144,7 +147,8 @@ class DeviceResponseBuilder(object):
         valid_from : str | int | float | datetime.date | datetime.datetime,
         valid_until : str | int | float | datetime.date | datetime.datetime,
         validity_iteration,
-        time_verification_required) -> Document:
+        time_verification_required,
+        x509_cert) -> Document:
         '''Internal method to build a Document containing the given data elements.'''
 
         doc = None
@@ -199,6 +203,9 @@ class DeviceResponseBuilder(object):
 
             # Convert the mobile security object to embedded CBOR within a bstr.
             doc.issuer_signed.issuer_auth.payload = cbor2.dumps(cbor2.CBORTag(cbor_tag_encoded_cbor, mso.to_cbor()))
+
+            # Set x.509 certificate
+            doc.issuer_signed.issuer_auth.x5chain = cbor2.dumps(cbor2.CBORTag(cbor_tag_encoded_cbor, x509_cert))
 
             if (len(issuer_private_key) == 32):
                 # Convert the raw issuer private key to a signing object.

@@ -73,10 +73,10 @@ class COSE_Sign1(object):
         return self.__x5chain
 
     @x5chain.setter
-    def x5chain(self, val : int) -> None:
+    def x5chain(self, val : bytes) -> None:
         '''Set the x5 certificate chain.'''
-        assert(isinstance(val, int))
-        self.__x5chain = int(val)
+        assert(isinstance(val, bytes))
+        self.__x5chain = val
 
     ############################################################################
     @property
@@ -128,7 +128,7 @@ class COSE_Sign1(object):
             return False
 
         # Verify the Signature field.
-        if (len(self.__payload) == 0):
+        if (len(self.__signature) == 0):
             return False
 
         return True
@@ -159,6 +159,46 @@ class COSE_Sign1(object):
         COSE_Sign1_list.append(bytearray(self.__signature))
 
         return COSE_Sign1_list
+
+    ############################################################################
+    def from_list(self, cose_sign1_list: list) -> bool:
+        '''Parse a list to populate the COSE_Sign1.'''
+
+        # Get Protected field.
+        protected = bytearray(cose_sign1_list[0])
+
+        # Get unprotected dictionary.
+        unprotected_dict = cose_sign1_list[1]
+
+        # Get Payload field.
+        payload = cose_sign1_list[2]
+
+        # Get Signature field.
+        signature = cose_sign1_list[3]
+        
+        # Decode protected field.
+        if (protected is None) or (not isinstance(protected, bytearray)):
+            return False
+        self.__protected = protected
+
+        # Decode Unprotected field.
+        key_id = unprotected_dict.get(COSE_Sign1.KEY_ID_LABEL)
+        x5chain = unprotected_dict.get(COSE_Sign1.X5CHAIN_CERTIFICATE_LABEL)
+
+        self.__key_id = key_id
+        self.__x5chain = x5chain
+
+        # Decode Payload.
+        if (payload is None) or (not isinstance(payload, (bytes, bytearray))):
+            return False
+        self.__payload = payload
+
+        # Decode Signature.
+        if (signature is None) or (not isinstance(signature, (bytes, bytearray))):
+            return False
+        self.__signature = signature
+
+        return self.is_valid()
 
     ############################################################################
     def to_cbor(self) -> bytes:

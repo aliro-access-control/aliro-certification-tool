@@ -147,14 +147,14 @@ class Schedule(object):
         schedule_dict = {}
         cbor_tag_epoch_time = 1
 
-        # Encode the start time.
+        # Encode the Start Time.
         schedule_dict[Schedule.START_TIME_LABEL] = cbor2.CBORTag(cbor_tag_epoch_time, int(self.start_time))
 
-        # Encode the end time.
+        # Encode the End Time.
         if self.end_time > 0:
             schedule_dict[Schedule.END_TIME_LABEL] = cbor2.CBORTag(cbor_tag_epoch_time, int(self.end_time))
 
-        # Encode the recurrence rule.
+        # Encode the Recurrence Rule.
         if self.rrule.is_valid():
             schedule_dict[Schedule.RECURRENCE_RULE_LABEL] = self.rrule.to_bytearray()
 
@@ -164,9 +164,67 @@ class Schedule(object):
         return schedule_dict
 
     ############################################################################
+    def from_dict(self, schedule_dict : dict) -> bool:
+        '''Parse a dictionary to populate the Schedule.'''
+        # Clear existing Schedule data.
+        self.__flags = ScheduleFlagBits.TIME_IN_UTC
+        self.__start_time = 0
+        self.__end_time = 0
+        self.__rrule = RecurrenceRule()
+
+        # Verify input parameters.
+        if (not isinstance(schedule_dict, dict)):
+            return False
+
+        # Get the Start Time from the given dictionary.
+        start_time = schedule_dict.get(Schedule.START_TIME_LABEL)
+
+        # Get the optional End Time from the given dictionary.
+        end_time = schedule_dict.get(Schedule.END_TIME_LABEL)
+
+        # Get the optional Recurrence Rule from the given dictionary.
+        rrule_bytes = schedule_dict.get(Schedule.RECURRENCE_RULE_LABEL)
+
+        # Get the Flags from the given dictionary.
+        flags = schedule_dict.get(Schedule.FLAGS_LABEL)
+
+        # Decode the required Start Time.
+        if ((start_time is None) or
+            (not isinstance(start_time, (int, float, datetime.date, datetime.datetime)))):
+            return False
+        self.start_time = start_time
+
+        # Decode the optional End Time.
+        if (end_time is not None):
+            if (not isinstance(end_time, (int, float, datetime.date, datetime.datetime))):
+                return False
+            self.end_time = end_time
+
+        # Decode the optional Recurrence Rule.
+        if (rrule_bytes is not None):
+            if ((not isinstance(rrule_bytes, (bytes, bytearray))) or
+                (len(rrule_bytes) != RecurrenceRule.BYTE_COUNT)):
+                return False
+            if (self.__rrule.from_bytes(rrule_bytes) == False):
+                return False
+
+        # Decode the required Flags.
+        if (flags is None) or (not isinstance(flags, int)):
+            return False
+        self.flags = flags
+
+        return self.is_valid()
+
+    ############################################################################
     def to_cbor(self) -> bytes:
         '''Convert the Schedule to CBOR.'''
         schedule_dict = self.to_dict()
         if schedule_dict is None:
             return None
         return cbor2.dumps(schedule_dict)
+
+    ############################################################################
+    def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
+        '''Parse CBOR to populate the Schedule.'''
+        assert(isinstance(cbor_data, (bytes, bytearray)))
+        return self.from_dict(cbor2.loads(cbor_data))

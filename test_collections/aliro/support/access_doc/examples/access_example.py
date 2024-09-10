@@ -49,6 +49,7 @@ from aliro.access.extension_data.multiple_users_extension_data import MultipleUs
 
 from mdl.response.device_response_builder import DeviceResponseBuilder
 from mdl.response.device_response_builder import ResponseElement
+from mdl.response.device_response import DeviceResponse
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -237,3 +238,12 @@ print("Device Response")
 cbor = device_response.to_cbor()
 if (cbor is not None):
     print("cbor: " + Utility.bytes_to_hex_str(cbor) + "\n")
+
+
+print("Parse CBOR to populate the Device Response")
+device_response_2 = DeviceResponse()
+if device_response_2.from_cbor(cbor):
+    print("Successfully parsed the CBOR to populate a Device Response.")
+else:
+    print("Failed to parse the CBOR.")
+
