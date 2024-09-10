@@ -129,7 +129,7 @@ class AccessData(object):
     def is_valid(self) -> bool:
         '''Returns True if the AccessData contains valid fields,
            otherwise returns False.'''
-        # Verify the version.
+        # Verify the Version.
         if (type(self.version) is not int) or (self.version < 0):
             return False
 
@@ -138,19 +138,19 @@ class AccessData(object):
             if (len(self.id) < AccessData.ID_LENGTH_MIN) or (len(self.id) > AccessData.ID_LENGTH_MAX):
                 return False
 
-        # Verify the access rules.
+        # Verify the Access Rules.
         if (self.access_rules is not None):
             for access_rule in self.access_rules:
                 if not access_rule.is_valid():
                     return False
 
-        # Verify the schedules.
+        # Verify the Schedules.
         if (self.schedules is not None):
             for schedule in self.schedules:
                 if not schedule.is_valid():
                     return False
 
-        # Verify the access rules' schedule IDs.
+        # Verify the Access Rules' schedule IDs.
         if (self.access_rules is not None):
             for access_rule in self.access_rules:
                 if (self.schedules is None) and (len(access_rule.allow_schedule_ids) > 0):
@@ -164,27 +164,27 @@ class AccessData(object):
                     if schedule_id >= len(self.schedules):
                         return False
 
-        # Verify the reader rule IDs.
+        # Verify the Reader Rule IDs.
         if (self.reader_rule_ids is not None):
             for reader_rule_id in self.reader_rule_ids:
                 if (type(reader_rule_id) is not int) or (reader_rule_id < AccessData.READER_RULE_ID_MIN) or (reader_rule_id > AccessData.READER_RULE_ID_MAX):
                     return False
 
-        # Verify the non-access extensions.
+        # Verify the Non-Access Extensions.
         if (self.non_access_extensions is not None):
             for vendor_registered_id, extensions in self.non_access_extensions.items():
                 for non_access_extension in extensions:
                     if (vendor_registered_id == 0) or (not non_access_extension.is_valid()):
                         return False
 
-        # Verify the access extensions.
+        # Verify the Access Extensions.
         if (self.access_extensions is not None):
             for vendor_registered_id, extensions in self.access_extensions.items():
                 for access_extension in extensions:
                     if (vendor_registered_id == 0) or (not access_extension.is_valid()):
                         return False
 
-        # The access data is valid.
+        # The Access Data is valid.
         return True
 
     ############################################################################
@@ -245,9 +245,94 @@ class AccessData(object):
         return access_data_dict
 
     ############################################################################
+    def from_dict(self, access_data_dict : dict) -> bool:
+        '''Parse a dictionary to populate the AccessData.'''
+        # Clear existing AccessData data.
+        self.__version = 0
+        self.__id = bytearray()
+        self.__access_rules = []
+        self.__schedules = []
+        self.__reader_rule_ids = []
+        self.__non_access_extensions = {}
+        self.__access_extensions = {}
+
+        # Verify input parameters.
+        if (not isinstance(access_data_dict, dict)):
+            return False
+
+        # Get the Version from the given dictionary.
+        version = access_data_dict.get(AccessData.VERSION_LABEL)
+
+        # Get the optional ID from the given dictionary.
+        id = access_data_dict.get(AccessData.ID_LABEL)
+
+        # Get the optional Access Rules from the given dictionary.
+        access_rules_list = access_data_dict.get(AccessData.ACCESS_RULES_LABEL)
+
+        # Get the optional Schedules from the given dictionary.
+        schedules_list = access_data_dict.get(AccessData.SCHEDULES_LABEL)
+
+        # Get the optional Reader Rule IDs from the given dictionary.
+        reader_rule_ids = access_data_dict.get(AccessData.READER_RULE_IDS_LABEL)
+
+        # Decode the required Version.
+        if (version is None) or (not isinstance(version, int)) or (version < 0):
+            return False
+        self.__version = version
+
+        # Decode the optional ID.
+        if (id is not None):
+            if ((not isinstance(id, (bytes, bytearray))) or
+                (len(id) < AccessData.ID_LENGTH_MIN) or
+                (len(id) > AccessData.ID_LENGTH_MAX)):
+                return False
+            self.__id = bytearray(id)
+
+        # Decode the optional Access Rules.
+        if (access_rules_list is not None):
+            if (not isinstance(access_rules_list, list)):
+                return False
+            for access_rule_dict in access_rules_list:
+                if (not isinstance(access_rule_dict, dict)):
+                    return False
+                access_rule = AccessRule()
+                if (not access_rule.from_dict(access_rule_dict)):
+                    return False
+                self.__access_rules.append(access_rule)
+
+        # Decode the optional Schedules.
+        if (schedules_list is not None):
+            if (not isinstance(schedules_list, list)):
+                return False
+            for schedule_dict in schedules_list:
+                if (not isinstance(schedule_dict, dict)):
+                    return False
+                schedule = Schedule()
+                if (not schedule.from_dict(schedule_dict)):
+                    return False
+                self.__schedules.append(schedule)
+
+        # Decode the optional Reader Rule IDs.
+        if (reader_rule_ids is not None):
+            if (not isinstance(reader_rule_ids, list)):
+                return False
+            for reader_rule_id in reader_rule_ids:
+                if (not isinstance(reader_rule_id, int)):
+                    return False
+                self.__reader_rule_ids.append(reader_rule_id)
+
+        return self.is_valid()
+
+    ############################################################################
     def to_cbor(self) -> bytes:
         '''Convert the AccessData to CBOR.'''
         access_data_dict = self.to_dict()
         if access_data_dict is None:
             return None
         return cbor2.dumps(access_data_dict)
+
+    ############################################################################
+    def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
+        '''Parse CBOR to populate the AccessData.'''
+        assert(isinstance(cbor_data, (bytes, bytearray)))
+        return self.from_dict(cbor2.loads(cbor_data))

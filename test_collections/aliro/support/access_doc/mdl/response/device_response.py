@@ -103,7 +103,7 @@ class DeviceResponse(object):
                 return False
             if not document.is_valid():
                 return False
-
+        
         # Verify the Status field.
         if self.__status not in DeviceResponseStatus:
             return False
@@ -133,9 +133,60 @@ class DeviceResponse(object):
         return device_response_dict
 
     ############################################################################
+    def from_dict(self, device_response_dict: dict) -> bool:
+        '''Parse a dictionary to populate the DeviceResponse.'''
+        # Clear existing DeviceResponse data.
+        self.__version = ""
+        self.__documents = []
+        self.__status = 0
+
+        # Verify input parameters.
+        if (not isinstance(device_response_dict, dict)):
+            return False
+
+        # Get the Version from the given dictionary.
+        version = device_response_dict.get(DeviceResponse.VERSION_LABEL)
+
+        # Get the Status from the given dictionary.
+        status = device_response_dict.get(DeviceResponse.STATUS_LABEL)
+
+        # Get documents list
+        documents_list = device_response_dict.get(DeviceResponse.DOCUMENTS_LABEL)
+
+        # Decode the required Version.
+        if (version is None) or (not isinstance(version, str)):
+            return False
+        self.__version = version
+
+        # Decode the required Status.
+        if (status is None) or (not isinstance(status, int)) or (status < 0):
+            return False
+        self.__status = DeviceResponseStatus(status)
+
+        # Decode the Documents
+        if (documents_list is not None):
+            if (not isinstance(documents_list, list)):
+                return False
+            for documents_dict in documents_list:
+                if (not isinstance(documents_dict, dict)):
+                    return False
+                document = Document()
+                if (not document.from_dict(documents_dict)):
+                    return False
+                self.__documents.append(document)
+
+        return self.is_valid()
+
+    ############################################################################
     def to_cbor(self) -> bytes:
         '''Convert the DeviceResponse to CBOR.'''
         device_response_dict = self.to_dict()
         if device_response_dict is None:
             return None
         return cbor2.dumps(device_response_dict)
+
+    ############################################################################
+    def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
+        '''Parse CBOR to populate the DeviceResponse.'''
+        assert(isinstance(cbor_data, (bytes, bytearray)))
+        return self.from_dict(cbor2.loads(cbor_data))
