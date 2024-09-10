@@ -163,7 +163,7 @@ class UD_BLE_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 12
         try:
-            await self.reader.reader_status_access_protocol_completed(0, 0)
+            await self.reader.reader_status_access_protocol_completed(1, 0)
             time.sleep(0.1)
             await self.reader.transaction_termination()
         except Exception as error:
@@ -212,7 +212,7 @@ class UD_BLE_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 17
         try:
-            await self.reader.reader_status_access_protocol_completed(0, 0)
+            await self.reader.reader_status_access_protocol_completed(1, 0)
             time.sleep(0.1)
             await self.reader.transaction_termination()
         except Exception as error:

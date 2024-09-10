@@ -216,7 +216,6 @@ class AliroReaderTestCase(AliroTestCase):
     READER_GROUP_RESOLVING_KEY = "dut_reader_group_resolving_key"
     ACCESS_CREDENTIAL_PRIVATE_KEY_KEY = "th_access_credential_private_key"
     ACCESS_CREDENTIAL_PUBLIC_KEY_KEY = "th_access_credential_public_key"
-    READER_ISSUER_PUBLIC_KEY_KEY = "dut_reader_issuer_public_key"
 
     @classmethod
     def default_test_parameters(self) -> dict[str, Any]:
@@ -239,9 +238,6 @@ class AliroReaderTestCase(AliroTestCase):
             "5ae574c1505a2c24ab6198e3125b7f1b7e1d134c55ece69681ba8ecc18a3836dc5199c75"
             "9f31e8ccf17e3efa",
             self.READER_GROUP_RESOLVING_KEY: "00000000000000000000000000000000",
-            self.READER_ISSUER_PUBLIC_KEY_KEY: "043928f322019d4757893bde6a0fe5e13e3e5"
-            "37b9ca0f549c0bd2f40f79060252a0a4f291192157a95cb6eb202759428c00cd834998c5"
-            "d0eab192ee8873c5d34ee",
         }
 
     def reader_access_credential(self) -> AccessCredential:
@@ -295,20 +291,6 @@ class AliroReaderTestCase(AliroTestCase):
         )
         logger.info(f"Using Reader Public Key(PEM): \n{reader_public_key.as_pem()}")
 
-        # Issuer Public Key
-        logger.info(
-            f"Loading Issuer public key from '{self.READER_ISSUER_PUBLIC_KEY_KEY}'"
-        )
-        reader_issuer_public_key = self.public_key_from_config(
-            self.READER_ISSUER_PUBLIC_KEY_KEY
-        )
-        logger.info(
-            f"Using Reader Issuer Public Key(hex): \n{reader_issuer_public_key.as_bytes().hex()}"
-        )
-        logger.info(
-            f"Using Reader Issuer Public Key(PEM): \n{reader_issuer_public_key.as_pem()}"
-        )
-
         # Group Identifier
         logger.info(
             f"Loading Reader group identifier from '{self.READER_GROUP_ID_KEY}'"
@@ -330,9 +312,6 @@ class AliroReaderTestCase(AliroTestCase):
         return AccessCredential(
             access_credential_key_pair=user_device_key_pair,
             reader_id_key_list=[(reader_group_identifier, reader_public_key)],
-            reader_system_issuer_ca_certificate_id_key_list=[
-                (reader_group_identifier, reader_issuer_public_key)
-            ],
         )
 
     def reader_group_resolving_key(self) -> bytes:
@@ -376,7 +355,8 @@ class AliroUserDeviceTestCase(AliroTestCase):
     READER_CERTIFICATE_KEY = "th_reader_certificate"
     READER_GROUP_RESOLVING_KEY = "th_reader_group_resolving_key"
     READER_SPSM = "th_reader_spsm"
-    ENDPOINT_PUBLIC_KEY_KEY = "th_endpoint_public_key"
+    ACCESS_CREDENTIAL_PUBLIC_KEY_KEY = "th_access_credential_public_key"
+    READER_ISSUER_PUBLIC_KEY_KEY = "th_reader_issuer_public_key"
 
     @classmethod
     def default_test_parameters(self) -> dict[str, Any]:
@@ -395,27 +375,30 @@ class AliroUserDeviceTestCase(AliroTestCase):
             "873c5d34ee",
             self.READER_GROUP_ID_KEY: "00113344667799AA00113344667799AA",
             self.READER_SUB_GROUP_ID_KEY: "113344667799AA00113344667799AA00",
-            self.READER_CERTIFICATE_KEY: "308201513081f9a003020102020101300a06082a8648c"
+            self.READER_CERTIFICATE_KEY: "308201523081f9a003020102020101300a06082a8648c"
             "e3d0403023011310f300d06035504030c06697373756572301e170d3230303130313030303"
             "030305a170d3439303130313030303030305a30123110300e06035504030c077375626a656"
-            "3743059301306072a8648ce3d020106082a8648ce3d030107034200043928f322019d47578"
-            "93bde6a0fe5e13e3e537b9ca0f549c0bd2f40f79060252a0a4f291192157a95cb6eb202759"
-            "428c00cd834998c5d0eab192ee8873c5d34eea341303f301f0603551d23041830168014231"
-            "8e55671f08eae212142a817720fb817ee93bf300c0603551d130101ff04023000300e06035"
-            "51d0f0101ff040403020780300a06082a8648ce3d04030203470030440220606ddd0351bb4"
-            "7c6acccb8b94d83fe5dd18cfa1a2bbd757ccbf7ad9e1e0ba4ca02204e36051d9f93ff34e3a"
-            "d14ae5ead738e2e92a78ef4f9d384be863535484d5151",
+            "3743059301306072a8648ce3d020106082a8648ce3d03010703420004c4cdb33f4bc48d76d"
+            "58480d37992894f0ebea6b4a85fcbc336a22f65978eac076a217cce89ac13a5390d6f572f5"
+            "da61695bfbfbd07161fdfb21d4cc5a0a44ea7a341303f301f0603551d230418301680147fc"
+            "93128a61c0cedf94e11732dbe46017c431901300c0603551d130101ff04023000300e06035"
+            "51d0f0101ff040403020780300a06082a8648ce3d0403020348003045022029786cef5d595"
+            "c14818078851aae49a71e16e474e1e0b122f3a43a0a646f83b7022100eac460925608dac8f"
+            "1d92ea9d5dad48246b34f6e146bd9e60eff8c1b4ef74c01",
             self.READER_GROUP_RESOLVING_KEY: "00000000000000000000000000000000",
             self.READER_SPSM: "0080",
-            self.ENDPOINT_PUBLIC_KEY_KEY: "044dc6e1f1b0e879b487063d7e24e26e4c75854a140f"
-            "ab5c5a6d4d8a582909d75f360de1dd16e6f113299d44900243901f2041fd82661ad6742128"
-            "fe3b7a02c35d",
+            self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY: "044dc6e1f1b0e879b487063d7e24e26e4c7"
+            "5854a140fab5c5a6d4d8a582909d75f360de1dd16e6f113299d44900243901f2041fd82661"
+            "ad6742128fe3b7a02c35d",
+            self.READER_ISSUER_PUBLIC_KEY_KEY: "043928f322019d4757893bde6a0fe5e13e3e5"
+            "37b9ca0f549c0bd2f40f79060252a0a4f291192157a95cb6eb202759428c00cd834998c5"
+            "d0eab192ee8873c5d34ee",
         }
 
     def th_reader_keypair(self) -> KeyPair:
         """Load TH Reader keys from test parameters.
         When testing a UserDevice, the TH will be the Reader. Keys for this reader
-        will be configurable in test_paramters of project configuration.
+        will be configurable in test_parameters of project configuration.
 
         Returns:
             KeyPair: Key pair for TH reader.
@@ -450,7 +433,7 @@ class AliroUserDeviceTestCase(AliroTestCase):
     def th_group_identifier(self) -> bytes:
         """Load TH Reader group identifier from test parameters.
         When testing a UserDevice, the TH will be the Reader. The group identifier
-        for this reader will be configurable in test_paramters of project configuration.
+        for this reader will be configurable in test_parameters of project configuration.
 
         Returns:
             bytes: group identifier
@@ -465,7 +448,7 @@ class AliroUserDeviceTestCase(AliroTestCase):
     def th_sub_group_identifier(self) -> bytes:
         """Load TH Reader sub-group identifier from test parameters.
         When testing a UserDevice, the TH will be the Reader. The sub-group identifier
-        for this reader will be configurable in test_paramters of project configuration.
+        for this reader will be configurable in test_parameters of project configuration.
 
         Returns:
             bytes: sub-group identifier
@@ -480,7 +463,7 @@ class AliroUserDeviceTestCase(AliroTestCase):
     def th_reader_certificate(self) -> bytes:
         """Load TH Reader certificate from test parameters.
         When testing a UserDevice, the TH will be the Reader. The certificate for this
-        reader will be configurable in test_paramters of project configuration.
+        reader will be configurable in test_parameters of project configuration.
 
         Returns:
             Certificate
@@ -493,7 +476,7 @@ class AliroUserDeviceTestCase(AliroTestCase):
     def th_group_resolving_key(self) -> bytes:
         """Load TH Reader group resolving key from test parameters.
         When testing a UserDevice, the TH will be the Reader. The group resolving key
-        for this reader will be configurable in test_paramters of project configuration.
+        for this reader will be configurable in test_parameters of project configuration.
 
         Returns:
             bytes: group resolving key
@@ -510,7 +493,7 @@ class AliroUserDeviceTestCase(AliroTestCase):
     def th_spsm(self) -> bytes:
         """Load TH Reader spsm from test parameters.
         When testing a UserDevice, the TH will be the Reader. The spsm
-        for this reader will be configurable in test_paramters of project configuration.
+        for this reader will be configurable in test_parameters of project configuration.
 
         Returns:
             bytes: spsm
@@ -520,27 +503,59 @@ class AliroUserDeviceTestCase(AliroTestCase):
         logger.info(f"Using Reader spsm(hex): {spsm.hex()}")
         return spsm
 
-    def th_endpoint_public_key(self) -> PublicKey:
-        """Load TH Endpoint public key from test parameters.
+    def th_access_credential_public_key(self) -> PublicKey:
+        """Load TH access credential public key from test parameters.
         When testing a UserDevice, the TH will be the Reader. Keys for this reader
-        will be configurable in test_paramters of project configuration.
+        will be configurable in test_parameters of project configuration.
 
         Returns:
-            PublicKey: Endpoint public key for TH reader. This key will be used to
-            generate the key slot list.
+            PublicKey: access credential public key for TH reader. This key will be
+            used to generate the key slot list.
         """
         logger.info("Loading public key for Test Harness use on simulated Reader.")
 
         # Public Key
         logger.info(
-            f"Loading Endpoint public key from '{self.ENDPOINT_PUBLIC_KEY_KEY}'"
+            f"Loading access credential public key from "
+            f"'{self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY}'"
         )
-        endpoint_public_key = self.public_key_from_config(self.ENDPOINT_PUBLIC_KEY_KEY)
-        logger.info(
-            f"TH Using Endpoint Public Key(hex): \n{endpoint_public_key.as_bytes().hex()}"
+        access_credential_public_key = self.public_key_from_config(
+            self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY
         )
         logger.info(
-            f"TH Using Endpoint Public Key(pem): \n{endpoint_public_key.as_pem()}"
+            f"TH Using access credential Public Key(hex): \n"
+            f"{access_credential_public_key.as_bytes().hex()}"
+        )
+        logger.info(
+            f"TH Using access credential Public Key(pem): \n"
+            f"{access_credential_public_key.as_pem()}"
         )
 
-        return endpoint_public_key
+        return access_credential_public_key
+
+    def th_reader_issuer_public_key(self) -> PublicKey:
+        """Load TH Reader issuer public key from test parameters.
+        When testing a UserDevice, the TH will be the Reader. Keys for this reader
+        will be configurable in test_parameters of project configuration.
+
+        Returns:
+            PublicKey: Reader issuer public key for TH reader.
+        """
+        logger.info(
+            "Loading Reader issuer public key for Test Harness use on simulated Reader."
+        )
+
+        # Public Key
+        logger.info(f"Loading public key from '{self.READER_ISSUER_PUBLIC_KEY_KEY}'")
+        reader_public_key = self.public_key_from_config(
+            self.READER_ISSUER_PUBLIC_KEY_KEY
+        )
+        logger.info(
+            f"TH Using Reader Issuer Public Key(hex): \n"
+            f"{reader_public_key.as_bytes().hex()}"
+        )
+        logger.info(
+            f"TH Using Reader Issuer Public Key(pem): \n{reader_public_key.as_pem()}"
+        )
+
+        return reader_public_key
