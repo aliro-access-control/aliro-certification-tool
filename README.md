@@ -422,3 +422,19 @@ Test Harness backend logs can be streamed using this command:
 ```sh
 docker restart aliro-certification-tool_backend_1
 ```
+
+## Step-up provisioning
+For the step-up phase we have three components:
+- Access Document
+- Device Request
+- Device Response
+
+Based on the `Device Request` a `Device Response` is constructed from the `Access Document`.
+In order for a test setup to be validate for the step-up we need to first have inside the DUT the correct `Access Document`.
+
+For this purpose we have create a provision script that can be run to get the components used inside the certification test, to be able to load the correct `Access Document` in the DUT.
+
+This script is located at this location:
+```
+test_collections\aliro\support\access_doc\step-up\step_up_provision.py
+```
