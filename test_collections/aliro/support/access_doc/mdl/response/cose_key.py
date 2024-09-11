@@ -184,9 +184,12 @@ class COSE_Key(object):
         self.__x = cose_key_dict[COSE_Key.X_COORDINATE_LABEL]
 
         y = cose_key_dict[COSE_Key.Y_COORDINATE_LABEL]
-        if (len(y) > 0):
-            self.__y = y
-        else:
+        if isinstance(y, (bytes, bytearray)):
+            self.__y = bytearray(y)
+        elif isinstance(y, bool):
+            self.__y = bytearray()
             self.__y_sign = bool(y)
+        else:
+            return False
 
         return self.is_valid()

@@ -98,8 +98,10 @@ class DeviceKeyInfo(object):
         if (not isinstance(device_key_info_dict, dict)):
             return False
 
-        self.__device_key.from_dict(device_key_info_dict.get(DeviceKeyInfo.DEVICE_KEY_LABEL))
-        self.__key_info.from_dict(device_key_info_dict.get(DeviceKeyInfo.KEY_INFO_LABEL))
+        if not self.__device_key.from_dict(device_key_info_dict.get(DeviceKeyInfo.DEVICE_KEY_LABEL)):
+            return False
+        if not self.__key_info.from_dict(device_key_info_dict.get(DeviceKeyInfo.KEY_INFO_LABEL)):
+            return False
 
         return self.is_valid()
 
@@ -113,6 +115,6 @@ class DeviceKeyInfo(object):
 
     ############################################################################
     def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
-        '''Parse CBOR to populate the Document.'''
+        '''Parse CBOR to populate the DeviceKeyInfo.'''
         assert(isinstance(cbor_data, (bytes, bytearray)))
         return self.from_dict(cbor2.loads(cbor_data))

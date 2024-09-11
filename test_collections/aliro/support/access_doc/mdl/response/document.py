@@ -117,7 +117,7 @@ class Document(object):
         # Get the document type from the given dictionary.
         doc_type = document_dict.get(Document.DOC_TYPE_LABEL)
 
-        self.issuer_signed_dict = document_dict.get(Document.ISSUER_SIGNED_LABEL)
+        issuer_signed_dict = document_dict.get(Document.ISSUER_SIGNED_LABEL)
 
         # Decode the document type.
         if (doc_type is None) or (not isinstance(doc_type, str)):
@@ -126,7 +126,7 @@ class Document(object):
 
         # Decode the issuer signed.
         issuer_signed = IssuerSigned()
-        if (not issuer_signed.from_dict(self.issuer_signed_dict)):
+        if (not issuer_signed.from_dict(issuer_signed_dict)):
             return False
         self.__issuer_signed = issuer_signed
 
@@ -147,7 +147,7 @@ class Document(object):
         return self.from_dict(cbor2.loads(cbor_data))
 
     ############################################################################
-    def check_signature(self, issuer_private_key):
+    def check_signature(self, issuer_private_key) -> bool:
         mso = MobileSecurityObject()
         if not mso.from_cbor(cbor2.loads(self.issuer_signed.issuer_auth.payload).value):
             print("Mobile security object is invalid.")
@@ -186,3 +186,5 @@ class Document(object):
         if (self.issuer_signed.issuer_auth.key_id != h.digest()[0:8]):
             print("Issuer public key id is invalid.")
             return False
+
+        return True
