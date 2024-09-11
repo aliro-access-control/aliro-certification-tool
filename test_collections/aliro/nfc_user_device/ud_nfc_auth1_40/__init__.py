@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .ud_nfc_auth1_10 import UD_NFC_AUTH1_10
+from .ud_nfc_auth1_40 import UD_NFC_AUTH1_40

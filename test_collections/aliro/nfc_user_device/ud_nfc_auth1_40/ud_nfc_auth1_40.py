@@ -86,10 +86,11 @@ class UD_NFC_AUTH1_40(AliroUserDeviceTestCase, UserPromptSupport):
     async def execute(self) -> None:
         # Test step 1
         # Done in setup
-        prompt = "Add reader_group_identifier: {}".format(hexlify(self.group_id))
-        prompt += "Add reader_group_identifier_key: {}".format(
-            hexlify(self.reader_issuer_public_key)
+        prompt = "Add reader_group_identifier: {}\n".format(hexlify(self.group_id))
+        prompt += "with reader_group_identifier_key: \n{}\n".format(
+            hexlify(self.reader_issuer_public_key.as_bytes())
         )
+        prompt += "to the Access Credential of the user device\n"
         await self.send_prompt_request(
             OptionsSelectPromptRequest(prompt=prompt, options={"OK": 1})
         )
