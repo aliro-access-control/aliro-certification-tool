@@ -57,8 +57,7 @@ class UD_NFC_AUTH1_11(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step2: Set to polling mode"),
             TestStep("Step3: Transaction initiation"),
             TestStep("Step4: Send/Receive AUTH0 command/response"),
-            TestStep("Step5: Send/Receive LOAD_CERT command/response"),
-            TestStep("Step6: Send/Receive AUTH1 command/response"),
+            TestStep("Step5: Send/Receive AUTH1 command/response"),
         ]
 
     async def setup(self) -> None:
@@ -148,25 +147,22 @@ class UD_NFC_AUTH1_11(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 5
-        try:
-            compressed_cert = bytearray(self.reader.reader_cert.encode_compressed())
-            logger.debug("compressed cert: {!r}".format(hexlify(compressed_cert)))
-            compressed_cert[6] = 0xFF
-            compressed_cert[5] = 0xFF
-            logger.debug(
-                "compressed cert with encoding error: {!r}".format(
-                    hexlify(compressed_cert)
-                )
-            )
-            await self.reader.command_load_cert(bytes(compressed_cert))
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        self.next_step()
+        compressed_cert = bytearray(self.reader.reader_cert.encode_compressed())
+        logger.debug("compressed cert: {!r}".format(hexlify(compressed_cert)))
+        compressed_cert[6] = 0xFF
+        compressed_cert[5] = 0xFF
 
-        # Test step 6
         try:
-            await self.reader.handle_auth1(expected_response=Auth1Response.KEY_SLOT)
+            self.reader.create_shared_keys()
+            await self.reader.command_auth1(
+                expected_response=Auth1Response.KEY_SLOT,
+                reader_identifier=self.reader.reader_identifier,
+                credential_epubk=self.reader.session.credential_ephemeral_key,
+                reader_epubk=self.reader.session.get_reader_epubkey(),
+                transaction_identifier=self.reader.session.transaction_identifier,
+                encryption=self.reader.session.encryption_expedited,
+                certificate_data=compressed_cert,
+            )
         except InvalidStatusError as error:
             logger.info(
                 "Error status returned: 0x{:04x}, as expected".format(error.status)
