@@ -149,7 +149,7 @@ class UD_NFC_AUTH1_32(AliroUserDeviceTestCase, UserPromptSupport):
         # Test step 5
         try:
             await self.reader.handle_auth1(
-                expected_response=Auth1Response.ENDPOINT_PUBLIC_KEY, certificate=True
+                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY, certificate=True
             )
         except InvalidStatusError as error:
             logger.info(

@@ -146,7 +146,7 @@ class UD_NFC_AUTH1_30(AliroUserDeviceTestCase, UserPromptSupport):
         # Test step 5
         try:
             await self.reader.handle_auth1(
-                expected_response=Auth1Response.ENDPOINT_PUBLIC_KEY, certificate=True
+                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY, certificate=True
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))

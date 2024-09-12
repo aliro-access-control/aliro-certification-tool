@@ -153,7 +153,7 @@ class UD_NFC_AUTH1_31(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             self.reader.create_shared_keys()
             await self.reader.command_auth1(
-                expected_response=Auth1Response.ENDPOINT_PUBLIC_KEY,
+                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY,
                 reader_identifier=self.reader.reader_identifier,
                 credential_epubk=self.reader.session.credential_ephemeral_key,
                 reader_epubk=self.reader.session.get_reader_epubkey(),
