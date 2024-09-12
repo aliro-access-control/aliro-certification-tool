@@ -95,7 +95,6 @@ class UD_NFC_AUTH1_40(AliroUserDeviceTestCase, UserPromptSupport):
         self.reader = Reader(
             transport_protocol=TransportProtocol.NFC,
             reader_group_identifier=self.group_id,
-            reader_group_sub_identifier=sub_group_id,
             reader_key=key,
             reader_cert=cert,
             transaction_identifier_list=[self.transaction_identifier],
