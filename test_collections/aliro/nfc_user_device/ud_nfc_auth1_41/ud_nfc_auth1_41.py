@@ -146,10 +146,15 @@ class UD_NFC_AUTH1_41(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 5
         try:
-            compressed_cert = self.reader.reader_cert.encode_compressed()
+            compressed_cert = bytearray(self.reader.reader_cert.encode_compressed())
             logger.debug("compressed cert: {!r}".format(hexlify(compressed_cert)))
             compressed_cert[0] -= 1
-            await self.reader.command_load_cert(compressed_cert)
+            logger.debug(
+                "compressed cert with encoding error: {!r}".format(
+                    hexlify(compressed_cert)
+                )
+            )
+            await self.reader.command_load_cert(bytes(compressed_cert))
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
