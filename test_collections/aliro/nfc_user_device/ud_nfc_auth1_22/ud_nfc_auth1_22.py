@@ -102,7 +102,7 @@ class UD_NFC_AUTH1_22(AliroUserDeviceTestCase, UserPromptSupport):
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
             reader_system_issuer_ca=self.reader_issuer_public_key,
-            key_slot_list=endpoint_key,
+            key_slot_list=[endpoint_key],
         )
 
     @log_errors
