@@ -24,11 +24,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_NFC_AUTH1_40(AliroUserDeviceTestCase, UserPromptSupport):
+class UD_NFC_AUTH1_41(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-NFC-AUTH1-4.0",
+        "public_id": "UD-NFC-AUTH1-4.1",
         "version": "0.0.1",
-        "title": "UD-NFC-AUTH1-4.0",
+        "title": "UD-NFC-AUTH1-4.1",
         "description": """Verify conformance of User Device UT in AUTH1 command.""",
     }
 
@@ -61,7 +61,7 @@ class UD_NFC_AUTH1_40(AliroUserDeviceTestCase, UserPromptSupport):
         ]
 
     async def setup(self) -> None:
-        logger.info("UD_NFC_AUTH1_40 setup")
+        logger.info("UD_NFC_AUTH1_41 setup")
         self.group_id = bytes.fromhex("00113344667799AA00113344667799AA")
         key = KeyPair(
             bytes.fromhex(
@@ -95,7 +95,6 @@ class UD_NFC_AUTH1_40(AliroUserDeviceTestCase, UserPromptSupport):
         self.reader = Reader(
             transport_protocol=TransportProtocol.NFC,
             reader_group_identifier=self.group_id,
-            reader_group_sub_identifier=sub_group_id,
             reader_key=key,
             reader_cert=cert,
             transaction_identifier_list=[self.transaction_identifier],
@@ -164,5 +163,5 @@ class UD_NFC_AUTH1_40(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_NFC_AUTH1_40 Cleanup")
+        logger.info("UD_NFC_AUTH1_41 Cleanup")
         await self.reader.transaction_termination()
