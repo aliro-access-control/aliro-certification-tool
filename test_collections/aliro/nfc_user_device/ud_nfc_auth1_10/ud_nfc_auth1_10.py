@@ -13,7 +13,6 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
-    InvalidStatusError,
 )
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.certificate import Certificate
@@ -25,11 +24,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_NFC_AUTH1_21(AliroUserDeviceTestCase, UserPromptSupport):
+class UD_NFC_AUTH1_10(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-NFC-AUTH1-2.1",
+        "public_id": "UD-NFC-AUTH1-1.0",
         "version": "0.0.1",
-        "title": "UD-NFC-AUTH1-2.1",
+        "title": "UD-NFC-AUTH1-1.0",
         "description": """Verify conformance of User Device UT in AUTH1 command.""",
     }
 
@@ -57,12 +56,11 @@ class UD_NFC_AUTH1_21(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step2: Set to polling mode"),
             TestStep("Step3: Transaction initiation"),
             TestStep("Step4: Send/Receive AUTH0 command/response"),
-            TestStep("Step5: Send/Receive LOAD_CERT command/response"),
-            TestStep("Step6: Send/Receive AUTH1 command/response"),
+            TestStep("Step5: Send/Receive AUTH1 command/response"),
         ]
 
     async def setup(self) -> None:
-        logger.info("UD_NFC_AUTH1_21 setup")
+        logger.info("UD_NFC_AUTH1_10 setup")
         self.group_id = bytes.fromhex("00113344667799AA00113344667799AA")
         key = KeyPair(
             bytes.fromhex(
@@ -91,7 +89,6 @@ class UD_NFC_AUTH1_21(AliroUserDeviceTestCase, UserPromptSupport):
                 "291192157a95cb6eb202759428c00cd834998c5d0eab192ee8873c5d34ee"
             )
         )
-        endpoint_key = self.th_access_credential_public_key()
 
         # Initialize Aliro NFC Reader
         self.reader = Reader(
@@ -102,7 +99,6 @@ class UD_NFC_AUTH1_21(AliroUserDeviceTestCase, UserPromptSupport):
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
             reader_system_issuer_ca=self.reader_issuer_public_key,
-            key_slot_list=endpoint_key,
         )
 
     @log_errors
@@ -149,37 +145,14 @@ class UD_NFC_AUTH1_21(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 5
         try:
-            compressed_cert = bytearray(self.reader.reader_cert.encode_compressed())
-            logger.debug("compressed cert: {!r}".format(hexlify(compressed_cert)))
-            compressed_cert[6] = 0xFF
-            compressed_cert[5] = 0xFF
-            logger.debug(
-                "compressed cert with encoding error: {!r}".format(
-                    hexlify(compressed_cert)
-                )
+            await self.reader.handle_auth1(
+                expected_response=Auth1Response.KEY_SLOT, certificate=True
             )
-            await self.reader.command_load_cert(bytes(compressed_cert))
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
-            return
-        self.next_step()
-
-        # Test step 6
-        try:
-            await self.reader.handle_auth1(expected_response=Auth1Response.KEY_SLOT)
-        except InvalidStatusError as error:
-            logger.info(
-                "Error status returned: 0x{:04x}, as expected".format(error.status)
-            )
-            pass
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        else:
-            self.mark_step_failure("No error status returned")
             return
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_NFC_AUTH1_21 Cleanup")
+        logger.info("UD_NFC_AUTH1_10 Cleanup")
         await self.reader.transaction_termination()
