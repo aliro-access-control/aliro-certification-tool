@@ -13,6 +13,7 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
+    InvalidStatusError,
 )
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.certificate import Certificate
@@ -157,8 +158,16 @@ class UD_NFC_AUTH1_42(AliroUserDeviceTestCase, UserPromptSupport):
             await self.reader.handle_auth1(
                 expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
             )
+        except InvalidStatusError as error:
+            logger.info(
+                "Error status returned: 0x{:04x}, as expected".format(error.status)
+            )
+            pass
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
+            return
+        else:
+            self.mark_step_failure("No error status returned")
             return
         self.next_step()
 
