@@ -148,7 +148,8 @@ class UD_NFC_AUTH1_41(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             compressed_cert = bytearray(self.reader.reader_cert.encode_compressed())
             logger.debug("compressed cert: {!r}".format(hexlify(compressed_cert)))
-            compressed_cert[0] -= 1
+            compressed_cert[6] = 0xFF
+            compressed_cert[5] = 0xFF
             logger.debug(
                 "compressed cert with encoding error: {!r}".format(
                     hexlify(compressed_cert)
