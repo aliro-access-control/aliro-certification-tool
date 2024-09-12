@@ -25,11 +25,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_NFC_AUTH1_11(AliroUserDeviceTestCase, UserPromptSupport):
+class UD_NFC_AUTH1_31(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-NFC-AUTH1-1.1",
+        "public_id": "UD-NFC-AUTH1-3.1",
         "version": "0.0.1",
-        "title": "UD-NFC-AUTH1-1.1",
+        "title": "UD-NFC-AUTH1-3.1",
         "description": """Verify conformance of User Device UT in AUTH1 command.""",
     }
 
@@ -61,7 +61,7 @@ class UD_NFC_AUTH1_11(AliroUserDeviceTestCase, UserPromptSupport):
         ]
 
     async def setup(self) -> None:
-        logger.info("UD_NFC_AUTH1_11 setup")
+        logger.info("UD_NFC_AUTH1_31 setup")
         self.group_id = bytes.fromhex("00113344667799AA00113344667799AA")
         key = KeyPair(
             bytes.fromhex(
@@ -90,7 +90,6 @@ class UD_NFC_AUTH1_11(AliroUserDeviceTestCase, UserPromptSupport):
                 "291192157a95cb6eb202759428c00cd834998c5d0eab192ee8873c5d34ee"
             )
         )
-        endpoint_key = self.th_access_credential_public_key()
 
         # Initialize Aliro NFC Reader
         self.reader = Reader(
@@ -101,7 +100,6 @@ class UD_NFC_AUTH1_11(AliroUserDeviceTestCase, UserPromptSupport):
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
             reader_system_issuer_ca=self.reader_issuer_public_key,
-            key_slot_list=[endpoint_key],
         )
 
     @log_errors
@@ -155,7 +153,7 @@ class UD_NFC_AUTH1_11(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             self.reader.create_shared_keys()
             await self.reader.command_auth1(
-                expected_response=Auth1Response.KEY_SLOT,
+                expected_response=Auth1Response.ENDPOINT_PUBLIC_KEY,
                 reader_identifier=self.reader.reader_identifier,
                 credential_epubk=self.reader.session.credential_ephemeral_key,
                 reader_epubk=self.reader.session.get_reader_epubkey(),
@@ -177,5 +175,5 @@ class UD_NFC_AUTH1_11(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_NFC_AUTH1_11 Cleanup")
+        logger.info("UD_NFC_AUTH1_31 Cleanup")
         await self.reader.transaction_termination()
