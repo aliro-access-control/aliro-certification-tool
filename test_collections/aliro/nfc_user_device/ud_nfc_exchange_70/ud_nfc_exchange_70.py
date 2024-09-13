@@ -21,11 +21,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_NFC_EXCHANGE_10(AliroUserDeviceTestCase, UserPromptSupport):
+class UD_NFC_EXCHANGE_70(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-NFC-EXCHANGE-1.0",
+        "public_id": "UD-NFC-EXCHANGE-7.0",
         "version": "0.0.1",
-        "title": "UD-NFC-EXCHANGE-1.0",
+        "title": "UD-NFC-EXCHANGE-7.0",
         "description": """Verify conformance of User Device UT in EXCHANGE command.""",
     }
 
@@ -58,7 +58,7 @@ class UD_NFC_EXCHANGE_10(AliroUserDeviceTestCase, UserPromptSupport):
         ]
 
     async def setup(self) -> None:
-        logger.info("This is a test case setup")
+        logger.info("UD_NFC_EXCHANGE_70 setup")
         # load parameters from project config
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
@@ -116,18 +116,20 @@ class UD_NFC_EXCHANGE_10(AliroUserDeviceTestCase, UserPromptSupport):
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
+        bitmap_1 = self.reader.session.signaling_bitmap[0]
+        if not (bitmap_1 & (1 << 5) == (1 << 5)):
+            self.mark_step_failure("Auth1 response indicates mailbox cannot be written")
+            return
         self.next_step()
 
         # Test step 6
         try:
-            await self.reader.handle_exchange(
-                False, reader_status=ReaderStatus.PUBLIC_KEY_NOT_FOUND
-            )
+            await self.reader.handle_exchange(False, set_requests=[(0x00, 0x08, 0xFF)])
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_NFC_EXCHANGE_10 Cleanup")
+        logger.info("UD_NFC_EXCHANGE_70 Cleanup")
         await self.reader.transaction_termination()
