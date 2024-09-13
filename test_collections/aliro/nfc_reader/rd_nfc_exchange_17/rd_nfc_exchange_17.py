@@ -132,7 +132,7 @@ class RD_NFC_EXCHANGE_17(AliroReaderTestCase, UserPromptSupport):
                 logger.info("Creating shared keys")
                 self.userdevice.session.set_shared_key()
                 self.userdevice.session.derive_key_volatile(
-                    self.transport_protocol_type
+                    self.userdevice.transport_protocol_type
                 )
 
                 logger.info("Creating Kpersistent")
