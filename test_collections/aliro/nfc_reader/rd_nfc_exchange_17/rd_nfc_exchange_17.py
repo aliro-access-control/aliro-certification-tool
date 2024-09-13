@@ -1,4 +1,10 @@
-from aliro_actuator.access_protocol.apdu import INS
+from binascii import hexlify
+
+from aliro_actuator.access_protocol.apdu import INS, ReaderStatus, StatusBytes
+from aliro_actuator.access_protocol.authentication import (
+    create_reader_authentication,
+    create_user_device_authentication,
+)
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
@@ -8,6 +14,7 @@ from aliro_actuator.access_protocol.errors import (
     InvalidCommandError,
 )
 from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
+from aliro_actuator.trust_framework.errors import KeyLookupFailed
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
@@ -16,11 +23,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class RD_NFC_EXCHANGE_10(AliroReaderTestCase, UserPromptSupport):
+class RD_NFC_EXCHANGE_17(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-EXCHANGE-1.0",
+        "public_id": "RD-NFC-EXCHANGE-1.7",
         "version": "0.0.1",
-        "title": "RD-NFC-EXCHANGE-1.0",
+        "title": "RD-NFC-EXCHANGE-1.7",
         "description": """Verify conformance of Reader UT in EXCHANGE command.""",
     }
 
@@ -52,7 +59,7 @@ class RD_NFC_EXCHANGE_10(AliroReaderTestCase, UserPromptSupport):
         ]
 
     async def setup(self) -> None:
-        logger.info("This is a test case setup")
+        logger.info("RD_NFC_EXCHANGE_1.7 setup")
         access_credential = self.reader_access_credential()
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,
@@ -117,40 +124,86 @@ class RD_NFC_EXCHANGE_10(AliroReaderTestCase, UserPromptSupport):
             self.mark_step_failure(str(error))
             return
         try:
-            await self.userdevice.handle_auth1(cmds_auth1)
+            await self.userdevice.check_reader_authentication_data(
+                cmds_auth1.reader_signature
+            )
+
+            try:
+                logger.info("Creating shared keys")
+                self.userdevice.session.set_shared_key()
+                self.userdevice.session.derive_key_volatile(
+                    self.userdevice.transport_protocol_type
+                )
+
+                logger.info("Creating Kpersistent")
+                self.userdevice.storage.add_kpersistent(
+                    kpersistent=self.userdevice.session.derive_key_persistent(
+                        self.userdevice.transport_protocol_type
+                    ),
+                    reader_group_sub_id=self.userdevice.session.reader_group_sub_identifier,
+                )
+            except KeyLookupFailed as error:
+                # could not find reader public key
+                await self.failure_process(StatusBytes.GENERIC_ERROR)
+                raise error
+
+            logger.info("Creating user device authentication")
+            device_authentication = create_user_device_authentication(
+                self.userdevice.session.reader_identifier,
+                self.userdevice.session.get_credential_epubkey(),
+                self.userdevice.session.reader_epubk,
+                self.userdevice.session.transaction_identifier,
+            )
+            signature = self.userdevice.session.access_credential.sign(
+                device_authentication.to_bytes()
+            )
+            logger.debug(
+                "Created user device authentication_data signature: {!r}".format(
+                    hexlify(signature)
+                )
+            )
+
+            await self.userdevice.response_auth1(
+                None,
+                None,
+                cmds_auth1.expected_response,
+                signature,
+                self.userdevice.session.encryption_expedited,
+                StatusBytes.SUCCESS,
+                signaling_bitmap=self.userdevice.get_signaling_bitmap(),
+                check_validity=False,
+            )
         except AccessProtocolError as error:
             self.mark_step_failure(str(error))
             return
         self.next_step()
 
         # Test step 6
-        while True:
-            try:
-                cmds_exchange = await self.userdevice.wait_for_command()
-            except InvalidCommandError as error:
-                self.mark_step_failure(str(error))
-                return
+        try:
+            cmds_exchange = await self.userdevice.wait_for_command()
+        except InvalidCommandError as error:
+            self.mark_step_failure(str(error))
+            return
 
-            if cmds_exchange.ins == INS.EXCHANGE:
-                try:
-                    await self.userdevice.handle_exchange(cmds_exchange)
-                except AccessProtocolError as error:
-                    self.mark_step_failure(str(error))
-                    return
-                if self.userdevice.session.state_valid(
-                    UserSessionState.TRANSACTION_COMPLETE
-                ):
-                    break
-                # re-enter loop waiting for control flow
-            else:
-                self.mark_step_failure(f"Unexpected command {cmds_exchange.ins}")
-                return
+        try:
+            await self.userdevice.handle_exchange(cmds_exchange)
+        except AccessProtocolError as error:
+            self.mark_step_failure(str(error))
+            return
+
         logger.info(
             "Received EXCHANGE command with reader status: 0x{:04x}".format(
                 cmds_exchange.reader_status.value
             )
         )
+        if cmds_exchange.reader_status != ReaderStatus.NO_PUBLIC_KEY_IN_RESPONSE:
+            self.mark_step_failure(
+                "Expected 'no public key in response', but received {}".format(
+                    cmds_exchange.reader_status.name
+                )
+            )
+            return
 
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_EXCHANGE_1.0 Cleanup")
+        logger.info("RD_NFC_EXCHANGE_1.7 Cleanup")
         await self.userdevice.transaction_termination()
