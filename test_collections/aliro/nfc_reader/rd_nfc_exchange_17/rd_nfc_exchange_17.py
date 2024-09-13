@@ -1,6 +1,6 @@
 from binascii import hexlify
 
-from aliro_actuator.access_protocol.apdu import INS, StatusBytes
+from aliro_actuator.access_protocol.apdu import INS, ReaderStatus, StatusBytes
 from aliro_actuator.access_protocol.authentication import (
     create_reader_authentication,
     create_user_device_authentication,
@@ -12,9 +12,9 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidCommandError,
-    KeyLookupFailed,
 )
 from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
+from aliro_actuator.trust_framework.errors import KeyLookupFailed
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
@@ -179,32 +179,30 @@ class RD_NFC_EXCHANGE_17(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 6
-        while True:
-            try:
-                cmds_exchange = await self.userdevice.wait_for_command()
-            except InvalidCommandError as error:
-                self.mark_step_failure(str(error))
-                return
+        try:
+            cmds_exchange = await self.userdevice.wait_for_command()
+        except InvalidCommandError as error:
+            self.mark_step_failure(str(error))
+            return
 
-            if cmds_exchange.ins == INS.EXCHANGE:
-                try:
-                    await self.userdevice.handle_exchange(cmds_exchange)
-                except AccessProtocolError as error:
-                    self.mark_step_failure(str(error))
-                    return
-                if self.userdevice.session.state_valid(
-                    UserSessionState.TRANSACTION_COMPLETE
-                ):
-                    break
-                # re-enter loop waiting for control flow
-            else:
-                self.mark_step_failure(f"Unexpected command {cmds_exchange.ins}")
-                return
+        try:
+            await self.userdevice.handle_exchange(cmds_exchange)
+        except AccessProtocolError as error:
+            self.mark_step_failure(str(error))
+            return
+
         logger.info(
             "Received EXCHANGE command with reader status: 0x{:04x}".format(
                 cmds_exchange.reader_status.value
             )
         )
+        if cmds_exchange.reader_status != ReaderStatus.NO_PUBLIC_KEY_IN_RESPONSE:
+            self.mark_step_failure(
+                "Expected 'no public key in response', but received {}".format(
+                    cmds_exchange.reader_status.name
+                )
+            )
+            return
 
     async def cleanup(self) -> None:
         logger.info("RD_NFC_EXCHANGE_1.7 Cleanup")
