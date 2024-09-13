@@ -231,12 +231,14 @@ class MobileSecurityObject(object):
         value_digests = mobile_security_object_dict.get(MobileSecurityObject.VALUE_DIGESTS_LABEL)   
         if (value_digests is None) or (not isinstance(value_digests, dict)):
             return False 
-        self.__value_digests.from_dict(value_digests)
+        if not self.__value_digests.from_dict(value_digests):
+            return False
 
         device_key_info = mobile_security_object_dict.get(MobileSecurityObject.DEVICE_KEY_INFO_LABEL)
         if (device_key_info is None) or (not isinstance(device_key_info, dict)):
             return False
-        self.__device_key_info.from_dict(device_key_info)
+        if not self.__device_key_info.from_dict(device_key_info):
+            return False
 
         doc_type = str(mobile_security_object_dict.get(MobileSecurityObject.DOC_TYPE_LABEL))
         if (doc_type is None) or (not isinstance(doc_type, str)):
@@ -246,7 +248,8 @@ class MobileSecurityObject(object):
         validity_info = mobile_security_object_dict.get(MobileSecurityObject.VALIDITY_INFO_LABEL)
         if (validity_info is None) or (not isinstance(validity_info, dict)):
             return False
-        self.__validity_info.from_dict(validity_info)
+        if not self.__validity_info.from_dict(validity_info):
+            return False
 
         self.__time_verification_required = mobile_security_object_dict.get(MobileSecurityObject.TIME_VERIFICATION_REQUIRED_LABEL)
 
@@ -262,6 +265,6 @@ class MobileSecurityObject(object):
 
     ############################################################################
     def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
-        '''Parse CBOR to populate the Document.'''
+        '''Parse CBOR to populate the MobileSecurityObject.'''
         assert(isinstance(cbor_data, (bytes, bytearray)))
         return self.from_dict(cbor2.loads(cbor_data))  
