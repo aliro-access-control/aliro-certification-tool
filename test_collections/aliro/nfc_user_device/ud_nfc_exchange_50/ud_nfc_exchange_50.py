@@ -116,8 +116,8 @@ class UD_NFC_EXCHANGE_50(AliroUserDeviceTestCase, UserPromptSupport):
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
-        bitmap = self.reader.session.signaling_bitmap
-        if not (bitmap & (1 << 4) == (1 << 4)):
+        bitmap_1 = self.reader.session.signaling_bitmap[0]
+        if not (bitmap_1 & (1 << 4) == (1 << 4)):
             self.mark_step_failure("Auth1 response indicates mailbox cannot be read")
             return
         self.next_step()
