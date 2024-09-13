@@ -154,7 +154,7 @@ class RD_NFC_EXCHANGE_17(AliroReaderTestCase, UserPromptSupport):
                 self.userdevice.session.reader_epubk,
                 self.userdevice.session.transaction_identifier,
             )
-            signature = self.session.access_credential.sign(
+            signature = self.userdevice.session.access_credential.sign(
                 device_authentication.to_bytes()
             )
             logger.debug(
