@@ -170,3 +170,26 @@ class COSE_Key(object):
             cose_key_dict[COSE_Key.Y_COORDINATE_LABEL] = bool(self.__y_sign)
 
         return cose_key_dict
+
+    ############################################################################
+    def from_dict(self, cose_key_dict: dict) -> bool:
+        '''Parse a dictionary to populate the Cose_key.'''
+
+        # Verify input parameters.
+        if (not isinstance(cose_key_dict, dict)):
+            return False
+
+        self.__key_type = cose_key_dict[COSE_Key.KEY_TYPE_LABEL]
+        self.__curve_type = cose_key_dict[COSE_Key.CURVE_TYPE_LABEL]
+        self.__x = cose_key_dict[COSE_Key.X_COORDINATE_LABEL]
+
+        y = cose_key_dict[COSE_Key.Y_COORDINATE_LABEL]
+        if isinstance(y, (bytes, bytearray)):
+            self.__y = bytearray(y)
+        elif isinstance(y, bool):
+            self.__y = bytearray()
+            self.__y_sign = bool(y)
+        else:
+            return False
+
+        return self.is_valid()

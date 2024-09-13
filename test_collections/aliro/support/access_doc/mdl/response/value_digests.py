@@ -60,9 +60,23 @@ class ValueDigests(object):
         return copy.deepcopy(self.__data)
 
     ############################################################################
+    def from_dict(self, copy_dict: dict) -> bool:
+        '''Convert the dictionary to ValueDigests.'''
+        if (copy_dict is not None):
+            self.__data = copy.deepcopy(copy_dict)
+
+        return self.is_valid()
+
+    ############################################################################
     def to_cbor(self) -> bytes:
         '''Convert the ValueDigests to CBOR.'''
         value_digests_dict = self.to_dict()
         if value_digests_dict is None:
             return None
         return cbor2.dumps(value_digests_dict)
+
+    ############################################################################
+    def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
+        '''Parse CBOR to populate the ValueDigests.'''
+        assert(isinstance(cbor_data, (bytes, bytearray)))
+        return self.from_dict(cbor2.loads(cbor_data))
