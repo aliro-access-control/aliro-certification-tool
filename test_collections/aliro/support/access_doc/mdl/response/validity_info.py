@@ -135,9 +135,14 @@ class ValidityInfo(object):
         if (len(self.__valid_until) != 20):
             return False
 
-        # The Expected Update field is optional.
-        # if (self.__expected_update is not None) and (not isinstance(self.__expected_update, str) and (len(self.__expected_update) != 20)):
-        #     return False
+        # The Expected Update field is an optional CBOR tdate string.
+        if (self.__expected_update is not None):
+            # Verify the Expected Update is of type string.
+            if (not isinstance(self.__expected_update, str)):
+                return False
+            # Verify the Expected Update is an empty string or has a length of twenty "YYYY-mm-ddTHH:MM:SSZ".
+            if (not ((len(self.__expected_update) == 0) or (len(self.__expected_update) == 20))):
+                return False
 
         # The Validity Iteration field is optional.
         if (not isinstance(self.__validity_iteration, int)):
@@ -179,24 +184,24 @@ class ValidityInfo(object):
         if (signed is None) or (not isinstance(signed, datetime.datetime)):
             return False
         signed = signed.replace(tzinfo=None)
-        self.__signed = f"{signed.isoformat(timespec='seconds')}Z"
+        self.__signed = Utility.time_val_to_tdate(signed)
 
         valid_from = validity_info_dict.get(ValidityInfo.VALID_FROM_LABEL)
         if (valid_from is None) or (not isinstance(valid_from, datetime.datetime)):
             return False
         valid_from = valid_from.replace(tzinfo=None)
-        self.__valid_from = f"{valid_from.isoformat(timespec='seconds')}Z"
+        self.__valid_from = Utility.time_val_to_tdate(valid_from)
 
         valid_until = validity_info_dict.get(ValidityInfo.VALID_UNTIL_LABEL)
         if (valid_until is None) or (not isinstance(valid_until, datetime.datetime)):
             return False
         valid_until = valid_until.replace(tzinfo=None)
-        self.__valid_until = f"{valid_until.isoformat(timespec='seconds')}Z"
+        self.__valid_until = Utility.time_val_to_tdate(valid_until)
 
         expected_update = validity_info_dict.get(ValidityInfo.EXPECTED_UPDATED_LABEL)
         if ((expected_update is not None) and isinstance(expected_update, datetime.datetime)):
             expected_update = expected_update.replace(tzinfo=None)
-            self.__expected_update = f"{expected_update.isoformat(timespec='seconds')}Z"
+            self.__expected_update = Utility.time_val_to_tdate(expected_update)
 
         validity_iteration = validity_info_dict.get(ValidityInfo.VALIDITY_ITERATION_LABEL)
         if ((validity_iteration is not None) and validity_iteration >= 0):
