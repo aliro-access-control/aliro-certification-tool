@@ -191,7 +191,7 @@ class COSE_Sign1(object):
         # Decode Payload.
         if (payload is None) or (not isinstance(payload, (bytes, bytearray))):
             return False
-        self.__payload = payload
+        self.__payload = bytearray(payload)
 
         # Decode Signature.
         if (signature is None) or (not isinstance(signature, (bytes, bytearray))):
