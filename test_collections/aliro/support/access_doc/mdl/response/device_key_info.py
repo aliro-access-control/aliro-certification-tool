@@ -91,9 +91,30 @@ class DeviceKeyInfo(object):
         return device_key_info_dict
 
     ############################################################################
+    def from_dict(self, device_key_info_dict: dict) -> bool:
+        '''Parse a dictionary to populate the DeviceKeyInfo.'''
+
+        # Verify input parameters.
+        if (not isinstance(device_key_info_dict, dict)):
+            return False
+
+        if not self.__device_key.from_dict(device_key_info_dict.get(DeviceKeyInfo.DEVICE_KEY_LABEL)):
+            return False
+        if not self.__key_info.from_dict(device_key_info_dict.get(DeviceKeyInfo.KEY_INFO_LABEL)):
+            return False
+
+        return self.is_valid()
+
+    ############################################################################
     def to_cbor(self) -> bytes:
         '''Convert the DeviceKeyInfo to CBOR.'''
         device_key_info_dict = self.to_dict()
         if device_key_info_dict is None:
             return None
         return cbor2.dumps(device_key_info_dict)
+
+    ############################################################################
+    def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
+        '''Parse CBOR to populate the DeviceKeyInfo.'''
+        assert(isinstance(cbor_data, (bytes, bytearray)))
+        return self.from_dict(cbor2.loads(cbor_data))

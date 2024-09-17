@@ -15,10 +15,25 @@
 #
 
 import cbor2
+import hashlib
 
 from .issuer_signed import IssuerSigned
 
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.asymmetric import utils
+from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
+from cryptography.hazmat.primitives.serialization import Encoding
+from cryptography.hazmat.primitives.serialization import (
+    load_der_private_key,
+    load_der_public_key,
+)
+from cryptography.hazmat.primitives.serialization import PublicFormat
+from cryptography.exceptions import InvalidSignature
+
 from mdl.common.doc_types import DocTypes
+from mdl.response.mobile_security_object import MobileSecurityObject
+from mdl.response.sig_structure import Sig_structure
 
 ################################################################################
 class Document(object):
@@ -130,3 +145,46 @@ class Document(object):
         '''Parse CBOR to populate the Document.'''
         assert(isinstance(cbor_data, (bytes, bytearray)))
         return self.from_dict(cbor2.loads(cbor_data))
+
+    ############################################################################
+    def check_signature(self, issuer_private_key) -> bool:
+        mso = MobileSecurityObject()
+        if not mso.from_cbor(cbor2.loads(self.issuer_signed.issuer_auth.payload).value):
+            print("Mobile security object is invalid.")
+            return False
+
+        if (len(issuer_private_key) == 32):
+            # Convert the raw issuer private key to a signing object.
+            pk = ec.derive_private_key(int.from_bytes(issuer_private_key, byteorder='big'), ec.SECP256R1())
+        else:
+            # Convert the DER encoded issuer private key to a signing object.
+            pk = load_der_private_key(issuer_private_key, password=None)
+
+        # Sign the payload.
+        sig_structure = Sig_structure()
+        sig_structure.body_protected = self.issuer_signed.issuer_auth.protected
+        sig_structure.payload = self.issuer_signed.issuer_auth.payload
+        signed_data = sig_structure.to_cbor()
+
+        public_key = pk.public_key()
+        sig = self.issuer_signed.issuer_auth.signature
+        r = int.from_bytes(sig[:32], byteorder='big')
+        s = int.from_bytes(sig[32:], byteorder='big')
+        signature = utils.encode_dss_signature(r, s)
+        try:
+            public_key.verify(signature, signed_data, ec.ECDSA(hashes.SHA256()))
+        except InvalidSignature:
+            print("Invalid signature for document.")
+            return False
+
+        # Create the issuer public key identifier by hashing "key-identifier"
+        # concatenated with the issuer public key and keeping the first eight bytes.
+        h = hashlib.new('sha256', "key-identifier".encode())
+        h.update(pk.public_key().public_bytes(Encoding.X962, PublicFormat.UncompressedPoint)[1:])
+
+        # Check if issuer public key id is valid
+        if (self.issuer_signed.issuer_auth.key_id != h.digest()[0:8]):
+            print("Issuer public key id is invalid.")
+            return False
+
+        return True

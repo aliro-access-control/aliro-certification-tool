@@ -399,5 +399,9 @@ cbor = device_response.to_cbor()
 if (cbor is not None):
     print("cbor: " + Utility.bytes_to_hex_str(cbor) + "\n")
 
+device_response2 = DeviceResponse()
+device_response2.from_cbor(cbor)
 
+for document in device_response2.documents:
+    document.check_signature(issuer_private_key)
 

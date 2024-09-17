@@ -165,7 +165,7 @@ class COSE_Sign1(object):
         '''Parse a list to populate the COSE_Sign1.'''
 
         # Get Protected field.
-        protected = bytearray(cose_sign1_list[0])
+        protected = cose_sign1_list[0]
 
         # Get unprotected dictionary.
         unprotected_dict = cose_sign1_list[1]
@@ -177,9 +177,9 @@ class COSE_Sign1(object):
         signature = cose_sign1_list[3]
         
         # Decode protected field.
-        if (protected is None) or (not isinstance(protected, bytearray)):
+        if (protected is None) or (not isinstance(protected, (bytes, bytearray))):
             return False
-        self.__protected = protected
+        self.__protected = bytearray(protected)
 
         # Decode Unprotected field.
         key_id = unprotected_dict.get(COSE_Sign1.KEY_ID_LABEL)
@@ -191,12 +191,12 @@ class COSE_Sign1(object):
         # Decode Payload.
         if (payload is None) or (not isinstance(payload, (bytes, bytearray))):
             return False
-        self.__payload = payload
+        self.__payload = bytearray(payload)
 
         # Decode Signature.
         if (signature is None) or (not isinstance(signature, (bytes, bytearray))):
             return False
-        self.__signature = signature
+        self.__signature = bytearray(signature)
 
         return self.is_valid()
 
