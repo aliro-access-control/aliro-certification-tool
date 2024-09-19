@@ -54,7 +54,7 @@ class RD_NFC_STDTXN_40(AliroReaderTestCase, UserPromptSupport):
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
-        access_credential = self.reader_access_credential()
+        access_credential = self.reader_access_credential(use_issuer_public_key=True)
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential],
