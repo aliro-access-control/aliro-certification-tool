@@ -115,10 +115,10 @@ class UD_NFC_AUTH1_10(AliroUserDeviceTestCase, UserPromptSupport):
         prompt += "to the Access Credential of the user device\n"
         prompt += "Using Access Credential public key:\n"
         prompt += "{}\n".format(hexlify(self.endpoint_key.as_bytes()))
-        prompt += "keyslot: {}\n".format(hexlify(get_key_slot(self.endpoint_key)))
+        prompt += "with keyslot: {}\n".format(hexlify(get_key_slot(self.endpoint_key)))
         prompt += (
             "(Access Credential public key can be set with the {} "
-            "test parameter\n".format(self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY)
+            "test parameter)\n".format(self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY)
         )
         await self.send_prompt_request(
             OptionsSelectPromptRequest(prompt=prompt, options={"OK": 1})
