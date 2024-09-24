@@ -216,6 +216,7 @@ class AliroReaderTestCase(AliroTestCase):
     READER_GROUP_RESOLVING_KEY = "dut_reader_group_resolving_key"
     ACCESS_CREDENTIAL_PRIVATE_KEY_KEY = "th_access_credential_private_key"
     ACCESS_CREDENTIAL_PUBLIC_KEY_KEY = "th_access_credential_public_key"
+    READER_ISSUER_PUBLIC_KEY_KEY = "dut_reader_issuer_public_key"
 
     @classmethod
     def default_test_parameters(self) -> dict[str, Any]:
@@ -238,9 +239,12 @@ class AliroReaderTestCase(AliroTestCase):
             "5ae574c1505a2c24ab6198e3125b7f1b7e1d134c55ece69681ba8ecc18a3836dc5199c75"
             "9f31e8ccf17e3efa",
             self.READER_GROUP_RESOLVING_KEY: "00000000000000000000000000000000",
+            self.READER_ISSUER_PUBLIC_KEY_KEY: "043928f322019d4757893bde6a0fe5e13e3e5"
+                                               "37b9ca0f549c0bd2f40f79060252a0a4f291192157a95cb6eb202759428c00cd834998c5"
+                                               "d0eab192ee8873c5d34ee",
         }
 
-    def reader_access_credential(self) -> AccessCredential:
+    def reader_access_credential(self, use_issuer_public_key: bool = False) -> AccessCredential:
         """Load DUT reader test parameters, and build an AccessCredential to be used
         when initializing a UserDevice in reader test cases.
 
@@ -284,12 +288,16 @@ class AliroReaderTestCase(AliroTestCase):
         )
 
         # Public Key
-        logger.info(f"Loading public key from '{self.READER_PUBLIC_KEY_KEY}'")
-        reader_public_key = self.public_key_from_config(self.READER_PUBLIC_KEY_KEY)
+        if use_issuer_public_key:
+            logger.info(f"Loading issuer public key from '{self.READER_ISSUER_PUBLIC_KEY_KEY}'")
+            reader_public_key = self.public_key_from_config(self.READER_ISSUER_PUBLIC_KEY_KEY)
+        else:
+            logger.info(f"Loading public key from '{self.READER_PUBLIC_KEY_KEY}'")
+            reader_public_key = self.public_key_from_config(self.READER_PUBLIC_KEY_KEY)
         logger.info(
-            f"Using Reader Public Key(hex): \n{reader_public_key.as_bytes().hex()}"
+            f"Using Reader group Public Key(hex): \n{reader_public_key.as_bytes().hex()}"
         )
-        logger.info(f"Using Reader Public Key(PEM): \n{reader_public_key.as_pem()}")
+        logger.info(f"Using Reader group Public Key(PEM): \n{reader_public_key.as_pem()}")
 
         # Group Identifier
         logger.info(
@@ -375,16 +383,16 @@ class AliroUserDeviceTestCase(AliroTestCase):
             "873c5d34ee",
             self.READER_GROUP_ID_KEY: "00113344667799AA00113344667799AA",
             self.READER_SUB_GROUP_ID_KEY: "113344667799AA00113344667799AA00",
-            self.READER_CERTIFICATE_KEY: "308201523081f9a003020102020101300a06082a8648c"
+            self.READER_CERTIFICATE_KEY: "308201513081f9a003020102020101300a06082a8648c"
             "e3d0403023011310f300d06035504030c06697373756572301e170d3230303130313030303"
             "030305a170d3439303130313030303030305a30123110300e06035504030c077375626a656"
-            "3743059301306072a8648ce3d020106082a8648ce3d03010703420004c4cdb33f4bc48d76d"
-            "58480d37992894f0ebea6b4a85fcbc336a22f65978eac076a217cce89ac13a5390d6f572f5"
-            "da61695bfbfbd07161fdfb21d4cc5a0a44ea7a341303f301f0603551d230418301680147fc"
-            "93128a61c0cedf94e11732dbe46017c431901300c0603551d130101ff04023000300e06035"
-            "51d0f0101ff040403020780300a06082a8648ce3d0403020348003045022029786cef5d595"
-            "c14818078851aae49a71e16e474e1e0b122f3a43a0a646f83b7022100eac460925608dac8f"
-            "1d92ea9d5dad48246b34f6e146bd9e60eff8c1b4ef74c01",
+            "3743059301306072a8648ce3d020106082a8648ce3d030107034200043928f322019d47578"
+            "93bde6a0fe5e13e3e537b9ca0f549c0bd2f40f79060252a0a4f291192157a95cb6eb202759"
+            "428c00cd834998c5d0eab192ee8873c5d34eea341303f301f0603551d23041830168014231"
+            "8e55671f08eae212142a817720fb817ee93bf300c0603551d130101ff04023000300e06035"
+            "51d0f0101ff040403020780300a06082a8648ce3d04030203470030440220606ddd0351bb4"
+            "7c6acccb8b94d83fe5dd18cfa1a2bbd757ccbf7ad9e1e0ba4ca02204e36051d9f93ff34e3a"
+            "d14ae5ead738e2e92a78ef4f9d384be863535484d5151",
             self.READER_GROUP_RESOLVING_KEY: "00000000000000000000000000000000",
             self.READER_SPSM: "0080",
             self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY: "044dc6e1f1b0e879b487063d7e24e26e4c7"
