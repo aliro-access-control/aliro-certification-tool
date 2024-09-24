@@ -17,6 +17,7 @@ from aliro_actuator.access_protocol.errors import (
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey
+from aliro_actuator.trust_framework.key_slot import get_key_slot
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -89,7 +90,7 @@ class UD_NFC_AUTH1_10(AliroUserDeviceTestCase, UserPromptSupport):
                 "291192157a95cb6eb202759428c00cd834998c5d0eab192ee8873c5d34ee"
             )
         )
-        endpoint_key = self.th_access_credential_public_key()
+        self.endpoint_key = self.th_access_credential_public_key()
 
         # Initialize Aliro NFC Reader
         self.reader = Reader(
@@ -100,7 +101,7 @@ class UD_NFC_AUTH1_10(AliroUserDeviceTestCase, UserPromptSupport):
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
             reader_system_issuer_ca=self.reader_issuer_public_key,
-            key_slot_list=[endpoint_key],
+            key_slot_list=[self.endpoint_key],
         )
 
     @log_errors
@@ -112,6 +113,13 @@ class UD_NFC_AUTH1_10(AliroUserDeviceTestCase, UserPromptSupport):
             hexlify(self.reader_issuer_public_key.as_bytes())
         )
         prompt += "to the Access Credential of the user device\n"
+        prompt += "Using Access Credential public key:\n"
+        prompt += "{}\n".format(hexlify(self.endpoint_key.as_bytes()))
+        prompt += "with keyslot: {}\n".format(hexlify(get_key_slot(self.endpoint_key)))
+        prompt += (
+            "(Access Credential public key can be set with the {} "
+            "test parameter)\n".format(self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY)
+        )
         await self.send_prompt_request(
             OptionsSelectPromptRequest(prompt=prompt, options={"OK": 1})
         )
