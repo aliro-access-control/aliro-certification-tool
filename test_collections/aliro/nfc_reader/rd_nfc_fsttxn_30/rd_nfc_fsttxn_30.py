@@ -21,7 +21,7 @@ class RD_NFC_FSTTXN_30(AliroReaderTestCase, UserPromptSupport):
         "public_id": "RD-NFC-FSTTXN-3.0",
         "version": "0.0.1",
         "title": "RD-NFC-FSTTXN-3.0",
-        "description": """Verify conformance of Reader UT in CONTROL FLOW command""",
+        "description": """Verify conformance of Reader UT in EXCHANGE command""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
