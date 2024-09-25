@@ -61,6 +61,10 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.hazmat.primitives.serialization import PublicFormat
+from cryptography.hazmat.primitives.serialization import (
+    load_der_private_key,
+    load_der_public_key,
+)
 
 from aliro.revocation.revocation_data import RevocationData
 from aliro.revocation.revocation_data import RevocationChangeMode
@@ -374,18 +378,18 @@ cert_issuer = KeyPair(
     bytes([byte for byte in issuer_private_key]),
 )
 
+issuer_pk = load_der_private_key(issuer_private_key, password=None)
+issuer_public_key = issuer_pk.public_key()
+
+print(f"public key={issuer_public_key.public_bytes(encoding=Encoding.DER,format=PublicFormat.SubjectPublicKeyInfo)}\n")
+
 x509_cert = Certificate.generate(
     serial_number=bytes.fromhex("01"),
     issuer=bytes.fromhex("697373756572"),
     validity_not_before=bytes.fromhex("3230303130313030303030305A"),
     validity_not_after=bytes.fromhex("3439303130313030303030305A"),
     subject=bytes.fromhex("7375626a656374"),
-    key_info_subject_public_key=bytes.fromhex(
-        (
-            "0004842242f6182ba1c1138d32b77fb9f7f37b70034b9f04443a5bea3c188beadb"
-            "36490a7e95f91a4c162acfc3401c3a4f4e5a59251d45243ac8544a665cb951422f"
-        )
-    ),
+    key_info_subject_public_key=issuer_public_key.public_bytes(encoding=Encoding.DER,format=PublicFormat.SubjectPublicKeyInfo),
     issuer_keypair=cert_issuer,
 )
 
@@ -403,5 +407,5 @@ device_response2 = DeviceResponse()
 device_response2.from_cbor(cbor)
 
 for document in device_response2.documents:
-    document.check_signature(issuer_private_key)
+    document.check_signature(issuer_private_key):
 
