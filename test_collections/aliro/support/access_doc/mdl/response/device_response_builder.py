@@ -205,7 +205,7 @@ class DeviceResponseBuilder(object):
             doc.issuer_signed.issuer_auth.payload = cbor2.dumps(cbor2.CBORTag(cbor_tag_encoded_cbor, mso.to_cbor()))
 
             # Set x.509 certificate
-            doc.issuer_signed.issuer_auth.x5chain = cbor2.dumps(cbor2.CBORTag(cbor_tag_encoded_cbor, x509_cert))
+            doc.issuer_signed.issuer_auth.x5chain = x509_cert
 
             if (len(issuer_private_key) == 32):
                 # Convert the raw issuer private key to a signing object.
