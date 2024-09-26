@@ -180,7 +180,7 @@ class Document(object):
         # Create the issuer public key identifier by hashing "key-identifier"
         # concatenated with the issuer public key and keeping the first eight bytes.
         h = hashlib.new('sha256', "key-identifier".encode())
-        h.update(pk.public_key().public_bytes(Encoding.X962, PublicFormat.UncompressedPoint)[1:])
+        h.update(pk.public_key().public_bytes(Encoding.X962, PublicFormat.UncompressedPoint))
 
         # Check if issuer public key id is valid
         if (self.issuer_signed.issuer_auth.key_id != h.digest()[0:8]):
