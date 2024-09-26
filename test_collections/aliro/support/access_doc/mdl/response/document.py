@@ -99,11 +99,11 @@ class Document(object):
 
         document_dict = {}
 
-        # Encode the Doc Type field.
-        document_dict[Document.DOC_TYPE_LABEL] = str(self.__doc_type)
-
         # Encode the Issuer Signed field.
         document_dict[Document.ISSUER_SIGNED_LABEL] = self.__issuer_signed.to_dict()
+
+        # Encode the Doc Type field.
+        document_dict[Document.DOC_TYPE_LABEL] = str(self.__doc_type)
 
         return document_dict
 
