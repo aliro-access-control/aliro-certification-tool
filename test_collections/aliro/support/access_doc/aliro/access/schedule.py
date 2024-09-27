@@ -148,11 +148,11 @@ class Schedule(object):
         cbor_tag_epoch_time = 1
 
         # Encode the Start Time.
-        schedule_dict[Schedule.START_TIME_LABEL] = cbor2.CBORTag(cbor_tag_epoch_time, int(self.start_time))
+        schedule_dict[Schedule.START_TIME_LABEL] = int(self.start_time)
 
         # Encode the End Time.
         if self.end_time > 0:
-            schedule_dict[Schedule.END_TIME_LABEL] = cbor2.CBORTag(cbor_tag_epoch_time, int(self.end_time))
+            schedule_dict[Schedule.END_TIME_LABEL] = int(self.end_time)
 
         # Encode the Recurrence Rule.
         if self.rrule.is_valid():
