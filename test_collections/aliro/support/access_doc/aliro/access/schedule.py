@@ -145,7 +145,6 @@ class Schedule(object):
             return None
 
         schedule_dict = {}
-        cbor_tag_epoch_time = 1
 
         # Encode the Start Time.
         schedule_dict[Schedule.START_TIME_LABEL] = int(self.start_time)
