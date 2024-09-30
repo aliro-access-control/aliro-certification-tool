@@ -108,21 +108,6 @@ class RecurrenceRuleMaskBits_Yearly(object):
 class RecurrenceRule(object):
     '''Aliro Recurrence Rule.'''
 
-    DURATION_BYTE_COUNT = 4
-    '''The serialized Duration field size in bytes.'''
-
-    MASK_BYTE_COUNT = 4
-    '''The serialized Mask field size in bytes.'''
-
-    PATTERN_BYTE_COUNT = 1
-    '''The serialized Pattern field size in bytes.'''
-
-    INTERVAL_BYTE_COUNT = 1
-    '''The serialized Interval field size in bytes.'''
-
-    ORDINAL_BYTE_COUNT = 1
-    '''The serialized Ordinal field size in bytes.'''
-
     ELEMENT_COUNT = 5
     '''The number of elements in the RecurrenceRule array.'''
 
