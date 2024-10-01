@@ -147,7 +147,7 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
 
         # Test step 10
         try:
-            spsm, versions = (
+            spsm, versions, features = (
                 await self.userdevice.transport_protocol.driver.handle_GATT_layer_read_characteristic(
                     primary_service
                 )
