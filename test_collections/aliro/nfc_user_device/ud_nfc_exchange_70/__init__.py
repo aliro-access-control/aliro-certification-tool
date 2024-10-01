@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .rd_nfc_exchange_10 import RD_NFC_EXCHANGE_10
+from .ud_nfc_exchange_70 import UD_NFC_EXCHANGE_70
