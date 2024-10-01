@@ -99,15 +99,15 @@ class ItemsRequest(object):
 
         items_request_dict = {}
 
-        # Encode the Doc Type.
-        items_request_dict[ItemsRequest.DOC_TYPE_LABEL] = str(self.__doc_type)
-
         # Encode the Namespaces.
         items_request_dict[ItemsRequest.NAMESPACES_LABEL] = self.__namespaces.to_dict()
 
         # Encode the optional Request Info.
         if (self.__request_info is not None) and (len(self.__request_info) > 0):
             items_request_dict[ItemsRequest.REQUEST_INFO_LABEL] = copy.deepcopy(self.__request_info)
+
+        # Encode the Doc Type.
+        items_request_dict[ItemsRequest.DOC_TYPE_LABEL] = str(self.__doc_type)
 
         return items_request_dict
 

@@ -16,6 +16,7 @@
 
 from enum import IntEnum
 from enum import IntFlag
+from typing import Sequence
 
 from utility import Utility
 
@@ -107,23 +108,8 @@ class RecurrenceRuleMaskBits_Yearly(object):
 class RecurrenceRule(object):
     '''Aliro Recurrence Rule.'''
 
-    DURATION_BYTE_COUNT = 4
-    '''The serialized Duration field size in bytes.'''
-
-    MASK_BYTE_COUNT = 4
-    '''The serialized Mask field size in bytes.'''
-
-    PATTERN_BYTE_COUNT = 1
-    '''The serialized Pattern field size in bytes.'''
-
-    INTERVAL_BYTE_COUNT = 1
-    '''The serialized Interval field size in bytes.'''
-
-    ORDINAL_BYTE_COUNT = 1
-    '''The serialized Ordinal field size in bytes.'''
-
-    BYTE_COUNT = (DURATION_BYTE_COUNT + MASK_BYTE_COUNT + PATTERN_BYTE_COUNT + INTERVAL_BYTE_COUNT + ORDINAL_BYTE_COUNT)
-    '''The serialized RecurrenceRule size in bytes.'''
+    ELEMENT_COUNT = 5
+    '''The number of elements in the RecurrenceRule array.'''
 
     ############################################################################
     def __init__(self):
@@ -301,30 +287,19 @@ class RecurrenceRule(object):
         return True
 
     ############################################################################
-    def to_bytearray(self) -> bytearray:
-        '''Serialize the RecurrenceRule into an array of bytes.'''
-        ba = bytearray()
-
-        # Encode the Duration.
-        ba.extend(self.duration_seconds.to_bytes(RecurrenceRule.DURATION_BYTE_COUNT, byteorder=Utility.BYTE_ORDER))
-
-        # Encode the Mask.
-        ba.extend(self.mask.to_bytes(RecurrenceRule.MASK_BYTE_COUNT, byteorder=Utility.BYTE_ORDER))
-
-        # Encode the Pattern.
-        ba.append(self.pattern & 0xFF)
-
-        # Encode the Interval.
-        ba.append(self.interval & 0xFF)
-
-        # Encode the Ordinal.
-        ba.append(int.to_bytes(self.ordinal, length=1, signed=True)[0])
-
-        return ba
+    def to_array(self) -> Sequence:
+        '''Serialize the RecurrenceRule into an array.'''
+        return [
+            self.duration_seconds & 0xFFFFFFFF,
+            self.mask & 0xFFFFFFFF,
+            self.pattern & 0xFF,
+            self.interval & 0xFF,
+            self.ordinal,
+        ]
 
     ############################################################################
-    def from_bytes(self, data : bytes | bytearray, index : int = 0) -> bool:
-        '''Deserialize the RecurrenceRule from an array of bytes.'''
+    def from_array(self, data : Sequence) -> bool:
+        '''Deserialize the RecurrenceRule from an array.'''
         # Clear existing RecurrenceRule data.
         self.__duration_seconds = 0
         self.__mask = 0
@@ -333,26 +308,22 @@ class RecurrenceRule(object):
         self.__ordinal = 0
 
         # Verify input parameters.
-        if (data is None) or (not isinstance(data, (bytes, bytearray))) or (len(data) < (index + RecurrenceRule.BYTE_COUNT)):
+        if (data is None) or (not isinstance(data, (list, tuple))) or (len(data) < self.ELEMENT_COUNT):
             return False
 
         # Decode the Duration.
-        self.duration_seconds = int.from_bytes(data[index : index + RecurrenceRule.DURATION_BYTE_COUNT], byteorder=Utility.BYTE_ORDER)
-        index += RecurrenceRule.DURATION_BYTE_COUNT
+        self.duration_seconds = data[0]
 
         # Decode the Mask.
-        self.mask = int.from_bytes(data[index : index + RecurrenceRule.MASK_BYTE_COUNT], byteorder=Utility.BYTE_ORDER)
-        index += RecurrenceRule.MASK_BYTE_COUNT
+        self.mask = data[1]
 
         # Decode the Pattern.
-        self.pattern = data[index]
-        index += RecurrenceRule.PATTERN_BYTE_COUNT
+        self.pattern = data[2]
 
         # Decode the Interval.
-        self.interval = data[index]
-        index += RecurrenceRule.INTERVAL_BYTE_COUNT
+        self.interval = data[3]
 
         # Decode the Ordinal.
-        self.ordinal = int.from_bytes([data[index]], signed=True)
+        self.ordinal = data[4]
 
         return self.is_valid()

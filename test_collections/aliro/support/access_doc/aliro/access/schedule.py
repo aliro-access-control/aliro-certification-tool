@@ -145,18 +145,17 @@ class Schedule(object):
             return None
 
         schedule_dict = {}
-        cbor_tag_epoch_time = 1
 
         # Encode the Start Time.
-        schedule_dict[Schedule.START_TIME_LABEL] = cbor2.CBORTag(cbor_tag_epoch_time, int(self.start_time))
+        schedule_dict[Schedule.START_TIME_LABEL] = int(self.start_time)
 
         # Encode the End Time.
         if self.end_time > 0:
-            schedule_dict[Schedule.END_TIME_LABEL] = cbor2.CBORTag(cbor_tag_epoch_time, int(self.end_time))
+            schedule_dict[Schedule.END_TIME_LABEL] = int(self.end_time)
 
         # Encode the Recurrence Rule.
         if self.rrule.is_valid():
-            schedule_dict[Schedule.RECURRENCE_RULE_LABEL] = self.rrule.to_bytearray()
+            schedule_dict[Schedule.RECURRENCE_RULE_LABEL] = self.rrule.to_array()
 
         # Encode the Flags.
         schedule_dict[Schedule.FLAGS_LABEL] = int(self.flags)
@@ -183,7 +182,7 @@ class Schedule(object):
         end_time = schedule_dict.get(Schedule.END_TIME_LABEL)
 
         # Get the optional Recurrence Rule from the given dictionary.
-        rrule_bytes = schedule_dict.get(Schedule.RECURRENCE_RULE_LABEL)
+        rrule_array = schedule_dict.get(Schedule.RECURRENCE_RULE_LABEL)
 
         # Get the Flags from the given dictionary.
         flags = schedule_dict.get(Schedule.FLAGS_LABEL)
@@ -201,11 +200,11 @@ class Schedule(object):
             self.end_time = end_time
 
         # Decode the optional Recurrence Rule.
-        if (rrule_bytes is not None):
-            if ((not isinstance(rrule_bytes, (bytes, bytearray))) or
-                (len(rrule_bytes) != RecurrenceRule.BYTE_COUNT)):
+        if (rrule_array is not None):
+            if ((not isinstance(rrule_array, (list, tuple))) or
+                (len(rrule_array) != RecurrenceRule.ELEMENT_COUNT_COUNT)):
                 return False
-            if (self.__rrule.from_bytes(rrule_bytes) == False):
+            if (self.__rrule.from_array(rrule_array) == False):
                 return False
 
         # Decode the required Flags.
