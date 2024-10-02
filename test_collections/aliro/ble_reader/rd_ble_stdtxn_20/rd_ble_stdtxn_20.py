@@ -58,7 +58,7 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
-        access_credential = self.reader_access_credential(use_issuer_public_key=False)
+        access_credential = self.reader_access_credential(use_issuer_public_key=True)
         group_resolving_key = self.reader_group_resolving_key()
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.BLE_UWB,
