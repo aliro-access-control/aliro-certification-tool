@@ -295,6 +295,7 @@ class AliroReaderTestCase(AliroTestCase):
             issuer_reader_public_key = self.public_key_from_config(self.READER_ISSUER_PUBLIC_KEY_KEY)
             logger.info(f"Loading issuer group identifier from '{self.ISSUER_GROUP_ID_KEY}'")
             issuer_group_identifier_issuer = self.bytes_from_config(self.ISSUER_GROUP_ID_KEY)
+            logger.info(f"Using Issuer Group Identifier: {issuer_group_identifier_issuer.hex()}")
 
         logger.info(f"Loading public key from '{self.READER_PUBLIC_KEY_KEY}'")
         reader_public_key = self.public_key_from_config(self.READER_PUBLIC_KEY_KEY)
