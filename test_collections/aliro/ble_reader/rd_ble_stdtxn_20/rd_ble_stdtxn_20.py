@@ -156,7 +156,7 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
         try:
             await self.userdevice.handle_auth1(cmds_auth1)
         except Exception as error:
-            "{}: {}".format(error.__class__.__name__, repr(error))
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
         self.next_step()
