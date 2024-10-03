@@ -212,7 +212,7 @@ class AliroReaderTestCase(AliroTestCase):
     # Test Parameter keys
     READER_PUBLIC_KEY_KEY = "dut_reader_public_key"
     READER_GROUP_ID_KEY = "dut_reader_group_identifier"
-    ISSUER_GROUP_ID_KEY = "dut_reader_group_identifier_issuer"
+    ISSUER_GROUP_ID_KEY = "dut_reader_issuer_group_identifier"
     READER_SUB_GROUP_ID_KEY = "dut_reader_group_sub_identifier"
     READER_GROUP_RESOLVING_KEY = "dut_reader_group_resolving_key"
     ACCESS_CREDENTIAL_PRIVATE_KEY_KEY = "th_access_credential_private_key"
@@ -246,7 +246,7 @@ class AliroReaderTestCase(AliroTestCase):
                                                "d0eab192ee8873c5d34ee",
         }
 
-    def reader_access_credential(self, use_issuer_public_key: bool = False) -> AccessCredential:
+    def reader_access_credential(self, add_issuer_public_key: bool = False) -> AccessCredential:
         """Load DUT reader test parameters, and build an AccessCredential to be used
         when initializing a UserDevice in reader test cases.
 
@@ -290,7 +290,7 @@ class AliroReaderTestCase(AliroTestCase):
         )
 
         # Public Key
-        if use_issuer_public_key:
+        if add_issuer_public_key:
             logger.info(f"Loading issuer public key from '{self.READER_ISSUER_PUBLIC_KEY_KEY}'")
             issuer_reader_public_key = self.public_key_from_config(self.READER_ISSUER_PUBLIC_KEY_KEY)
             logger.info(f"Loading issuer group identifier from '{self.ISSUER_GROUP_ID_KEY}'")

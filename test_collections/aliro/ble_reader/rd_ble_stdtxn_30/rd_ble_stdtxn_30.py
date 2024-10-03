@@ -66,11 +66,11 @@ class RD_BLE_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
-        access_credential = self.reader_access_credential()
+        self.access_credential = self.reader_access_credential(add_issuer_public_key=True)
         group_resolving_key = self.reader_group_resolving_key()
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.BLE_UWB,
-            access_credentials=[access_credential],
+            access_credentials=[self.access_credential],
             mailbox=0x20,
             group_resolving_key=group_resolving_key,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
@@ -78,6 +78,19 @@ class RD_BLE_STDTXN_30(AliroReaderTestCase, UserPromptSupport):
 
     @log_errors
     async def execute(self) -> None:
+        # Done in setup
+        issuer_group_id = self.access_credential.reader_id_key_list[1][0]
+        prompt = "In case LOAD_CERT is used set correct group ID"
+        prompt += "Add reader_issuer_group_identifier: {}\n".format(hexlify(issuer_group_id))
+        prompt += "to the Access Credential of the reader device\n"
+
+        await self.send_prompt_request(
+            OptionsSelectPromptRequest(
+                prompt=prompt,
+                options={"OK": 1},
+            )
+        )
+
         await self.send_prompt_request(
             OptionsSelectPromptRequest(
                 prompt="Reset murata board by pressing switch SW1",
