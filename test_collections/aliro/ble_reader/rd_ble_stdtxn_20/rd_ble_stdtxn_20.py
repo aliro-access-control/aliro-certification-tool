@@ -73,7 +73,7 @@ class RD_BLE_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
         # Done in setup
         issuer_group_id = self.access_credential.reader_id_key_list[1][0]
         prompt = "In case LOAD_CERT is used set correct group ID"
-        prompt += "Add reader_issuer_group_identifier: {}\n".format(hexlify(issuer_group_id))
+        prompt += "Set the reader_group_identifier of the reader device to: {}\n".format(hexlify(issuer_group_id))
         prompt += "to the Access Credential of the reader device\n"
 
         await self.send_prompt_request(
