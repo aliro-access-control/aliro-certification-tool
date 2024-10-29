@@ -418,6 +418,32 @@ Perform the following steps on the Raspberry Pi.
     sudo reboot
     ```
 
+#### Configuring Raspberry Pi to support link-local address
+
+In some cases, it may be useful to connect to the Raspberry Pi over a local link. This
+can be enabled by updating the `netplan` configuration.
+
+1. In `/etc/netplan/50-cloud-init.yaml`, add under `network`:
+
+    ```yaml
+    # /etc/netplan/50-cloud-init.yaml
+    # network:
+    #   ...
+      ethernets:
+          eth0:
+              dhcp4: true
+              optional: true
+              link-local: [ ipv4, ipv6 ]
+    ```
+
+2. Apply changes and reboot
+
+    ```sh
+    sudo netplan try # optional
+    sudo netplan apply
+    sudo reboot
+    ```
+
 ## Authoring Test Scripts
 
 Aliro test scripts are located in `test_collections/aliro`. They must be located as the same file structure as the current `sample_collection` with `SampleSuite` and `SampleTestCase`. This ensures, that the Test Harness can automatically discover the tests on launch.
