@@ -19,7 +19,7 @@ set -ex
 COLLECTION_PATH=$(realpath $(dirname "$0"))
 
 # Assign default value to NXP_TRANSPORT if it was not provided and do uppercase
-NXP_TRANSPORT=${NXP_TRANSPORT:="I2C"}
+NXP_TRANSPORT=${NXP_TRANSPORT:="SPI"}
 NXP_TRANSPORT=${NXP_TRANSPORT^^}
 
 if ! [[ "$NXP_TRANSPORT" = "SPI" || "$NXP_TRANSPORT" = "I2C" ]]; then
