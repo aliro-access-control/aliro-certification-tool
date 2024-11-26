@@ -47,6 +47,7 @@ class UD_NFC_SELECT_10(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step2: Set to polling mode"),
             TestStep("Step3: Set the User Device UT"),
             TestStep("Step4: Send/Receive Select command/response"),
+            TestStep("Step5: Verify APDU length")
         ]
 
     async def setup(self) -> None:
@@ -93,6 +94,10 @@ class UD_NFC_SELECT_10(AliroUserDeviceTestCase, UserPromptSupport):
             self.mark_step_failure(str(error))
             return
         self.next_step()
+
+        # Test step 5
+        if (self.reader.session.maximum_command_apdu != None) and (self.reader.session.maximum_response_apdu != None):
+            self.mark_step_failure("Invalid APDU length")
 
     async def cleanup(self) -> None:
         logger.info("UD_NFC_SELECT_10 Cleanup")

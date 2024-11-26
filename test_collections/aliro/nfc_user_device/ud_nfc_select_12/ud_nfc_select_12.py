@@ -1,8 +1,10 @@
-from aliro_actuator.access_protocol.defines import STEPUP_PHASE_AID, TransportProtocol
+from aliro_actuator.access_protocol.defines import (
+    EXPEDITED_PHASE_AID,
+    TransportProtocol,
+)
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
-    InvalidStatusError,
 )
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair
@@ -18,7 +20,7 @@ class UD_NFC_SELECT_12(AliroUserDeviceTestCase, UserPromptSupport):
         "public_id": "UD-NFC-SELECT-1.2",
         "version": "0.0.1",
         "title": "UD-NFC-SELECT-1.2",
-        "description": """Verify conformance of User Device UT SELECT command using Step-up Phase AID. Precondition: successful standard transaction not done.""",
+        "description": """Verify conformance of User Device UT SELECT command using Expedited Phase AID.""",
     }
 
     reader_ePuBK = bytes.fromhex(
@@ -45,6 +47,7 @@ class UD_NFC_SELECT_12(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step2: Set to polling mode"),
             TestStep("Step3: Set the User Device UT"),
             TestStep("Step4: Send/Receive Select command/response"),
+            TestStep("Step5: Verify APDU length")
         ]
 
     async def setup(self) -> None:
@@ -86,21 +89,15 @@ class UD_NFC_SELECT_12(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 4
         try:
-            aid = STEPUP_PHASE_AID
-            await self.reader.command_select(aid)
-            self.mark_step_failure(
-                "Stepup AID send, but it was accepted as a expedited AID"
-            )
-        except InvalidStatusError as error:
-            logger.info(
-                "Received error status (as expected), status received: 0x{:04x}".format(
-                    error.status
-                )
-            )
+            await self.reader.handle_select(aid=EXPEDITED_PHASE_AID)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
         self.next_step()
+
+        # Test step 5
+        if (self.reader.session.maximum_command_apdu == None) and (self.reader.session.maximum_response_apdu == None):
+            self.mark_step_failure("Invalid APDU length")
 
     async def cleanup(self) -> None:
         logger.info("UD_NFC_SELECT_12 Cleanup")
