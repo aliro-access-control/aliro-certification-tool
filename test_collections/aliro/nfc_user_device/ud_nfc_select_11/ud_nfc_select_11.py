@@ -1,4 +1,4 @@
-from aliro_actuator.access_protocol.defines import TransportProtocol
+from aliro_actuator.access_protocol.defines import STEPUP_PHASE_AID, TransportProtocol
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
@@ -18,7 +18,7 @@ class UD_NFC_SELECT_11(AliroUserDeviceTestCase, UserPromptSupport):
         "public_id": "UD-NFC-SELECT-1.1",
         "version": "0.0.1",
         "title": "UD-NFC-SELECT-1.1",
-        "description": """Verify conformance of User Device UT SELECT command using invalid AID “A000000909ACCE5503”.""",
+        "description": """Verify conformance of User Device UT SELECT command using Step-up Phase AID. Precondition: successful standard transaction not done.""",
     }
 
     reader_ePuBK = bytes.fromhex(
@@ -86,10 +86,10 @@ class UD_NFC_SELECT_11(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 4
         try:
-            aid = bytes.fromhex("A000000909ACCE5503")
+            aid = STEPUP_PHASE_AID
             await self.reader.command_select(aid)
             self.mark_step_failure(
-                "Invalid AID send, but it was accepted as a valid AID"
+                "Stepup AID send, but it was accepted as a expedited AID"
             )
         except InvalidStatusError as error:
             logger.info(

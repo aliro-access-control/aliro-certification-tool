@@ -1,5 +1,5 @@
 from aliro_actuator.access_protocol.apdu import AuthenticationPolicy
-from aliro_actuator.access_protocol.defines import STEPUP_PHASE_AID, TransportProtocol
+from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID, TransportProtocol
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
@@ -13,11 +13,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_NFC_SELECT_20(AliroUserDeviceTestCase, UserPromptSupport):
+class UD_NFC_SELECT_13(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-NFC-SELECT-2.0",
+        "public_id": "UD-NFC-SELECT-1.3",
         "version": "0.0.1",
-        "title": "UD-NFC-SELECT-2.0",
+        "title": "UD-NFC-SELECT-1.3",
         "description": """Verify conformance of User Device UT SELECT command using Step-up Phase AID. Precondition: successful standard transaction done before.""",
     }
 
@@ -43,13 +43,13 @@ class UD_NFC_SELECT_20(AliroUserDeviceTestCase, UserPromptSupport):
         self.test_steps = [
             TestStep("Step1: Initialization"),
             TestStep("Step2: Set to polling mode"),
-            TestStep("Step3: Transaction Initiation"),
-            TestStep("Step4: Standard Transaction"),
-            TestStep("Step5: Send/Receive Select command/response"),
+            TestStep("Step3: Set the User Device UT"),
+            TestStep("Step4: Send/Receive Select command/response"),
+            TestStep("Step5: Verify vendor specific extension support")
         ]
 
     async def setup(self) -> None:
-        logger.info("UD_NFC_SELECT_20 setup")
+        logger.info("UD_NFC_SELECT_13 setup")
         # load parameters from project config
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
@@ -81,31 +81,22 @@ class UD_NFC_SELECT_20(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 3
-        try:
-            await self.reader.transaction_initiation()  # including SELECT command
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
+        await self.reader.setup_connection()  # up to RATS command/ ATS response
+        self.reader.start_new_session()
         self.next_step()
 
         # Test step 4
         try:
-            await self.reader.expedited_transaction_standard(
-                AuthenticationPolicy.USER_DEVICE
-            )
+            await self.reader.handle_select(aid=EXPEDITED_PHASE_AID)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
         self.next_step()
 
         # Test step 5
-        try:
-            await self.reader.handle_select(aid=STEPUP_PHASE_AID)
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        self.next_step()
+        if self.reader.session.vendor_specific_extensions is None:
+            self.mark_step_failure("Misssing vendor specific extensions support")
 
     async def cleanup(self) -> None:
-        logger.info("UD_NFC_SELECT_20 Cleanup")
+        logger.info("UD_NFC_SELECT_13 Cleanup")
         await self.reader.transaction_termination()
