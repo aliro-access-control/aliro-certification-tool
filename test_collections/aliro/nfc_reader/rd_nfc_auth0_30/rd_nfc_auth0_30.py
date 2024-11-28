@@ -20,11 +20,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class RD_NFC_AUTH0_20(AliroReaderTestCase, UserPromptSupport):
+class RD_NFC_AUTH0_30(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-AUTH0-2.0",
+        "public_id": "RD-NFC-AUTH0-3.0",
         "version": "0.0.1",
-        "title": "RD-NFC-AUTH0-2.0",
+        "title": "RD-NFC-AUTH0-3.0",
         "description": """Verify conformance of Reader UT in AUTH0 command.""",
     }
 
@@ -61,6 +61,8 @@ class RD_NFC_AUTH0_20(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step3: Transaction Initiation Standard"),
             TestStep("Step4: Receive/Send AUTH0 command/response Standard"),
             TestStep("Step5: Validate AUTH0 command/response"),
+            TestStep("Step6: Receive/Send Auth0 command/response"),
+            TestStep("Step7: Validate AUTH0 command/response"),
         ]
 
     async def setup(self) -> None:
@@ -114,6 +116,47 @@ class RD_NFC_AUTH0_20(AliroReaderTestCase, UserPromptSupport):
         except InvalidCommandError as error:
             self.mark_step_failure(str(error))
             return
+        self.next_step()
+
+        # Test step 5: Validate AUTH0 command/response
+        if self.userdevice.session.command_parameters != Transaction.STANDARD:
+            self.mark_step_failure("Standard phase not requested")
+            return
+        if self.userdevice.session.authentication_policy != AuthenticationPolicy.FORCE_USER_AUTHENTICATION:
+            self.mark_step_failure("Force user authentication not requested")
+            return
+        if self.userdevice.session.expedited_phase_protocol_version != PROTOCOL_VERSION:
+            self.mark_step_failure("Expedited phase protocol version mismatch")
+            return
+        if self.userdevice.session.command_vendor_extension != None:
+            self.mark_step_failure("Vendor specific extensions are present")
+            return
+
+        # Store data from first Auth0
+        self.reader_epubk = self.userdevice.session.reader_epubk
+        self.transaction_identifier = self.userdevice.session.transaction_identifier
+        self.reader_identifier = self.userdevice.session.reader_identifier
+
+        # Send AUTH0 response indicating error
+        try:
+            auth0_response = self.userdevice.apdu.create_auth0_response(
+                credential_epubk=self.userdevice.session.get_credential_epubkey().as_bytes(),
+                status=StatusBytes.GENERIC_ERROR,
+            )
+            await self.userdevice.apdu.handle_chaining_send_response(
+                auth0_response, self.userdevice.transport_protocol
+            )
+        except AccessProtocolError as error:
+            self.mark_step_failure(str(error))
+            return                       
+        self.next_step()
+
+        # Test step 6: Receive/Send Auth0 command/response
+        try:
+            cmds_auth0 = await self.userdevice.wait_for_command()
+        except InvalidCommandError as error:
+            self.mark_step_failure(str(error))
+            return
         try:
             await self.userdevice.handle_auth0(cmds_auth0)
         except AccessProtocolError as error:
@@ -126,18 +169,32 @@ class RD_NFC_AUTH0_20(AliroReaderTestCase, UserPromptSupport):
             )
         self.next_step()
 
-        # Test step 5: Validate AUTH0 command/response
+        # Test step 7: Validate AUTH0 command/response
         if self.userdevice.session.authentication_policy != AuthenticationPolicy.FORCE_USER_AUTHENTICATION:
             self.mark_step_failure("Force user authentication not requested")
             return
         if self.userdevice.session.expedited_phase_protocol_version != PROTOCOL_VERSION:
-            self.mark_step_failure("Expideted phase protocol version mismatch")
+            self.mark_step_failure("Expedited phase protocol version mismatch")
             return
         if self.userdevice.session.command_vendor_extension != None:
             self.mark_step_failure("Vendor specific extensions are present")
             return
+
+        # Verify data differences
+        if self.reader_epubk.as_bytes() == self.userdevice.session.reader_epubk.as_bytes():
+            self.mark_step_failure("Public key already used in previous command")
+            return
+        if self.transaction_identifier == self.userdevice.session.transaction_identifier:
+            self.mark_step_failure("Transaction identifier already used in previous command")
+            return
+        if self.reader_identifier[-16:] == self.userdevice.session.reader_identifier[-16:]:
+            self.mark_step_failure("Reader identifier lower 16 bytes match with previous command")
+            return
+        if self.reader_identifier[:16] == self.userdevice.session.reader_identifier[:16]:
+            self.mark_step_failure("Reader identifier first 16 bytes mismatch")
+            return
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_AUTH0_20 Cleanup")
+        logger.info("RD_NFC_AUTH0_30 Cleanup")
         await self.userdevice.transaction_termination()

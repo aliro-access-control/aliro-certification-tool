@@ -20,11 +20,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class RD_NFC_AUTH0_20(AliroReaderTestCase, UserPromptSupport):
+class RD_NFC_AUTH0_31(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-AUTH0-2.0",
+        "public_id": "RD-NFC-AUTH0-3.1",
         "version": "0.0.1",
-        "title": "RD-NFC-AUTH0-2.0",
+        "title": "RD-NFC-AUTH0-3.1",
         "description": """Verify conformance of Reader UT in AUTH0 command.""",
     }
 
@@ -127,17 +127,17 @@ class RD_NFC_AUTH0_20(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 5: Validate AUTH0 command/response
-        if self.userdevice.session.authentication_policy != AuthenticationPolicy.FORCE_USER_AUTHENTICATION:
-            self.mark_step_failure("Force user authentication not requested")
+        if self.userdevice.session.authentication_policy != AuthenticationPolicy.USER_DEVICE:
+            self.mark_step_failure("User device authentication not requested")
             return
         if self.userdevice.session.expedited_phase_protocol_version != PROTOCOL_VERSION:
             self.mark_step_failure("Expideted phase protocol version mismatch")
             return
-        if self.userdevice.session.command_vendor_extension != None:
-            self.mark_step_failure("Vendor specific extensions are present")
+        if self.userdevice.session.command_vendor_extension == None:
+            self.mark_step_failure("Vendor specific extensions are not present")
             return
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_AUTH0_20 Cleanup")
+        logger.info("RD_NFC_AUTH0_31 Cleanup")
         await self.userdevice.transaction_termination()

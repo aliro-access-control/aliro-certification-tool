@@ -1,14 +1,23 @@
-from aliro_actuator.access_protocol.apdu import INS
+from aliro_actuator.access_protocol.apdu import (
+    INS,
+    AuthenticationPolicy,
+    Transaction,
+    StatusBytes,
+)
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
+    PROTOCOL_VERSION,
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidCommandError,
 )
 from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
-from aliro_actuator.trust_framework.key import KeyPair
+from aliro_actuator.trust_framework.key import (
+    KeyPair,
+    PublicKey,
+)
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -57,6 +66,8 @@ class RD_NFC_AUTH0_21(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step3: Transaction Initiation Standard"),
             TestStep("Step4: Receive/Send AUTH0 command/response Standard"),
             TestStep("Step5: Validate AUTH0 command/response"),
+            TestStep("Step6: Receive/Send Auth0 command/response"),
+            TestStep("Step7: Validate AUTH0 command/response"),
         ]
 
     async def setup(self) -> None:
@@ -110,27 +121,90 @@ class RD_NFC_AUTH0_21(AliroReaderTestCase, UserPromptSupport):
         except InvalidCommandError as error:
             self.mark_step_failure(str(error))
             return
+        self.next_step()
+
+        # Test step 5: Validate AUTH0 command/response
+        if cmds_auth0.command_parameters != Transaction.STANDARD:
+            self.mark_step_failure("Standard phase not requested")
+            return
+        if cmds_auth0.authentication_policy != AuthenticationPolicy.FORCE_USER_AUTHENTICATION:
+            self.mark_step_failure("Force user authentication not requested")
+            return
+        if cmds_auth0.expedited_phase_protocol_version != PROTOCOL_VERSION:
+            self.mark_step_failure("Expedited phase protocol version mismatch")
+            return
+        if cmds_auth0.vendor_specific_extension != None:
+            self.mark_step_failure("Vendor specific extensions are present")
+            return
+
+        # Store data from first Auth0
+        self.reader_epubk = PublicKey(cmds_auth0.reader_epubk)
+        self.transaction_identifier = cmds_auth0.transaction_identifier
+        self.reader_identifier = cmds_auth0.reader_identifier
+
+        # Send AUTH0 response indicating error
+        try:
+            auth0_response = self.userdevice.apdu.create_auth0_response(
+                credential_epubk=self.userdevice.session.get_credential_epubkey().as_bytes(),
+                status=StatusBytes.GENERIC_ERROR,
+            )
+            await self.userdevice.apdu.handle_chaining_send_response(
+                auth0_response, self.userdevice.transport_protocol
+            )
+        except AccessProtocolError as error:
+            self.mark_step_failure(str(error))
+            return  
+
+        # Handle Control flow because of error
+        try:
+            cmds_auth0 = await self.userdevice.wait_for_command()
+        except InvalidCommandError as error:
+            self.mark_step_failure(str(error))
+            return  
+        try:
+            await self.userdevice.handle_control_flow(cmds_auth0)
+        except AccessProtocolError as error:
+            self.mark_step_failure(str(error))
+            return                   
+        self.next_step()
+
+        # Test step 6: Receive/Send Auth0 command/response
+        try:
+            cmds_auth0 = await self.userdevice.wait_for_command()
+        except InvalidCommandError as error:
+            self.mark_step_failure(str(error))
+            return
         try:
             await self.userdevice.handle_auth0(cmds_auth0)
         except AccessProtocolError as error:
             self.mark_step_failure(str(error))
             return
-        if not self.userdevice.session.state_valid(UserSessionState.AUTH0_STD_DONE):
-            self.mark_step_failure(
-                "Userdevice is not in state auth0 standard done, either fast "
-                "transaction was requested or handling auth0 failed"
-            )
         self.next_step()
 
-        # Test step 5: Validate AUTH0 command/response
-        if self.userdevice.session.command_parameters != Transaction.STANDARD:
-            self.mark_step_failure("Standard phase not requested")
-        if self.userdevice.session.authentication_policy != AuthenticationPolicy.FORCE_USER_AUTHENTICATION:
-            self.mark_step_failure("Force user authentication not requested")
+        # Test step 7: Validate AUTH0 command/response
+        if (self.userdevice.session.command_parameters != Transaction.STANDARD) and (self.userdevice.session.command_parameters != Transaction.FAST):
+            self.mark_step_failure("Standard/Fast phase not requested")
+            return
         if self.userdevice.session.expedited_phase_protocol_version != PROTOCOL_VERSION:
-            self.mark_step_failure("Expideted phase protocol version mismatch")
+            self.mark_step_failure("Expedited phase protocol version mismatch")
+            return
         if self.userdevice.session.command_vendor_extension != None:
             self.mark_step_failure("Vendor specific extensions are present")
+            return
+
+        # Verify data differences
+        if self.reader_epubk.as_bytes() == self.userdevice.session.reader_epubk.as_bytes():
+            self.mark_step_failure("Public key already used in previous command")
+            return
+        if self.transaction_identifier == self.userdevice.session.transaction_identifier:
+            self.mark_step_failure("Transaction identifier already used in previous command")
+            return
+        if self.reader_identifier[-16:] == self.userdevice.session.reader_identifier[-16:]:
+            self.mark_step_failure("Reader identifier lower 16 bytes match with previous command")
+            return
+        if self.reader_identifier[:16] == self.userdevice.session.reader_identifier[:16]:
+            self.mark_step_failure("Reader identifier first 16 bytes mismatch")
+            return
         self.next_step()
 
     async def cleanup(self) -> None:
