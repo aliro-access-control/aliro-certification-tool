@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# from .rd_nfc_auth0_21 import RD_NFC_AUTH0_21
+from .rd_ble_auth0_10 import RD_BLE_AUTH0_10

@@ -1,7 +1,11 @@
-from aliro_actuator.access_protocol.apdu import INS
+from aliro_actuator.access_protocol.apdu import (
+    INS,
+    AuthenticationPolicy,
+)
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
+    PROTOCOL_VERSION,
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
@@ -199,9 +203,16 @@ class RD_NFC_AUTH0_11(AliroReaderTestCase, UserPromptSupport):
             )
         self.next_step()
 
-        # Test step 9: Verify vendor extension support 
+        # Test step 9: Verify vendor extension support
+        if self.userdevice.session.authentication_policy != AuthenticationPolicy.USER_DEVICE:
+            self.mark_step_failure("User device authentication not requested")
+            return
+        if self.userdevice.session.expedited_phase_protocol_version != PROTOCOL_VERSION:
+            self.mark_step_failure("Expideted phase protocol version mismatch")
+            return
         if self.userdevice.session.command_vendor_extension != None:
             self.mark_step_failure("Vendor specific extensions are present")
+            return
         self.next_step()
 
     async def cleanup(self) -> None:
