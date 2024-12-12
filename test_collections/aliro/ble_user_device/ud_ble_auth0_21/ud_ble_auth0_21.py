@@ -1,6 +1,9 @@
+from binascii import hexlify
+
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     AuthenticationPolicy,
+    ReaderStatus,
     Transaction,
 )
 from aliro_actuator.access_protocol.defines import (
@@ -12,7 +15,7 @@ from aliro_actuator.access_protocol.errors import (
     InvalidResponseError,
 )
 from aliro_actuator.access_protocol.reader import Reader
-from aliro_actuator.trust_framework.key import KeyPair
+from aliro_actuator.trust_framework.key import KeyPair, PublicKey
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -20,11 +23,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_NFC_AUTH0_21(AliroUserDeviceTestCase, UserPromptSupport):
+class UD_BLE_AUTH0_21(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-NFC-AUTH0-2.1",
+        "public_id": "UD-BLE-AUTH0-2.1",
         "version": "0.0.1",
-        "title": "UD-NFC-AUTH0-2.1",
+        "title": "UD-BLE-AUTH0-2.1",
         "description": """Verify conformance of User Device UT in AUTH0 command.""",
     }
 
@@ -49,25 +52,24 @@ class UD_NFC_AUTH0_21(AliroUserDeviceTestCase, UserPromptSupport):
     def create_test_steps(self) -> None:
         self.test_steps = [
             TestStep("Step1: Initialization"),
-            TestStep("Step2: Set to polling mode"),
-            TestStep("Step3: Set the User Device UT"),
-            TestStep("Step4: Send/Receive Select command/response"),
-            TestStep("Step5: Send/Receive AUTH0 command/response"),
-            TestStep("Step6: Send/Receive Second AUTH0 command/response"),
+            TestStep("Step2: Transaction initiation"),
+            TestStep("Step3: Send/Receive AUTH0 command/response"),
+            TestStep("Step4: Send/Receive Second AUTH0 command/response"),
         ]
 
     async def setup(self) -> None:
-        logger.info("UD_NFC_AUTH0_10 setup")
+        logger.info("UD_BLE_AUTH0_21 setup")
         # load parameters from project config
-        group_id = self.th_group_identifier()
-        sub_group_id = self.th_sub_group_identifier()
+        self.group_id = self.th_group_identifier()
+        self.sub_group_id = self.th_sub_group_identifier()
         key = self.th_reader_keypair()
 
-        # Initialize Aliro NFC Reader
+
+        # Initialize Aliro BLE Reader
         self.reader = Reader(
-            transport_protocol=TransportProtocol.NFC,
-            reader_group_identifier=group_id,
-            reader_group_sub_identifier=sub_group_id,
+            transport_protocol=TransportProtocol.BLE_UWB,
+            reader_group_identifier=self.group_id,
+            reader_group_sub_identifier=self.sub_group_id,
             reader_key=key,
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
@@ -76,32 +78,24 @@ class UD_NFC_AUTH0_21(AliroUserDeviceTestCase, UserPromptSupport):
     @log_errors
     async def execute(self) -> None:
         # Test step 1
-        # Done in setup
-        self.next_step()
-
-        # Test step 2
-        # Display pop-up to put the User Device UT on the TH
         await self.send_prompt_request(
             OptionsSelectPromptRequest(
-                prompt="Tap User Device on the Test Harness NFC", options={"OK": 1}
+                prompt="Reset murata board by pressing switch SW1\n"
+                "and start user device scanning",
+                options={"OK": 1},
             )
         )
         self.next_step()
 
-        # Test step 3
-        await self.reader.setup_connection()  # up to RATS command/ ATS response
-        self.reader.start_new_session()
-        self.next_step()
-
-        # Test step 4
+        # Test step 2
         try:
-            await self.reader.handle_select(aid=EXPEDITED_PHASE_AID)
+            await self.reader.transaction_initiation()  # including select
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
         self.next_step()
 
-        # Test step 5
+        # Test step 3
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.FAST,
@@ -110,7 +104,7 @@ class UD_NFC_AUTH0_21(AliroUserDeviceTestCase, UserPromptSupport):
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
-
+                
         # Check cryptogram
         if self.reader.session.signaling_bitmap == None:
             self.mark_step_failure("Signaling bitmap missing.")
@@ -130,8 +124,8 @@ class UD_NFC_AUTH0_21(AliroUserDeviceTestCase, UserPromptSupport):
             self.reader.session.revocation_signed_timestamp
         )
         self.next_step()
-
-        # Test step 6
+        
+        # Test step 4
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.FAST,
@@ -140,7 +134,7 @@ class UD_NFC_AUTH0_21(AliroUserDeviceTestCase, UserPromptSupport):
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
-
+        
         if (
             self.reader.session.signaling_bitmap == None
             or self.reader.session.signaling_bitmap == first_signaling_bitmap
@@ -170,5 +164,5 @@ class UD_NFC_AUTH0_21(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_NFC_AUTH0_21 Cleanup")
+        logger.info("UD_BLE_AUTH0_10 Cleanup")
         await self.reader.transaction_termination()
