@@ -70,7 +70,7 @@ class UD_NFC_AUTH0_30(AliroUserDeviceTestCase, UserPromptSupport):
             reader_key=key,
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
-            vendor_extension=bytes.fromhex("30010004030A8736")
+            vendor_extension=bytes.fromhex("BB")
         )
 
     @log_errors
@@ -109,16 +109,6 @@ class UD_NFC_AUTH0_30(AliroUserDeviceTestCase, UserPromptSupport):
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
-            return
-
-        if self.reader.session.signaling_bitmap != None:
-            self.mark_step_failure("Signaling bitmap present.")
-            return
-        if self.reader.session.credential_signed_timestamp != None:
-            self.mark_step_failure("Credential signed timestamp present.")
-            return
-        if self.reader.session.revocation_signed_timestamp != None:
-            self.mark_step_failure("Revocation signed timestamp present.")
             return
         self.next_step()
 

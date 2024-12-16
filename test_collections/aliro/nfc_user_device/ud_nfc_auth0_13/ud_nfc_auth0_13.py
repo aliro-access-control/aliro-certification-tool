@@ -53,7 +53,8 @@ class UD_NFC_AUTH0_13(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step3: Set the User Device UT"),
             TestStep("Step4: Send/Receive Select command/response"),
             TestStep("Step5: Send/Receive AUTH0 command/response"),
-            TestStep("Step6: Send/Receive Second AUTH0 command/response"),
+            TestStep("Step6: Send/Receive 2nd Select command/response"),
+            TestStep("Step7: Send/Receive 2nd AUTH0 command/response"),
         ]
 
     async def setup(self) -> None:
@@ -114,8 +115,16 @@ class UD_NFC_AUTH0_13(AliroUserDeviceTestCase, UserPromptSupport):
         # Store first ephemeral key
         first_credential_ephemeral_key = self.reader.session.credential_ephemeral_key
         self.next_step()
-
+        
         # Test step 6
+        try:
+            await self.reader.handle_select(aid=EXPEDITED_PHASE_AID)
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
+        self.next_step()
+
+        # Test step 7
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.STANDARD,
