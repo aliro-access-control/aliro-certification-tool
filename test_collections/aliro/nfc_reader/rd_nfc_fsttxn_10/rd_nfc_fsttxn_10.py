@@ -197,7 +197,27 @@ class RD_NFC_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
                 "transaction was requested or handling auth0 failed"
             )
         self.next_step()
+        
+        # Test step 9:
+        try:
+            cmds_exchange = await self.userdevice.wait_for_command()
+        except InvalidCommandError as error:
+            self.mark_step_failure(str(error))
+            return
+
+        try:
+            await self.userdevice.handle_exchange(cmds_exchange)
+        except AccessProtocolError as error:
+            self.mark_step_failure(str(error))
+            return
+
+        logger.info(
+            "Received EXCHANGE command with reader status: 0x{:04x}".format(
+                cmds_exchange.reader_status.value
+            )
+        )
+
 
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_STDTXN_10 Cleanup")
+        logger.info("RD_NFC_FSTTXN_10 Cleanup")
         await self.userdevice.transaction_termination()
