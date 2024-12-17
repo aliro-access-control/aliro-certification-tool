@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .ud_nfc_stdtxn_10 import UD_NFC_STDTXN_10
+from .rd_ble_auth0_10 import RD_BLE_AUTH0_10

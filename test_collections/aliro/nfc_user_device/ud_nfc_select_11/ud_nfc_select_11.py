@@ -1,15 +1,8 @@
-from aliro_actuator.access_protocol.apdu import (
-    Auth1Response,
-    AuthenticationPolicy,
-    Transaction,
-)
-from aliro_actuator.access_protocol.defines import (
-    EXPEDITED_PHASE_AID,
-    TransportProtocol,
-)
+from aliro_actuator.access_protocol.defines import STEPUP_PHASE_AID, TransportProtocol
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
+    InvalidStatusError,
 )
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair
@@ -20,12 +13,12 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
+class UD_NFC_SELECT_11(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-NFC-STDTXN-1.0",
+        "public_id": "UD-NFC-SELECT-1.1",
         "version": "0.0.1",
-        "title": "UD-NFC-STDTXN-1.0",
-        "description": """Verify conformance of User Device UT in AUTH0 command.""",
+        "title": "UD-NFC-SELECT-1.1",
+        "description": """Verify conformance of User Device UT SELECT command using Step-up Phase AID. Precondition: successful standard transaction not done.""",
     }
 
     reader_ePuBK = bytes.fromhex(
@@ -52,11 +45,10 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step2: Set to polling mode"),
             TestStep("Step3: Set the User Device UT"),
             TestStep("Step4: Send/Receive Select command/response"),
-            TestStep("Step5: Send/Receive AUTH0 command/response"),
         ]
 
     async def setup(self) -> None:
-        logger.info("This is a test case setup")
+        logger.info("UD_NFC_SELECT_11 setup")
         # load parameters from project config
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
@@ -94,17 +86,16 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 4
         try:
-            await self.reader.handle_select(aid=EXPEDITED_PHASE_AID)
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        self.next_step()
-
-        # Test step 5
-        try:
-            await self.reader.handle_auth0(
-                transaction_type=Transaction.STANDARD,
-                authentication_policy=AuthenticationPolicy.USER_DEVICE,
+            aid = STEPUP_PHASE_AID
+            await self.reader.command_select(aid)
+            self.mark_step_failure(
+                "Stepup AID send, but it was accepted as a expedited AID"
+            )
+        except InvalidStatusError as error:
+            logger.info(
+                "Received error status (as expected), status received: 0x{:04x}".format(
+                    error.status
+                )
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
@@ -112,5 +103,5 @@ class UD_NFC_STDTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_NFC_STDTXN_10 Cleanup")
+        logger.info("UD_NFC_SELECT_11 Cleanup")
         await self.reader.transaction_termination()
