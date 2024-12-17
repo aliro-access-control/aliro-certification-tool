@@ -54,7 +54,8 @@ class UD_BLE_AUTH0_13(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step1: Initialization"),
             TestStep("Step2: Transaction initiation"),
             TestStep("Step3: Send/Receive AUTH0 command/response"),
-            TestStep("Step4: Send/Receive Second AUTH0 command/response"),
+            TestStep("Step4: Send/Receive 2nd Select command/response"),
+            TestStep("Step5: Send/Receive Second AUTH0 command/response"),
         ]
 
     async def setup(self) -> None:
@@ -110,6 +111,14 @@ class UD_BLE_AUTH0_13(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
         
         # Test step 4
+        try:
+            await self.reader.handle_select(aid=EXPEDITED_PHASE_AID)
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
+        self.next_step()
+        
+        # Test step 5
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.STANDARD,

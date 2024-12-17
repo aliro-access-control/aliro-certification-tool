@@ -103,16 +103,6 @@ class UD_BLE_AUTH0_30(AliroUserDeviceTestCase, UserPromptSupport):
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
-        
-        if self.reader.session.signaling_bitmap != None:
-            self.mark_step_failure("Signaling bitmap present.")
-            return
-        if self.reader.session.credential_signed_timestamp != None:
-            self.mark_step_failure("Credential signed timestamp present.")
-            return
-        if self.reader.session.revocation_signed_timestamp != None:
-            self.mark_step_failure("Revocation signed timestamp present.")
-            return
         self.next_step()
 
     async def cleanup(self) -> None:

@@ -8,11 +8,13 @@ from aliro_actuator.access_protocol.apdu import (
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
+    PROTOCOL_VERSION,
     TransportProtocol,
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
+    InvalidStatusError,
 )
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey
@@ -101,8 +103,8 @@ class UD_BLE_AUTH0_12(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 3
         try:
-            await self.reader.handle_auth0(
-                transaction_type=Transaction.STANDARD,
+            await self.reader.command_auth0(
+                transaction=Transaction.STANDARD,
                 authentication_policy=AuthenticationPolicy.USER_DEVICE,
                 protocol_version=PROTOCOL_VERSION,
                 reader_epubk=reader_epubkey,
@@ -127,5 +129,5 @@ class UD_BLE_AUTH0_12(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_BLE_AUTH0_11 Cleanup")
+        logger.info("UD_BLE_AUTH0_12 Cleanup")
         await self.reader.transaction_termination()

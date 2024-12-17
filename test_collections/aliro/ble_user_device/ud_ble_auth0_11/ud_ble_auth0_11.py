@@ -13,6 +13,7 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
+    InvalidStatusError,
 )
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey
@@ -98,8 +99,8 @@ class UD_BLE_AUTH0_11(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 3
         try:
-            await self.reader.handle_auth0(
-                transaction_type=Transaction.STANDARD,
+            await self.reader.command_auth0(
+                transaction=Transaction.STANDARD,
                 authentication_policy=AuthenticationPolicy.USER_DEVICE,
                 protocol_version=protocol_version,
                 reader_epubk=self.reader.session.get_reader_epubkey().as_bytes(),
