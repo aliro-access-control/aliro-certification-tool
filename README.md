@@ -17,7 +17,7 @@ Following this section should take a couple hours, mostly depending on internet 
 * Raspberry pi 4 Model B - 8GB preferred (4GB might work)
     * power adapter for raspberry pi
     * micro SD card (16 GB or more)
-* OM27160B1EVK (NFC interface)
+* NFC interface OM27160B1EVK (SPI based) or OM27160A1EVK (I2C based) 
 * Ethernet network cable (UDP cable) (optional)
 * LAN/Wi-Fi Network with internet access
 * Murata LBUA0VG2BP-EVK-P (BLE/UWB interface)
@@ -194,10 +194,15 @@ This is mostly a backup, if you need to configure network or find IP address.
     ```
 
 2. Setup the Test Harness
-
+    > **_NOTE:_** by default `setup.sh` script will build NXP libraries for SPI version of [PN7160 evaluation kit](https://www.nxp.com/docs/en/application-note/AN12991.pdf)
     ```sh
     cd  ~/aliro-certification-tool/test_collections/aliro
     ./setup.sh
+    ```
+    > **_NOTE:_** for I2C based evaluation kit run the script with `NXP_TRANSPORT=I2C` variable configured
+    ```sh
+    cd  ~/aliro-certification-tool/test_collections/aliro
+    NXP_TRANSPORT=I2C ./setup.sh
     ```
 
 3. Start the Test Harness
