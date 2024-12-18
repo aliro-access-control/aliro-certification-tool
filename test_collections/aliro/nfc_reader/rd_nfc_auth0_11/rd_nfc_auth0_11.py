@@ -1,7 +1,11 @@
-from aliro_actuator.access_protocol.apdu import INS
+from aliro_actuator.access_protocol.apdu import (
+    INS,
+    AuthenticationPolicy,
+)
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
+    PROTOCOL_VERSION,
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
@@ -16,11 +20,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class RD_NFC_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
+class RD_NFC_AUTH0_11(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-FSTTXN-1.0",
+        "public_id": "RD-NFC-AUTH0-1.1",
         "version": "0.0.1",
-        "title": "RD-NFC-FSTTXN-1.0",
+        "title": "RD-NFC-AUTH0-1.1",
         "description": """Verify conformance of Reader UT in AUTH0 command.""",
     }
 
@@ -60,6 +64,7 @@ class RD_NFC_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step6: Receive/Send EXCHANGE command/response Standard"),
             TestStep("Step7: Transaction Initiation Fast"),
             TestStep("Step8: Receive/Send AUTH0 command/response Fast"),
+            TestStep("Step9: Verify vendor extension support")
         ]
 
     async def setup(self) -> None:
@@ -197,27 +202,19 @@ class RD_NFC_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
                 "transaction was requested or handling auth0 failed"
             )
         self.next_step()
-        
-        # Test step 9:
-        try:
-            cmds_exchange = await self.userdevice.wait_for_command()
-        except InvalidCommandError as error:
-            self.mark_step_failure(str(error))
+
+        # Test step 9: Verify vendor extension support
+        if self.userdevice.session.authentication_policy != AuthenticationPolicy.USER_DEVICE:
+            self.mark_step_failure("User device authentication not requested")
             return
-
-        try:
-            await self.userdevice.handle_exchange(cmds_exchange)
-        except AccessProtocolError as error:
-            self.mark_step_failure(str(error))
+        if self.userdevice.session.expedited_phase_protocol_version != PROTOCOL_VERSION:
+            self.mark_step_failure("Expideted phase protocol version mismatch")
             return
-
-        logger.info(
-            "Received EXCHANGE command with reader status: 0x{:04x}".format(
-                cmds_exchange.reader_status.value
-            )
-        )
-
+        if self.userdevice.session.command_vendor_extension != None:
+            self.mark_step_failure("Vendor specific extensions are present")
+            return
+        self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_FSTTXN_10 Cleanup")
+        logger.info("RD_NFC_AUTH0_11 Cleanup")
         await self.userdevice.transaction_termination()

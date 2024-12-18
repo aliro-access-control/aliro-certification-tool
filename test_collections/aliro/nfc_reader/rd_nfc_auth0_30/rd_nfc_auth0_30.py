@@ -1,7 +1,11 @@
-from aliro_actuator.access_protocol.apdu import INS
+from aliro_actuator.access_protocol.apdu import (
+    INS,
+    AuthenticationPolicy,
+)
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
+    PROTOCOL_VERSION,
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
@@ -16,11 +20,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class RD_NFC_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
+class RD_NFC_AUTH0_30(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-FSTTXN-1.0",
+        "public_id": "RD-NFC-AUTH0-3.0",
         "version": "0.0.1",
-        "title": "RD-NFC-FSTTXN-1.0",
+        "title": "RD-NFC-AUTH0-3.0",
         "description": """Verify conformance of Reader UT in AUTH0 command.""",
     }
 
@@ -56,10 +60,9 @@ class RD_NFC_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step2: Set Reader Device Under Test in polling mode"),
             TestStep("Step3: Transaction Initiation Standard"),
             TestStep("Step4: Receive/Send AUTH0 command/response Standard"),
-            TestStep("Step5: Receive/Send AUTH1 command/response Standard"),
-            TestStep("Step6: Receive/Send EXCHANGE command/response Standard"),
-            TestStep("Step7: Transaction Initiation Fast"),
-            TestStep("Step8: Receive/Send AUTH0 command/response Fast"),
+            TestStep("Step5: Validate AUTH0 command/response"),
+            TestStep("Step6: Receive/Send Auth0 command/response"),
+            TestStep("Step7: Validate AUTH0 command/response"),
         ]
 
     async def setup(self) -> None:
@@ -113,6 +116,47 @@ class RD_NFC_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
         except InvalidCommandError as error:
             self.mark_step_failure(str(error))
             return
+        self.next_step()
+
+        # Test step 5: Validate AUTH0 command/response
+        if self.userdevice.session.command_parameters != Transaction.STANDARD:
+            self.mark_step_failure("Standard phase not requested")
+            return
+        if self.userdevice.session.authentication_policy != AuthenticationPolicy.FORCE_USER_AUTHENTICATION:
+            self.mark_step_failure("Force user authentication not requested")
+            return
+        if self.userdevice.session.expedited_phase_protocol_version != PROTOCOL_VERSION:
+            self.mark_step_failure("Expedited phase protocol version mismatch")
+            return
+        if self.userdevice.session.command_vendor_extension != None:
+            self.mark_step_failure("Vendor specific extensions are present")
+            return
+
+        # Store data from first Auth0
+        self.reader_epubk = self.userdevice.session.reader_epubk
+        self.transaction_identifier = self.userdevice.session.transaction_identifier
+        self.reader_identifier = self.userdevice.session.reader_identifier
+
+        # Send AUTH0 response indicating error
+        try:
+            auth0_response = self.userdevice.apdu.create_auth0_response(
+                credential_epubk=self.userdevice.session.get_credential_epubkey().as_bytes(),
+                status=StatusBytes.GENERIC_ERROR,
+            )
+            await self.userdevice.apdu.handle_chaining_send_response(
+                auth0_response, self.userdevice.transport_protocol
+            )
+        except AccessProtocolError as error:
+            self.mark_step_failure(str(error))
+            return                       
+        self.next_step()
+
+        # Test step 6: Receive/Send Auth0 command/response
+        try:
+            cmds_auth0 = await self.userdevice.wait_for_command()
+        except InvalidCommandError as error:
+            self.mark_step_failure(str(error))
+            return
         try:
             await self.userdevice.handle_auth0(cmds_auth0)
         except AccessProtocolError as error:
@@ -125,99 +169,32 @@ class RD_NFC_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
             )
         self.next_step()
 
-        # Test step 5: Receive/Send AUTH1 command/response Standard
-        try:
-            cmds_auth1 = await self.userdevice.wait_for_command()
-        except InvalidCommandError as error:
-            self.mark_step_failure(str(error))
+        # Test step 7: Validate AUTH0 command/response
+        if self.userdevice.session.authentication_policy != AuthenticationPolicy.FORCE_USER_AUTHENTICATION:
+            self.mark_step_failure("Force user authentication not requested")
             return
-        try:
-            await self.userdevice.handle_auth1(cmds_auth1)
-        except AccessProtocolError as error:
-            self.mark_step_failure(str(error))
+        if self.userdevice.session.expedited_phase_protocol_version != PROTOCOL_VERSION:
+            self.mark_step_failure("Expedited phase protocol version mismatch")
             return
-        self.next_step()
+        if self.userdevice.session.command_vendor_extension != None:
+            self.mark_step_failure("Vendor specific extensions are present")
+            return
 
-        # Test step 6: Receive/Send CONTROL FLOW command/response Standard
-        while True:
-            try:
-                cmds_exchange = await self.userdevice.wait_for_command()
-            except InvalidCommandError as error:
-                self.mark_step_failure(str(error))
-                return
-
-            if cmds_exchange.ins == INS.EXCHANGE:
-                try:
-                    await self.userdevice.handle_exchange(cmds_exchange)
-                except AccessProtocolError as error:
-                    self.mark_step_failure(str(error))
-                    return
-                if self.userdevice.session.state_valid(
-                    UserSessionState.TRANSACTION_COMPLETE
-                ):
-                    break
-                # re-enter loop waiting for EXCHANGE with reader status
-            else:
-                self.mark_step_failure(f"Unexpected command {cmds_exchange.ins}")
-                return
-
-        await self.userdevice.transaction_termination()
-        await self.send_prompt_request(
-            OptionsSelectPromptRequest(
-                prompt="Remove Test Harness, set Reader Device Under Test in "
-                "NFC polling mode for fast transaction, \r\nand bring Test "
-                "Harness above Reader Device Under Test",
-                options={"OK": 1},
-            )
-        )
-
-        # Test step 7: Transaction Initiation Fast
-        try:
-            await self.userdevice.transaction_initiation()  # including Select
-        except (AccessProtocolError, InvalidCommandError) as error:
-            self.mark_step_failure(str(error))
+        # Verify data differences
+        if self.reader_epubk.as_bytes() == self.userdevice.session.reader_epubk.as_bytes():
+            self.mark_step_failure("Public key already used in previous command")
+            return
+        if self.transaction_identifier == self.userdevice.session.transaction_identifier:
+            self.mark_step_failure("Transaction identifier already used in previous command")
+            return
+        if self.reader_identifier[-16:] == self.userdevice.session.reader_identifier[-16:]:
+            self.mark_step_failure("Reader identifier lower 16 bytes match with previous command")
+            return
+        if self.reader_identifier[:16] == self.userdevice.session.reader_identifier[:16]:
+            self.mark_step_failure("Reader identifier first 16 bytes mismatch")
             return
         self.next_step()
-
-        # Test step 8: Receive/Send Auth0 command/response
-        try:
-            cmds_auth0 = await self.userdevice.wait_for_command()
-        except InvalidCommandError as error:
-            self.mark_step_failure(str(error))
-            return
-
-        try:
-            await self.userdevice.handle_auth0(cmds_auth0)
-        except AccessProtocolError as error:
-            self.mark_step_failure(str(error))
-            return
-        if not self.userdevice.session.state_valid(UserSessionState.AUTH0_FAST_DONE):
-            self.mark_step_failure(
-                "Userdevice is not in state auth0 fast done, either standard "
-                "transaction was requested or handling auth0 failed"
-            )
-        self.next_step()
-        
-        # Test step 9:
-        try:
-            cmds_exchange = await self.userdevice.wait_for_command()
-        except InvalidCommandError as error:
-            self.mark_step_failure(str(error))
-            return
-
-        try:
-            await self.userdevice.handle_exchange(cmds_exchange)
-        except AccessProtocolError as error:
-            self.mark_step_failure(str(error))
-            return
-
-        logger.info(
-            "Received EXCHANGE command with reader status: 0x{:04x}".format(
-                cmds_exchange.reader_status.value
-            )
-        )
-
 
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_FSTTXN_10 Cleanup")
+        logger.info("RD_NFC_AUTH0_30 Cleanup")
         await self.userdevice.transaction_termination()
