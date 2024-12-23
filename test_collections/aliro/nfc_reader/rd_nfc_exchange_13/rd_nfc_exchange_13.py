@@ -22,14 +22,23 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
-
-class RD_NFC_EXCHANGE_10(AliroReaderTestCase, UserPromptSupport):
+class RD_NFC_EXCHANGE_13(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-EXCHANGE-1.0",
+        "public_id": "RD-NFC-EXCHANGE-1.3",
         "version": "0.0.1",
-        "title": "RD-NFC-EXCHANGE-1.0",
+        "title": "RD-NFC-EXCHANGE-1.3",
         "description": """Verify conformance of Reader UT in EXCHANGE command.""",
     }
+    
+    key_public = bytes.fromhex(
+        "04f8ea9dfe4024d266113cef0caccf1f879df47e291"
+        "dbfc1591b9fc6aef7e99b64370274aa23d7c4b5d8a18"
+        "d0e7148eb71a5d368eaf03d846f4561394aaa3e66ff"
+    )
+
+    key_private = bytes.fromhex(
+        "8690eafa04947803101bdd916019ff35e2e68d8152a7bbc594188e7f9547495d"
+    )
 
     endpoint_ePuBK = bytes.fromhex(
         "045d75ab60136a2c54ff27b799ee157f3f3329435c0d"
@@ -59,7 +68,7 @@ class RD_NFC_EXCHANGE_10(AliroReaderTestCase, UserPromptSupport):
         ]
 
     async def setup(self) -> None:
-        logger.info("RD_NFC_EXCHANGE_1.0 setup")
+        logger.info("RD_NFC_EXCHANGE_1.3 setup")
         access_credential = self.reader_access_credential()
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,
@@ -150,7 +159,7 @@ class RD_NFC_EXCHANGE_10(AliroReaderTestCase, UserPromptSupport):
             device_authentication = create_user_device_authentication(
                 self.userdevice.session.reader_identifier,
                 self.userdevice.session.get_credential_epubkey(),
-                self.userdevice.session.reader_epubk,
+                key_public,
                 self.userdevice.session.transaction_identifier,
             )
             signature = self.userdevice.session.access_credential.sign(
@@ -164,7 +173,7 @@ class RD_NFC_EXCHANGE_10(AliroReaderTestCase, UserPromptSupport):
 
             await self.userdevice.response_auth1(
                 self.userdevice.session.access_credential.get_key_slot(),
-                None,
+                self.session.access_credential.get_access_credential_public_key().as_bytes(),
                 cmds_auth1.expected_response,
                 signature,
                 self.userdevice.session.encryption_expedited,
@@ -195,14 +204,14 @@ class RD_NFC_EXCHANGE_10(AliroReaderTestCase, UserPromptSupport):
                 cmds_exchange.reader_status.value
             )
         )
-        if cmds_exchange.reader_status != ReaderStatus.PUBLIC_KEY_NOT_FOUND:
+        if cmds_exchange.reader_status != ReaderStatus.INVALID_SIGNATURE:
             self.mark_step_failure(
-                "Expected 'public key not found in response', but received {}".format(
+                "Expected 'Invalid signature in response', but received {}".format(
                     cmds_exchange.reader_status.name
                 )
             )
             return
 
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_EXCHANGE_1.0 Cleanup")
+        logger.info("RD_NFC_EXCHANGE_1.3 Cleanup")
         await self.userdevice.transaction_termination()
