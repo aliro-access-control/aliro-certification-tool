@@ -7,6 +7,10 @@ from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
 )
+from aliro_actuator.access_protocol.errors import (
+    AccessProtocolError,
+    InvalidResponseError,
+)
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
@@ -85,25 +89,17 @@ class UD_BLE_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
                 options={"OK": 1},
             )
         )
-        try:
-            await self.send_prompt_request(
-                OptionsSelectPromptRequest(
-                    prompt="Start user device scanning", options={"OK": 1}
-                )
+        await self.send_prompt_request(
+            OptionsSelectPromptRequest(
+                prompt="Start user device scanning", options={"OK": 1}
             )
-            await self.reader.setup_connection()
-            self.reader.start_new_session()
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
+        )
 
         # Test step 1
         try:
-            await self.reader.wait_for_initiate_access_protocol_notification()
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
+            await self.reader.transaction_initiation()  # including select
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
             return
         self.next_step()
 
