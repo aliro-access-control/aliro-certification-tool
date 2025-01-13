@@ -1,29 +1,34 @@
 from binascii import hexlify
 
 from aliro_actuator.access_protocol.apdu import (
-    INS,
+    Auth1Response,
     AuthenticationPolicy,
+    ReaderStatus,
+    Transaction,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
-    PROTOCOL_VERSION
 )
-from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
-from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
-from aliro_actuator.trust_framework.key import KeyPair
+from aliro_actuator.access_protocol.errors import (
+    AccessProtocolError,
+    InvalidResponseError,
+    InvalidStatusError,
+)
+from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.trust_framework.certificate import Certificate
+from aliro_actuator.trust_framework.key import KeyPair, PublicKey
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
-from ...support.aliro_test_case import AliroReaderTestCase, log_errors
+from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
-
-class UD_NFC_SENN_0SUNN_1PVN0000_XS0026(AliroReaderTestCase, UserPromptSupport):
+class UD_NFC_SENN_0SUNN_1PVN0000_XS0026(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
         "public_id": "UD_NFC_SENN_0SUNN_1PVN0000_XS0026",
         "version": "0.0.1",
-        "title": "UD_NFC_SENN_0SUNN_1PVN0000_XS0026",
+        "title": "UD-NFC-SENN.0SUNN.1PVN0000.XS0026",
         "description": """Verify conformance of UD NFC flow.""",
     }
 
@@ -58,7 +63,7 @@ class UD_NFC_SENN_0SUNN_1PVN0000_XS0026(AliroReaderTestCase, UserPromptSupport):
     async def setup(self) -> None:
         logger.info("This is a test case setup")
         # load parameters from project config
-        group_id = self.th_group_identifier()
+        self.group_id = bytes.fromhex("00113344667799AA00113344667799AA")
         sub_group_id = self.th_sub_group_identifier()
         key = KeyPair(
             bytes.fromhex(
@@ -87,8 +92,8 @@ class UD_NFC_SENN_0SUNN_1PVN0000_XS0026(AliroReaderTestCase, UserPromptSupport):
                 "291192157a95cb6eb202759428c00cd834998c5d0eab192ee8873c5d34ee"
             )
         )
-        key = self.th_reader_keypair()
-
+        self.endpoint_key = self.th_access_credential_public_key()
+        
         # Initialize Aliro NFC Reader
         self.reader = Reader(
             transport_protocol=TransportProtocol.NFC,
@@ -98,7 +103,6 @@ class UD_NFC_SENN_0SUNN_1PVN0000_XS0026(AliroReaderTestCase, UserPromptSupport):
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
             reader_system_issuer_ca=self.reader_issuer_public_key,
-            key_slot_list=[self.endpoint_key],
         )
 
     @log_errors
@@ -138,7 +142,7 @@ class UD_NFC_SENN_0SUNN_1PVN0000_XS0026(AliroReaderTestCase, UserPromptSupport):
         # Test step 5
         try:
             await self.reader.handle_auth1(
-                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
+                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY, certificate=True
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))

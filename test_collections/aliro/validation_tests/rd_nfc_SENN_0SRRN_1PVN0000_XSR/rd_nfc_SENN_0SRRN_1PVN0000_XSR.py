@@ -1,6 +1,6 @@
 from binascii import hexlify
 
-from aliro_actuator.access_protocol.apdu import INS, ReaderStatus, Auth1Response
+from aliro_actuator.access_protocol.apdu import INS, ReaderStatus
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
@@ -18,12 +18,12 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class RD_NFC_SENN_0SRRN_1KVN0000_XSR(AliroReaderTestCase, UserPromptSupport):
+class RD_NFC_SENN_0SRRN_1PVN0000_XSR(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD_NFC_SENN_0SRRN_1KVN0000_XSR",
+        "public_id": "RD_NFC_SENN_0SRRN_1PVN0000_XSR",
         "version": "0.0.1",
-        "title": "RD-NFC.SENN.0SRRN.1KVN0000.XSR",
-        "description": """Validation Test using key_slot in AUTH1 command.""",
+        "title": "RD-NFC-SENN.0SRRN.1PVN0000.XSR",
+        "description": """Verify conformance of Reader UT in EXCHANGE command.""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -54,7 +54,7 @@ class RD_NFC_SENN_0SRRN_1KVN0000_XSR(AliroReaderTestCase, UserPromptSupport):
         ]
 
     async def setup(self) -> None:
-        logger.info("RD_NFC_SENN_0SRRN_1KVN0000_XSR setup")
+        logger.info("RD_NFC_SENN_0SRRN_1PVN0000_XSR setup")
         access_credential = self.reader_access_credential()
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,
@@ -118,11 +118,6 @@ class RD_NFC_SENN_0SRRN_1KVN0000_XSR(AliroReaderTestCase, UserPromptSupport):
         except InvalidCommandError as error:
             self.mark_step_failure(str(error))
             return
-        if cmds_auth1.expected_response != Auth1Response.KEY_SLOT:
-            self.mark_step_failure(
-                "Access Credential key type request is not key slot!"
-            )
-            return
         try:
             await self.userdevice.handle_auth1(cmds_auth1)
         except AccessProtocolError as error:
@@ -156,5 +151,5 @@ class RD_NFC_SENN_0SRRN_1KVN0000_XSR(AliroReaderTestCase, UserPromptSupport):
         )
 
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_SENN_0SRRN_1KVN0000_XSR Cleanup")
+        logger.info("RD_NFC_SENN_0SRRN_1PVN0000_XSR Cleanup")
         await self.userdevice.transaction_termination()

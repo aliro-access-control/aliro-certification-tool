@@ -1,29 +1,35 @@
 from binascii import hexlify
 
 from aliro_actuator.access_protocol.apdu import (
-    INS,
+    Auth1Response,
     AuthenticationPolicy,
+    ReaderStatus,
+    Transaction,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
-    PROTOCOL_VERSION
 )
-from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
-from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
-from aliro_actuator.trust_framework.key import KeyPair
+from aliro_actuator.access_protocol.errors import (
+    AccessProtocolError,
+    InvalidResponseError,
+    InvalidStatusError,
+)
+from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.trust_framework.certificate import Certificate
+from aliro_actuator.trust_framework.key import KeyPair, PublicKey
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
-from ...support.aliro_test_case import AliroReaderTestCase, log_errors
+from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_NFC_SENN_0SUNN_1KVN0000_XS0026(AliroReaderTestCase, UserPromptSupport):
+class UD_NFC_SENN_0SUNN_1KVN0000_XS0026(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
         "public_id": "UD_NFC_SENN_0SUNN_1KVN0000_XS0026",
         "version": "0.0.1",
-        "title": "UD_NFC_SENN_0SUNN_1KVN0000_XS0026",
+        "title": "UD-NFC-SENN.0SUNN.1KVN0000.XS0026",
         "description": """Verify conformance of UD NFC flow.""",
     }
 
