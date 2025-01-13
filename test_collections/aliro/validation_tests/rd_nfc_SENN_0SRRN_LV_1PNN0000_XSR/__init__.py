@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .rd_nfc_SENN_0SRRN_LV_1PNN0000_XSR import RD_NFC_SENN_0SRRN_LV_1PNN0000_XSR
+# from .rd_nfc_SENN_0SRRN_LV_1PNN0000_XSR import RD_NFC_SENN_0SRRN_LV_1PNN0000_XSR
