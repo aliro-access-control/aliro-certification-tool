@@ -193,13 +193,7 @@ class UD_BLE_AUTH0_21(AliroUserDeviceTestCase, UserPromptSupport):
             self.mark_step_failure("Revocation signed timestamp missing.")
             return
 
-        first_signaling_bitmap = self.reader.session.signaling_bitmap
-        first_credential_signed_timestamp = (
-            self.reader.session.credential_signed_timestamp
-        )
-        first_revocation_signed_timestamp = (
-            self.reader.session.revocation_signed_timestamp
-        )
+        first_received_cryptogram = self.reader.session.received_cryptogram
         self.next_step()
         
         # Test step 8
@@ -220,31 +214,21 @@ class UD_BLE_AUTH0_21(AliroUserDeviceTestCase, UserPromptSupport):
             self.mark_step_failure(str(error))
             return
         
-        if (
-            self.reader.session.signaling_bitmap == None
-            or self.reader.session.signaling_bitmap == first_signaling_bitmap
-        ):
-            self.mark_step_failure(
-                "Signaling bitmap missing or same as previous response."
-            )
+        if self.reader.session.received_cryptogram == None:
+            self.mark_step_failure("missing cryptogram.")
             return
-        if (
-            self.reader.session.credential_signed_timestamp == None
-            or self.reader.session.credential_signed_timestamp
-            == first_credential_signed_timestamp
-        ):
-            self.mark_step_failure(
-                "Credential signed timestamp missing or same as previous response."
-            )
+        if self.reader.session.signaling_bitmap == None:
+            self.mark_step_failure("Signaling bitmap missing.")
             return
-        if (
-            self.reader.session.revocation_signed_timestamp == None
-            or self.reader.session.revocation_signed_timestamp
-            == first_revocation_signed_timestamp
-        ):
-            self.mark_step_failure(
-                "Revocation signed timestamp missing or same as previous response."
-            )
+        if self.reader.session.credential_signed_timestamp == None:
+            self.mark_step_failure("Credential signed timestamp missing.")
+            return
+        if self.reader.session.revocation_signed_timestamp == None:
+            self.mark_step_failure("Revocation signed timestamp missing.")
+            return
+        
+        if self.reader.session.received_cryptogram == first_received_cryptogram:
+            self.mark_step_failure("Received cryptogram same as previous response.")
             return
         self.next_step()
 
