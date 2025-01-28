@@ -106,7 +106,7 @@ class MobileSecurityObject(object):
         return self.__device_key_info
 
     @device_key_info.setter
-    def v(self, val : DeviceKeyInfo | None) -> None:
+    def device_key_info(self, val : DeviceKeyInfo | None) -> None:
         '''Set the device key information.'''
         if val is None:
             self.__device_key_info = val
@@ -176,9 +176,8 @@ class MobileSecurityObject(object):
         # Verify the Device Key Info field.
         if self.__doc_type == self.DOC_TYPE_ALIRO_REVOCATION and self.__device_key_info is not None:
             return False
-        elif self.__doc_type == self.DOC_TYPE_ALIRO_ACCESS and \
-             self.__device_key_info is not None and \
-             not self.__device_key_info.is_valid():
+        elif self.__doc_type == self.DOC_TYPE_ALIRO_ACCESS and (
+              self.__device_key_info is None or not self.__device_key_info.is_valid()):
             return False
 
         # Verify the Validity Info field.
@@ -253,6 +252,7 @@ class MobileSecurityObject(object):
             device_key_info = mobile_security_object_dict.get(MobileSecurityObject.DEVICE_KEY_INFO_LABEL)
             if (device_key_info is None) or (not isinstance(device_key_info, dict)):
                 return False
+            self.__device_key_info = DeviceKeyInfo()
             if not self.__device_key_info.from_dict(device_key_info):
                 return False
 
