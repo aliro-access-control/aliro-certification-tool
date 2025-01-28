@@ -55,7 +55,7 @@ class RD_NFC_SENN_0SRRN_1KVN0000_XSR(AliroReaderTestCase, UserPromptSupport):
 
     async def setup(self) -> None:
         logger.info("RD_NFC_SENN_0SRRN_1KVN0000_XSR setup")
-        access_credential = self.reader_access_credential()
+        access_credential = self.reader_access_credential(add_issuer_public_key=True)
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential],
@@ -65,8 +65,19 @@ class RD_NFC_SENN_0SRRN_1KVN0000_XSR(AliroReaderTestCase, UserPromptSupport):
 
     @log_errors
     async def execute(self) -> None:
-        # Test step 1
         # Done in setup
+        issuer_group_id = self.access_credential.reader_id_key_list[1][0]
+        prompt = "Set the reader_group_identifier of the reader device to: {}\n".format(hexlify(issuer_group_id))
+        prompt += "to the Access Credential of the reader device\n"
+
+        await self.send_prompt_request(
+            OptionsSelectPromptRequest(
+                prompt=prompt,
+                options={"OK": 1},
+            )
+        )
+        
+        # Test step 1
         self.next_step()
 
         # Test step 2
