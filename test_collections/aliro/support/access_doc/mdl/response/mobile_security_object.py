@@ -63,7 +63,7 @@ class MobileSecurityObject(object):
         self.__version : str = MobileSecurityObject.VERSION_DEFAULT
         self.__digest_algorithm : str = MobileSecurityObject.DIGEST_ALGORITHM_DEFAULT
         self.__value_digests : ValueDigests = ValueDigests()
-        self.__device_key_info : DeviceKeyInfo = DeviceKeyInfo()
+        self.__device_key_info : DeviceKeyInfo | None = None
         self.__doc_type : str = MobileSecurityObject.DOC_TYPE_ALIRO_ACCESS
         self.__validity_info : ValidityInfo = ValidityInfo()
         self.__time_verification_required : bool = False
@@ -101,13 +101,16 @@ class MobileSecurityObject(object):
 
     ############################################################################
     @property
-    def device_key_info(self) -> DeviceKeyInfo:
+    def device_key_info(self) -> DeviceKeyInfo | None:
         '''Get the device key information.'''
         return self.__device_key_info
 
     @device_key_info.setter
-    def v(self, val : DeviceKeyInfo) -> None:
+    def v(self, val : DeviceKeyInfo | None) -> None:
         '''Set the device key information.'''
+        if val is None:
+            self.__device_key_info = val
+            return
         assert(isinstance(val, DeviceKeyInfo))
         self.__device_key_info = val
 
@@ -164,12 +167,18 @@ class MobileSecurityObject(object):
         if (self.__value_digests is None):
             return False
 
-        # Verify the Device Key Info field.
-        if not self.__device_key_info.is_valid():
-            return False
-
         # Verify the DocType field.
         if (len(self.__doc_type) == 0):
+            return False
+        if self.__doc_type not in (self.DOC_TYPE_ALIRO_ACCESS, self.DOC_TYPE_ALIRO_REVOCATION):
+            return False
+
+        # Verify the Device Key Info field.
+        if self.__doc_type == self.DOC_TYPE_ALIRO_REVOCATION and self.__device_key_info is not None:
+            return False
+        elif self.__doc_type == self.DOC_TYPE_ALIRO_ACCESS and \
+             self.__device_key_info is not None and \
+             not self.__device_key_info.is_valid():
             return False
 
         # Verify the Validity Info field.
@@ -201,7 +210,8 @@ class MobileSecurityObject(object):
         mobile_security_object_dict[MobileSecurityObject.VALUE_DIGESTS_LABEL] = self.__value_digests.to_dict()
 
         # Encode the Device Key Info field.
-        mobile_security_object_dict[MobileSecurityObject.DEVICE_KEY_INFO_LABEL] = self.__device_key_info.to_dict()
+        if self.__doc_type == self.DOC_TYPE_ALIRO_ACCESS:
+            mobile_security_object_dict[MobileSecurityObject.DEVICE_KEY_INFO_LABEL] = self.__device_key_info.to_dict()
 
         # Encode the DocType field.
         mobile_security_object_dict[MobileSecurityObject.DOC_TYPE_LABEL] = str(self.__doc_type)
@@ -234,16 +244,17 @@ class MobileSecurityObject(object):
         if not self.__value_digests.from_dict(value_digests):
             return False
 
-        device_key_info = mobile_security_object_dict.get(MobileSecurityObject.DEVICE_KEY_INFO_LABEL)
-        if (device_key_info is None) or (not isinstance(device_key_info, dict)):
-            return False
-        if not self.__device_key_info.from_dict(device_key_info):
-            return False
-
         doc_type = str(mobile_security_object_dict.get(MobileSecurityObject.DOC_TYPE_LABEL))
         if (doc_type is None) or (not isinstance(doc_type, str)):
             return False
         self.__doc_type = doc_type
+
+        if self.__doc_type == self.DOC_TYPE_ALIRO_ACCESS:
+            device_key_info = mobile_security_object_dict.get(MobileSecurityObject.DEVICE_KEY_INFO_LABEL)
+            if (device_key_info is None) or (not isinstance(device_key_info, dict)):
+                return False
+            if not self.__device_key_info.from_dict(device_key_info):
+                return False
 
         validity_info = mobile_security_object_dict.get(MobileSecurityObject.VALIDITY_INFO_LABEL)
         if (validity_info is None) or (not isinstance(validity_info, dict)):

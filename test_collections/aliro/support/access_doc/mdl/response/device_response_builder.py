@@ -170,8 +170,9 @@ class DeviceResponseBuilder(object):
 
             # Set the device public key as separate x and y components.
             device_public_key_obj = EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), bytes(device_public_key))
-            mso.device_key_info.device_key.x = int.to_bytes(device_public_key_obj.public_numbers().x, length=32, byteorder='big')
-            mso.device_key_info.device_key.y = int.to_bytes(device_public_key_obj.public_numbers().y, length=32, byteorder='big')
+            if doc_type == 'aliro-a':
+                mso.device_key_info.device_key.x = int.to_bytes(device_public_key_obj.public_numbers().x, length=32, byteorder='big')
+                mso.device_key_info.device_key.y = int.to_bytes(device_public_key_obj.public_numbers().y, length=32, byteorder='big')
 
             # Set the validity information.
             mso.validity_info.signed = datetime.datetime.now(datetime.timezone.utc)
