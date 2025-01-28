@@ -85,7 +85,7 @@ class DeviceResponseBuilder(object):
         device_public_key : bytes | bytearray,
         valid_from : str | int | float | datetime.date | datetime.datetime,
         valid_until : str | int | float | datetime.date | datetime.datetime,
-        x509_cert: bytes,
+        x509_cert: bytes | None = None,
         validity_iteration : int = -1,
         time_verification_required : bool = False) -> DeviceResponse:
         '''Build a Device Response from the given data elements, keys, and validity information.'''
