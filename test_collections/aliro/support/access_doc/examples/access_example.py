@@ -29,6 +29,9 @@ source_dir_path = os.path.abspath(os.path.join(current_file_dir_path, '..'))
 # above may be imported.
 sys.path.append(source_dir_path)
 
+source_dir_path = os.path.abspath(os.path.join(current_file_dir_path, '../../aliro_actuator/src/'))
+sys.path.append(source_dir_path)
+
 from aliro.access.access_data import AccessData
 from aliro.access.access_extension import AccessExtension
 from aliro.access.access_rule import AccessRule
@@ -58,6 +61,13 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.hazmat.primitives.serialization import PublicFormat
+from cryptography.hazmat.primitives.serialization import (
+    load_der_private_key,
+    load_der_public_key,
+)
+
+from aliro_actuator.trust_framework.certificate import Certificate
+from aliro_actuator.trust_framework.key import KeyPair
 
 # Raw issuer private key.
 # issuer_private_key = bytearray([
@@ -225,6 +235,25 @@ print("\nAccess Data Element")
 cbor = access_data.to_cbor()
 print("cbor: " + Utility.bytes_to_hex_str(cbor) + "\n")
 
+cert_issuer = KeyPair(
+    bytes([byte for byte in issuer_private_key]),
+)
+
+issuer_pk = load_der_private_key(issuer_private_key, password=None)
+issuer_public_key = issuer_pk.public_key()
+
+print(f"public key={issuer_public_key.public_bytes(encoding=Encoding.DER,format=PublicFormat.SubjectPublicKeyInfo)}\n")
+
+x509_cert = Certificate.generate(
+    serial_number=bytes.fromhex("01"),
+    issuer=bytes.fromhex("697373756572"),
+    validity_not_before=bytes.fromhex("3230303130313030303030305A"),
+    validity_not_after=bytes.fromhex("3439303130313030303030305A"),
+    subject=bytes.fromhex("7375626a656374"),
+    key_info_subject_public_key=issuer_public_key.public_bytes(encoding=Encoding.DER,format=PublicFormat.SubjectPublicKeyInfo),
+    issuer_keypair=cert_issuer,
+)
+
 # Build a Device Response containing the Access Data Element.
 device_response = DeviceResponseBuilder.build(
     [ResponseElement(data_element_id="b1.f2", value=access_data)],
@@ -232,7 +261,9 @@ device_response = DeviceResponseBuilder.build(
     issuer_private_key,
     device_public_key,
     valid_from=datetime.datetime.now(datetime.timezone.utc),
-    valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14))
+    valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
+    x509_cert=x509_cert
+)
 
 print("Device Response")
 cbor = device_response.to_cbor()
