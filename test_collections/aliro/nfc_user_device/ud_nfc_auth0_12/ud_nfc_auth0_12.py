@@ -55,6 +55,10 @@ class UD_NFC_AUTH0_12(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step3: Set the User Device UT"),
             TestStep("Step4: Send/Receive Select command/response"),
             TestStep("Step5: Send/Receive AUTH0 command/response"),
+            TestStep("Step6: Send/Receive Select command/response"),
+            TestStep("Step7: Send/Receive AUTH0 command/response"),
+            TestStep("Step8: Send/Receive Select command/response"),
+            TestStep("Step9: Send/Receive AUTH0 command/response"),
         ]
 
     async def setup(self) -> None:
@@ -78,10 +82,28 @@ class UD_NFC_AUTH0_12(AliroUserDeviceTestCase, UserPromptSupport):
     async def execute(self) -> None:
         # Test step 1
         # Done in setup
-        reader_epubkey = bytes.fromhex(
-            "04eb35d27c5f808bc565c9e03fd8cbcb6bac292f5300db4adf27ff90829669eafdfa95e16b"
-            "1ee7052eb276d29c43e4f9633686201238de4e640ce9ff19d2ff4478"
+
+        # from test_plan regular key pair #2 + set innappropriate public key type
+        reader_epubkey_invalid_1 = bytes.fromhex(
+            "02"
+            "A6E979B0F9244E8656CB4A5CFEDAA742ED43AF6612DB5CFD8950A1850EA488C3"
+            "14C9C12B497BD260C4A2FE1CD8CCF84D45D290456E7622CCD441ACE78CC7DE34"
         )
+
+        # from test_plan regular key pair #2 + modify x-component length
+        reader_epubkey_invalid_2 = bytes.fromhex(
+            "04"
+            "A6E979B0F9244E8656CB4A5CFEDAA742ED43AF6612DB5CFD8950A1850EA488C3C9"
+            "14C9C12B497BD260C4A2FE1CD8CCF84D45D290456E7622CCD441ACE78CC7DE34"
+        )
+
+        # from test_plan regular key pair #2 + modify y-component length
+        reader_epubkey_invalid_3 = bytes.fromhex(
+            "04"
+            "A6E979B0F9244E8656CB4A5CFEDAA742ED43AF6612DB5CFD8950A1850EA488C3"
+            "14C9C12B497BD260C4A2FE1CD8CCF84D45D290456E7622CCD441ACE78CC7DE34C9"
+        )
+
         self.next_step()
 
         # Test step 2
@@ -107,12 +129,85 @@ class UD_NFC_AUTH0_12(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 5
+        # Verify Tag 0x86 contains a valid public key (start with 0x04)
         try:
             auth0_response = await self.reader.command_auth0(
                 transaction=Transaction.STANDARD,
                 authentication_policy=AuthenticationPolicy.USER_DEVICE,
                 protocol_version=PROTOCOL_VERSION,
-                reader_epubk=reader_epubkey,
+                reader_epubk=reader_epubkey_invalid_1,
+                transaction_identifier=self.reader.session.transaction_identifier,
+                reader_identifier=self.reader.reader_group_identifier
+                + self.reader.reader_group_sub_identifier,
+            )
+            self.mark_step_failure(
+                "Invalid reader ephemeral key send, but it was accepted as a valid "
+                "key"
+            )
+            return
+        except InvalidStatusError as error:
+            logger.info(
+                "Received error status (as expected), status received: 0x{:04x}".format(
+                    error.status
+                )
+            )
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
+        self.next_step()
+
+        # Test step 6
+        try:
+            await self.reader.handle_select(aid=EXPEDITED_PHASE_AID)
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
+        self.next_step()
+
+        # Test step 7
+        # Verify Tag 0x86 contains a valid public key (32 byte x)
+        try:
+            auth0_response = await self.reader.command_auth0(
+                transaction=Transaction.STANDARD,
+                authentication_policy=AuthenticationPolicy.USER_DEVICE,
+                protocol_version=PROTOCOL_VERSION,
+                reader_epubk=reader_epubkey_invalid_2,
+                transaction_identifier=self.reader.session.transaction_identifier,
+                reader_identifier=self.reader.reader_group_identifier
+                + self.reader.reader_group_sub_identifier,
+            )
+            self.mark_step_failure(
+                "Invalid reader ephemeral key send, but it was accepted as a valid "
+                "key"
+            )
+            return
+        except InvalidStatusError as error:
+            logger.info(
+                "Received error status (as expected), status received: 0x{:04x}".format(
+                    error.status
+                )
+            )
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
+        self.next_step()
+
+        # Test step 8
+        try:
+            await self.reader.handle_select(aid=EXPEDITED_PHASE_AID)
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
+        self.next_step()
+
+        # Test step 9
+        # Verify Tag 0x86 contains a valid public key (32 byte y)
+        try:
+            auth0_response = await self.reader.command_auth0(
+                transaction=Transaction.STANDARD,
+                authentication_policy=AuthenticationPolicy.USER_DEVICE,
+                protocol_version=PROTOCOL_VERSION,
+                reader_epubk=reader_epubkey_invalid_3,
                 transaction_identifier=self.reader.session.transaction_identifier,
                 reader_identifier=self.reader.reader_group_identifier
                 + self.reader.reader_group_sub_identifier,
