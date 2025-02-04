@@ -30,6 +30,7 @@ from .device_response import DeviceResponse
 from .document import Document
 from .issuer_signed_item import IssuerSignedItem
 from .mobile_security_object import MobileSecurityObject
+from .device_key_info import DeviceKeyInfo
 from .sig_structure import Sig_structure
 
 from aliro.access.access_data import AccessData
@@ -85,7 +86,7 @@ class DeviceResponseBuilder(object):
         device_public_key : bytes | bytearray,
         valid_from : str | int | float | datetime.date | datetime.datetime,
         valid_until : str | int | float | datetime.date | datetime.datetime,
-        x509_cert: bytes,
+        x509_cert: bytes | None = None,
         validity_iteration : int = -1,
         time_verification_required : bool = False) -> DeviceResponse:
         '''Build a Device Response from the given data elements, keys, and validity information.'''
@@ -170,8 +171,11 @@ class DeviceResponseBuilder(object):
 
             # Set the device public key as separate x and y components.
             device_public_key_obj = EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), bytes(device_public_key))
-            mso.device_key_info.device_key.x = int.to_bytes(device_public_key_obj.public_numbers().x, length=32, byteorder='big')
-            mso.device_key_info.device_key.y = int.to_bytes(device_public_key_obj.public_numbers().y, length=32, byteorder='big')
+            if doc_type == 'aliro-a':
+                key_info = DeviceKeyInfo()
+                key_info.device_key.x = int.to_bytes(device_public_key_obj.public_numbers().x, length=32, byteorder='big')
+                key_info.device_key.y = int.to_bytes(device_public_key_obj.public_numbers().y, length=32, byteorder='big')
+                mso.device_key_info = key_info
 
             # Set the validity information.
             mso.validity_info.signed = datetime.datetime.now(datetime.timezone.utc)

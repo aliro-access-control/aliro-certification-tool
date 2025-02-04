@@ -15,6 +15,7 @@
 #
 
 import cbor2
+from .mobile_security_object import MobileSecurityObject
 
 ################################################################################
 class COSE_Sign1(object):
@@ -61,8 +62,11 @@ class COSE_Sign1(object):
         return self.__key_id
 
     @key_id.setter
-    def key_id(self, val : bytes | bytearray) -> None:
+    def key_id(self, val : bytes | bytearray | None) -> None:
         '''Set the Key ID (kid).'''
+        if val is None:
+            self.__key_id = val
+            return
         assert(isinstance(val, (bytes | bytearray)))
         self.__key_id = bytearray(val)
 
@@ -73,9 +77,12 @@ class COSE_Sign1(object):
         return self.__x5chain
 
     @x5chain.setter
-    def x5chain(self, val : bytes) -> None:
+    def x5chain(self, val : bytes | bytearray | None) -> None:
         '''Set the x5 certificate chain.'''
-        assert(isinstance(val, bytes))
+        if val is None:
+            self.__x5chain = val
+            return
+        assert (isinstance(val, (bytes | bytearray)))
         self.__x5chain = val
 
     ############################################################################
@@ -131,7 +138,17 @@ class COSE_Sign1(object):
         if (len(self.__signature) == 0):
             return False
 
-        return True
+        # Parse the payload as a Mobile Security Object and validate it
+        cbor_tag_encoded_cbor = 24
+        mso_data = cbor2.loads(self.__payload)
+        if not isinstance(mso_data, cbor2.CBORTag) or mso_data.tag != cbor_tag_encoded_cbor:
+            return False
+
+        mso = MobileSecurityObject()
+        if not mso.from_cbor(mso_data.value):
+            return False
+
+        return mso.is_valid()
 
     ############################################################################
     def to_list(self) -> list:
@@ -184,6 +201,8 @@ class COSE_Sign1(object):
         # Decode Unprotected field.
         key_id = unprotected_dict.get(COSE_Sign1.KEY_ID_LABEL)
         x5chain = unprotected_dict.get(COSE_Sign1.X5CHAIN_CERTIFICATE_LABEL)
+        if key_id is None and x5chain is None:
+            return False
 
         self.__key_id = key_id
         self.__x5chain = x5chain
