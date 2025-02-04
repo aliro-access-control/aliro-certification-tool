@@ -56,10 +56,8 @@ class UD_BLE_AUTH0_12(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step1: Initialization"),
             TestStep("Step2: Transaction initiation"),
             TestStep("Step3: Send/Receive AUTH0 command/response"),
-            TestStep("Step4: Send/Receive Select command/response"),
+            TestStep("Step4: Send/Receive AUTH0 command/response"),
             TestStep("Step5: Send/Receive AUTH0 command/response"),
-            TestStep("Step6: Send/Receive Select command/response"),
-            TestStep("Step7: Send/Receive AUTH0 command/response"),
         ]
 
     async def setup(self) -> None:
@@ -68,7 +66,6 @@ class UD_BLE_AUTH0_12(AliroUserDeviceTestCase, UserPromptSupport):
         self.group_id = self.th_group_identifier()
         self.sub_group_id = self.th_sub_group_identifier()
         key = self.th_reader_keypair()
-
 
         # Initialize Aliro BLE Reader
         self.reader = Reader(
@@ -150,17 +147,9 @@ class UD_BLE_AUTH0_12(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
         
         # Test step 4
-        try:
-            await self.reader.handle_select(aid=EXPEDITED_PHASE_AID)
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        self.next_step()
-        
-        # Test step 5
         # Verify Tag 0x86 contains a valid public key (32 byte x)
         try:
-            auth0_response = await self.reader.command_auth0(
+            await self.reader.command_auth0(
                 transaction=Transaction.STANDARD,
                 authentication_policy=AuthenticationPolicy.USER_DEVICE,
                 protocol_version=PROTOCOL_VERSION,
@@ -186,17 +175,9 @@ class UD_BLE_AUTH0_12(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
         
         # Test step 6
-        try:
-            await self.reader.handle_select(aid=EXPEDITED_PHASE_AID)
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        self.next_step()
-        
-        # Test step 7
         # Verify Tag 0x86 contains a valid public key (32 byte y)
         try:
-            auth0_response = await self.reader.command_auth0(
+            await self.reader.command_auth0(
                 transaction=Transaction.STANDARD,
                 authentication_policy=AuthenticationPolicy.USER_DEVICE,
                 protocol_version=PROTOCOL_VERSION,
