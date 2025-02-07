@@ -55,10 +55,10 @@ class RD_NFC_SENN_0SRRN_1KVN0000_XSR(AliroReaderTestCase, UserPromptSupport):
 
     async def setup(self) -> None:
         logger.info("RD_NFC_SENN_0SRRN_1KVN0000_XSR setup")
-        access_credential = self.reader_access_credential(add_issuer_public_key=True)
+        self.access_credential = self.reader_access_credential(add_issuer_public_key=True)
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,
-            access_credentials=[access_credential],
+            access_credentials=[self.access_credential],
             mailbox=0x20,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
         )
@@ -90,14 +90,7 @@ class RD_NFC_SENN_0SRRN_1KVN0000_XSR(AliroReaderTestCase, UserPromptSupport):
         )
         self.next_step()
 
-        # Test step 3
-        # Display pop-up to put the Test Harness on the Reader device Under Test
-        await self.send_prompt_request(
-            OptionsSelectPromptRequest(
-                prompt="Set Reader Device Under Test in NFC polling mode",
-                options={"OK": 1},
-            )
-        )
+        # Test step 3 Transaction initiation
         try:
             await self.userdevice.transaction_initiation()  # up to RATS command/ ATS response
         except (AccessProtocolError, InvalidCommandError) as error:
