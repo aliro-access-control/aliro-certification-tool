@@ -13,6 +13,7 @@ from aliro_actuator.access_protocol.errors import (
     InvalidCommandError,
 )
 from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
+from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
@@ -25,12 +26,12 @@ from ...support.access_doc.mdl.response.device_response_builder import DeviceRes
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class NFC_RDR_STEPUP_AD_KEY_ID(AliroReaderTestCase, UserPromptSupport):
+class NFC_RDR_STEPUP_AD_ISSUER_CERT(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "NFC_RDR_STEPUP_AD_KEY_ID",
+        "public_id": "NFC_RDR_STEPUP_AD_ISSUER_CERT",
         "version": "0.0.1",
-        "title": "NFC_RDR_STEPUP_AD_KEY_ID",
-        "description": """Verify parsing of Access Document with Key Identifier""",
+        "title": "NFC_RDR_STEPUP_AD_ISSUER_CERT",
+        "description": """Verify parsing of Access Document with Issuer Certificate""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -41,6 +42,10 @@ class NFC_RDR_STEPUP_AD_KEY_ID(AliroReaderTestCase, UserPromptSupport):
     endpoint_ePrivK = bytes.fromhex(
         "70637ee9b40cee568567c69589276888edca7128bb13fb531f9c4f502d8cc65e"
     )  # from Test Vector
+
+    issuer_leaf_PubK = bytes.fromhex("04E1AD1E196D46C2508088594F7FB5342C85DD133145216B559498BBB148B32EEE0FFD2CAABD751"
+                                     "6A39F3855BC955948F71F72C5771797BAE8032E946F70F0D520")
+    issuer_leaf_PrivK = bytes.fromhex("0000297D2963C5741166C6D1CC3579EF45AB2E5798F92115AC81FE6BBDD7320E")
 
     @classmethod
     def pics(cls) -> set[str]:
@@ -53,9 +58,8 @@ class NFC_RDR_STEPUP_AD_KEY_ID(AliroReaderTestCase, UserPromptSupport):
     def create_test_steps(self) -> None:
         self.test_steps = [
             TestStep("Step1: Perform Expedited Standard transaction"),
-            TestStep("Step2: Handle Step-up SELECT"),
-            TestStep("Step3: Handle ENVELOPE command/response"),
-            TestStep("Step4: Handle EXCHANGE command/response")
+            TestStep("Step2: Handle ENVELOPE command/response"),
+            TestStep("Step3: Handle EXCHANGE command/response")
         ]
 
     def build_device_response(self, access_credential_pk: bytes) -> DeviceResponse:
@@ -64,14 +68,25 @@ class NFC_RDR_STEPUP_AD_KEY_ID(AliroReaderTestCase, UserPromptSupport):
         access_element = AccessData()
         access_element.version = 1
 
+        # Make Cert
+        leaf_keypair = KeyPair(self.issuer_leaf_PrivK, self.issuer_leaf_PubK)
+        x509 = Certificate.generate(
+            key_info_subject_public_key=leaf_keypair.get_public_key.as_bytes(),
+            issuer_keypair=issuer_keypair,
+        )
+
         x = DeviceResponseBuilder.build(
             [ResponseElement(data_element_id=self.element_id, value=access_element)],
             None,
-            issuer_keypair.get_private_key().as_bytes(),
+            leaf_keypair.get_private_key().as_bytes(),
             access_credential_pk,
             valid_from=datetime.datetime.now(datetime.timezone.utc),
-            valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
+            valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
+            x509_cert=x509,
         )
+
+        # Builder always adds KeyIdentifier, remove that
+        x.documents[0].issuer_signed.issuer_auth.key_id = None
 
         logger.info(f"Generated Device Response: {x.to_cbor().hex()}")
         return x
@@ -90,7 +105,6 @@ class NFC_RDR_STEPUP_AD_KEY_ID(AliroReaderTestCase, UserPromptSupport):
             mailbox=0x00,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
             access_document=self.device_response.to_cbor(),
-            step_up_aid_required=True,
         )
 
     @log_errors
@@ -146,21 +160,7 @@ class NFC_RDR_STEPUP_AD_KEY_ID(AliroReaderTestCase, UserPromptSupport):
             return
         self.next_step()
 
-        # Test step 2 - select
-        try:
-            cmds_select = await self.userdevice.wait_for_command()
-        except InvalidCommandError as error:
-            self.mark_step_failure(str(error))
-            return
-
-        try:
-            await self.userdevice.handle_select(cmds_select)
-        except AccessProtocolError as error:
-            self.mark_step_failure(str(error))
-            return
-        self.next_step()
-
-        # Test step 3 - envelope
+        # Test step 2 - envelope
         try:
             cmds_envelope = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:
@@ -197,7 +197,7 @@ class NFC_RDR_STEPUP_AD_KEY_ID(AliroReaderTestCase, UserPromptSupport):
 
         self.next_step()
 
-        # Test step 4 - exchange
+        # Test step 3 - exchange
         try:
             cmds_exchange = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:
@@ -219,5 +219,5 @@ class NFC_RDR_STEPUP_AD_KEY_ID(AliroReaderTestCase, UserPromptSupport):
             return
 
     async def cleanup(self) -> None:
-        logger.info("NFC_RDR_STEPUP_AD_KEY_ID Cleanup")
+        logger.info("NFC_RDR_STEPUP_AD_ISSUER_CERT Cleanup")
         await self.userdevice.transaction_termination()
