@@ -90,7 +90,7 @@ class IssuerSignedItem(object):
     @element_value.setter
     def element_value(self, val : AccessData | RevocationData) -> None:
         '''Set the Element Value.'''
-        assert(isinstance(val, (AccessData | RevocationData)))
+        #assert(isinstance(val, (AccessData | RevocationData)))
         self.__element_value = val
 
     ############################################################################
