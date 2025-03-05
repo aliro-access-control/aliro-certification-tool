@@ -171,7 +171,7 @@ class DeviceResponseBuilder(object):
 
             # Set the device public key as separate x and y components.
             device_public_key_obj = EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), bytes(device_public_key))
-            if doc_type == 'aliro-a':
+            if doc_type == DocTypes.ALIRO_ACCESS:
                 key_info = DeviceKeyInfo()
                 key_info.device_key.x = int.to_bytes(device_public_key_obj.public_numbers().x, length=32, byteorder='big')
                 key_info.device_key.y = int.to_bytes(device_public_key_obj.public_numbers().y, length=32, byteorder='big')
@@ -191,7 +191,7 @@ class DeviceResponseBuilder(object):
                 issuer_signed_item = IssuerSignedItem()
                 issuer_signed_item.digest_id = digest_id
                 issuer_signed_item.element_identifier = data_element.data_element_id
-                issuer_signed_item.element_value = data_element.value # TODO - Is the element_value supposed to be wrapped in an embedded CBOR tag? #6.24 (bstr .cbor)
+                issuer_signed_item.element_value = data_element.value
 
                 # Convert the issuer signed item to embedded CBOR within a bstr.
                 issuer_signed_item_cbor_obj = cbor2.CBORTag(cbor_tag_encoded_cbor, bytearray(issuer_signed_item.to_cbor()))
