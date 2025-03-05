@@ -26,12 +26,12 @@ from ...support.access_doc.mdl.response.device_response_builder import DeviceRes
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class NFC_RDR_STEPUP_AD_ISSUER_CERT(AliroReaderTestCase, UserPromptSupport):
+class NFC_RDR_STEPUP_AD_ISSUER_CERT_KEY_ID(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "NFC_RDR_STEPUP_AD_ISSUER_CERT",
+        "public_id": "NFC_RDR_STEPUP_AD_ISSUER_CERT_KEY_ID",
         "version": "0.0.1",
-        "title": "NFC_RDR_STEPUP_AD_ISSUER_CERT",
-        "description": """Verify parsing of Access Document with Issuer Certificate""",
+        "title": "NFC_RDR_STEPUP_AD_ISSUER_CERT_KEY_ID",
+        "description": """Verify parsing of Access Document with Issuer Cert and Key Identifier""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -84,9 +84,6 @@ class NFC_RDR_STEPUP_AD_ISSUER_CERT(AliroReaderTestCase, UserPromptSupport):
             valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
             x509_cert=x509,
         )
-
-        # Builder always adds KeyIdentifier, remove that
-        x.documents[0].issuer_signed.issuer_auth.key_id = None
 
         logger.info(f"Generated Device Response: {x.to_cbor().hex()}")
         return x
@@ -219,5 +216,5 @@ class NFC_RDR_STEPUP_AD_ISSUER_CERT(AliroReaderTestCase, UserPromptSupport):
             return
 
     async def cleanup(self) -> None:
-        logger.info("NFC_RDR_STEPUP_AD_ISSUER_CERT Cleanup")
+        logger.info("NFC_RDR_STEPUP_AD_ISSUER_CERT_KEY_ID Cleanup")
         await self.userdevice.transaction_termination()
