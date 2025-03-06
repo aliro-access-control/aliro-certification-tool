@@ -85,10 +85,8 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERT_EXPIRED(AliroReaderTestCase, UserPromptS
             valid_from=datetime.datetime.now(datetime.timezone.utc),
             valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
             x509_cert=x509,
+            use_keyId=False,
         )
-
-        # Builder always adds KeyIdentifier, remove that
-        x.documents[0].issuer_signed.issuer_auth.key_id = None
 
         logger.info(f"Generated Device Response: {x.to_cbor(validate=False).hex()}")
         return x

@@ -83,6 +83,7 @@ class NFC_RDR_STEPUP_AD_ISSUER_CERT_KEY_ID(AliroReaderTestCase, UserPromptSuppor
             valid_from=datetime.datetime.now(datetime.timezone.utc),
             valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
             x509_cert=x509,
+            use_keyId=True,
         )
 
         logger.info(f"Generated Device Response: {x.to_cbor().hex()}")
