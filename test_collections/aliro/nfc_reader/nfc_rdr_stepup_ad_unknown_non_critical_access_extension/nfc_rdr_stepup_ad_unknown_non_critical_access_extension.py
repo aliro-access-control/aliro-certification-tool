@@ -77,7 +77,7 @@ class NFC_RDR_STEPUP_AD_UNKNOWN_NON_CRITICAL_ACCESS_EXTENSION(AliroReaderTestCas
         ext.version = 1
         ext.is_critical = False
         ext.data = DummyExtension()
-        access_element.access_extensions[0x000000] = [ext]
+        access_element.access_extensions[0x000001] = [ext]
 
         x = DeviceResponseBuilder.build(
             [ResponseElement(data_element_id=self.element_id, value=access_element)],
