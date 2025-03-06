@@ -91,7 +91,7 @@ class NonAccessExtension(object):
         if validate and not self.is_valid():
             return None
 
-        access_extension_list = {}
+        access_extension_list = []
 
         # Encode the Extension ID.
         access_extension_list.append(int(self.id))
