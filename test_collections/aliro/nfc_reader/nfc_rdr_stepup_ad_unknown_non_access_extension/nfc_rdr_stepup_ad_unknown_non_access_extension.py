@@ -30,7 +30,7 @@ class DummyExtension(ExtensionData):
     def is_valid(self) -> bool:
         return True
 
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         return {"key": "data"}
 
 

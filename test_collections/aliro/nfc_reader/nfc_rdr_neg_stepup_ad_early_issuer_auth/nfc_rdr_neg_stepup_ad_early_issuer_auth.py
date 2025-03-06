@@ -20,26 +20,17 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 
 from ...support.access_doc.mdl.request import DeviceRequest
 from ...support.access_doc.mdl.response import DeviceResponse
-from ...support.access_doc.aliro.access import AccessData, AccessExtension
-from ...support.access_doc.aliro.common import ExtensionData
+from ...support.access_doc.aliro.access import AccessData
 from ...support.access_doc.mdl.response.device_response_builder import DeviceResponseBuilder, ResponseElement
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class DummyExtension(ExtensionData):
-    def is_valid(self) -> bool:
-        return True
-
-    def to_dict(self, validate=True) -> dict:
-        return {"key": "data"}
-
-
-class NFC_RDR_STEPUP_AD_UNKNOWN_NON_CRITICAL_ACCESS_EXTENSION(AliroReaderTestCase, UserPromptSupport):
+class NFC_RDR_NEG_STEPUP_AD_EARLY_ISSUER_AUTH(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "NFC_RDR_STEPUP_AD_UNKNOWN_NON_CRITICAL_ACCESS_EXTENSION",
+        "public_id": "NFC_RDR_NEG_STEPUP_AD_EARLY_ISSUER_AUTH",
         "version": "0.0.1",
-        "title": "NFC_RDR_STEPUP_AD_UNKNOWN_NON_CRITICAL_ACCESS_EXTENSION",
-        "description": """Verify parsing of Access Document with Unknown Non-critical Access Extension""",
+        "title": "NFC_RDR_NEG_STEPUP_AD_EARLY_ISSUER_AUTH",
+        "description": """Verify rejection of Access Document with early IssuerAuth""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -72,23 +63,16 @@ class NFC_RDR_STEPUP_AD_UNKNOWN_NON_CRITICAL_ACCESS_EXTENSION(AliroReaderTestCas
         access_element = AccessData()
         access_element.version = 1
 
-        ext = AccessExtension()
-        ext.id = 1
-        ext.version = 1
-        ext.is_critical = False
-        ext.data = DummyExtension()
-        access_element.access_extensions[0x000000] = [ext]
-
         x = DeviceResponseBuilder.build(
             [ResponseElement(data_element_id=self.element_id, value=access_element)],
             None,
             issuer_keypair.get_private_key().as_bytes(),
             access_credential_pk,
-            valid_from=datetime.datetime.now(datetime.timezone.utc),
-            valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
+            valid_from=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),  # Make invalid
+            valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=28)
         )
 
-        logger.info(f"Generated Device Response: {x.to_cbor().hex()}")
+        logger.info(f"Generated Device Response: {x.to_cbor(validate=False).hex()}")
         return x
 
 
@@ -104,7 +88,7 @@ class NFC_RDR_STEPUP_AD_UNKNOWN_NON_CRITICAL_ACCESS_EXTENSION(AliroReaderTestCas
             access_credentials=[access_credential],
             mailbox=0x00,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
-            access_document=self.device_response.to_cbor(),
+            access_document=self.device_response.to_cbor(validate=False),
         )
 
     @log_errors
@@ -210,7 +194,7 @@ class NFC_RDR_STEPUP_AD_UNKNOWN_NON_CRITICAL_ACCESS_EXTENSION(AliroReaderTestCas
             self.mark_step_failure(str(error))
             return
 
-        if cmds_exchange.reader_status.value.to_bytes(2, 'big')[0] != 0x01:
+        if cmds_exchange.reader_status.value.to_bytes(2, 'big')[0] != 0x00:
             self.mark_step_failure(
                 "Received incorrect EXCHANGE reader status: : 0x{:04x}".format(
                     cmds_exchange.reader_status.value
@@ -219,5 +203,5 @@ class NFC_RDR_STEPUP_AD_UNKNOWN_NON_CRITICAL_ACCESS_EXTENSION(AliroReaderTestCas
             return
 
     async def cleanup(self) -> None:
-        logger.info("NFC_RDR_STEPUP_AD_UNKNOWN_NON_CRITICAL_ACCESS_EXTENSION Cleanup")
+        logger.info("NFC_RDR_NEG_STEPUP_AD_EARLY_ISSUER_AUTH Cleanup")
         await self.userdevice.transaction_termination()
