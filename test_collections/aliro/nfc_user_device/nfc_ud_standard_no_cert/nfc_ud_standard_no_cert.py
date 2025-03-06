@@ -20,12 +20,12 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_NFC_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
+class NFC_UD_STANDARD_NO_CERT(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-NFC-STDTXN-2.0",
+        "public_id": "NFC_UD_STANDARD_NO_CERT",
         "version": "0.0.1",
-        "title": "UD-NFC-STDTXN-2.0",
-        "description": """Verify conformance of User Device UT in AUTH1 command.""",
+        "title": "NFC_UD_STANDARD_NO_CERT",
+        "description": """Expedited Standard Phase without Reader Certificate.""",
     }
 
     reader_ePuBK = bytes.fromhex(
@@ -53,6 +53,7 @@ class UD_NFC_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step3: Transaction initiation"),
             TestStep("Step4: Send/Receive AUTH0 command/response"),
             TestStep("Step5: Send/Receive AUTH1 command/response"),
+            TestStep("Step6: Send/Receive EXCHANGE command/response"),
         ]
 
     async def setup(self) -> None:
@@ -115,7 +116,17 @@ class UD_NFC_STDTXN_20(AliroUserDeviceTestCase, UserPromptSupport):
             self.mark_step_failure(str(error))
             return
         self.next_step()
+        
+        # Test step 6
+        try:
+            await self.reader.handle_exchange(
+                False, reader_status=ReaderStatus.READER_STATE_UNSECURED
+            )
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
+        self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_NFC_STDTXN_20 Cleanup")
+        logger.info("NFC_UD_STANDARD_NO_CERT Cleanup")
         await self.reader.transaction_termination()
