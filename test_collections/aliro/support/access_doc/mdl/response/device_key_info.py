@@ -43,7 +43,6 @@ class DeviceKeyInfo(object):
     @device_key.setter
     def device_key(self, val : COSE_Key) -> None:
         '''Set the Device Key.'''
-        assert(isinstance(val, COSE_Key))
         self.__device_key = val
 
     ############################################################################
@@ -55,7 +54,6 @@ class DeviceKeyInfo(object):
     @key_info.setter
     def key_info(self, val : KeyInfo) -> None:
         '''Get the Key Info.'''
-        assert(isinstance(val, KeyInfo))
         self.__key_info = val
 
     ############################################################################

@@ -66,7 +66,6 @@ class Schedule(object):
     @flags.setter
     def flags(self, val : int | ScheduleFlagBits) -> None:
         '''Set the bit flags.'''
-        assert(isinstance(val, (int, ScheduleFlagBits)))
         self.__flags = int(val) & 0xFF # Limit flags to a single byte.
 
     ############################################################################
@@ -118,7 +117,6 @@ class Schedule(object):
     @rrule.setter
     def rrule(self, val : RecurrenceRule) -> None:
         '''Set the recurrence rule.'''
-        assert isinstance(val, RecurrenceRule)
         self.__rrule = val
 
     ############################################################################

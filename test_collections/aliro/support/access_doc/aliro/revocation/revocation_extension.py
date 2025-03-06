@@ -64,7 +64,6 @@ class RevocationExtension(object):
     @data.setter
     def data(self, val : ExtensionData) -> None:
         '''Set the Extension's Data.'''
-        assert(isinstance(val, ExtensionData))
         self.__data = val
 
     ############################################################################

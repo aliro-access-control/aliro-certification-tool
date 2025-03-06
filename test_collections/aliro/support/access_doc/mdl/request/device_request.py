@@ -59,8 +59,6 @@ class DeviceRequest(object):
     def doc_requests(self, val : list[DocRequest]) -> None:
         '''Set the Doc Requests.'''
         assert(isinstance(val, list))
-        for item in val:
-            assert(isinstance(item, DocRequest))
         self.__doc_requests = val
 
     ############################################################################
@@ -74,8 +72,6 @@ class DeviceRequest(object):
 
         # Verify the Doc Requests are valid.
         for doc_request in self.__doc_requests:
-            if not isinstance(doc_request, DocRequest):
-                return False
             if not doc_request.is_valid():
                 return False
 

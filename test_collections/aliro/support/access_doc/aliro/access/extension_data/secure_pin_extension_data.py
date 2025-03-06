@@ -168,7 +168,7 @@ class SecurePinExtensionData(ExtensionData):
         # Verify the Reader Specific PINs.
         if (self.reader_pins is not None) and (len(self.reader_pins) > 0):
             for reader_pin in self.reader_pins:
-                if (reader_pin is None) or (not isinstance(reader_pin, ReaderPin)) or (not reader_pin.is_valid()):
+                if (reader_pin is None) or (not reader_pin.is_valid()):
                     return False
 
         return True

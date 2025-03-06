@@ -86,7 +86,6 @@ class AccessExtension(object):
     @data.setter
     def data(self, val : ExtensionData) -> None:
         '''Set the Extension's Data.'''
-        assert(isinstance(val, ExtensionData))
         self.__data = val
 
     ############################################################################
@@ -94,7 +93,7 @@ class AccessExtension(object):
         '''Returns True if the AccessExtension contains valid fields,
            otherwise returns False.'''
         # Verify the Criticality.
-        if (not isinstance(self.__criticality, (int, CriticalityBits))) or ((self.__criticality & ~(int(CriticalityBits.CRITICAL))) != 0):
+        if (self.__criticality & ~(int(CriticalityBits.CRITICAL))) != 0:
             return False
 
         # Verify the ID.

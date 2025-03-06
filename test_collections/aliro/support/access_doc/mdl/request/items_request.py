@@ -62,7 +62,6 @@ class ItemsRequest(object):
     @namespaces.setter
     def namespaces(self, val : Namespaces) -> None:
         '''Set the Namespaces.'''
-        assert(isinstance(val, Namespaces))
         self.__namespaces = val
 
     ############################################################################

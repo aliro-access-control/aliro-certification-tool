@@ -38,7 +38,6 @@ class DocRequest(object):
     @items_request.setter
     def items_request(self, val : ItemsRequest) -> None:
         '''Set the Item Request.'''
-        assert(isinstance(val, ItemsRequest))
         self.__items_request = val
 
     ############################################################################
@@ -47,8 +46,6 @@ class DocRequest(object):
            otherwise returns False.'''
 
         # Verify the Items Request is valid.
-        if not isinstance(self.__items_request, ItemsRequest):
-            return False
         if not self.__items_request.is_valid():
             return False
 
