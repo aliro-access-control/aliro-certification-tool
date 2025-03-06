@@ -22,12 +22,12 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_NFC_STDTXN_40(AliroUserDeviceTestCase, UserPromptSupport):
+class NFC_UD_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-NFC-STDTXN-4.0",
+        "public_id": "NFC_UD_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING",
         "version": "0.0.1",
-        "title": "UD-NFC-STDTXN-4.0",
-        "description": """Verify conformance of User Device UT in LOAD CERT command.""",
+        "title": "NFC_UD_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING",
+        "description": """Expedited Standard Phase with Reader Certificate in LOAD_CERT with APDU Chaining.""",
     }
 
     reader_ePuBK = bytes.fromhex(
@@ -143,5 +143,5 @@ class UD_NFC_STDTXN_40(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_NFC_STDTXN_40 Cleanup")
+        logger.info("NFC_UD_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING Cleanup")
         await self.reader.transaction_termination()
