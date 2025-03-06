@@ -87,9 +87,9 @@ class RevocationExtension(object):
         return True
 
     ############################################################################
-    def to_list(self) -> list:
+    def to_list(self, validate=True) -> list:
         '''Convert the RevocationExtension to a list.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         revocation_extension_list = []
@@ -101,14 +101,14 @@ class RevocationExtension(object):
         revocation_extension_list.append(int(self.version))
 
         # Encode the Data.
-        revocation_extension_list.append(self.data.to_dict())
+        revocation_extension_list.append(self.data.to_dict(validate))
 
         return revocation_extension_list
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the RevocationExtension to CBOR.'''
-        revocation_extension_list = self.to_list()
+        revocation_extension_list = self.to_list(validate)
         if revocation_extension_list is None:
             return None
         return cbor2.dumps(revocation_extension_list)

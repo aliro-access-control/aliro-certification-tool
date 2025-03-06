@@ -169,9 +169,9 @@ class AccessRule(object):
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the AccessRule to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         access_rule_dict = {}
@@ -236,9 +236,9 @@ class AccessRule(object):
         return self.is_valid()
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the AccessRule to CBOR.'''
-        access_rule_dict = self.to_dict()
+        access_rule_dict = self.to_dict(validate)
         if access_rule_dict is None:
             return None
         return cbor2.dumps(access_rule_dict)

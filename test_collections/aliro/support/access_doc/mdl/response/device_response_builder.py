@@ -80,8 +80,8 @@ class DeviceResponseBuilder(object):
     ############################################################################
     @staticmethod
     def build(
-        access_data_elements : list[ResponseElement],
-        revocation_data_elements : list[ResponseElement],
+        access_data_elements : list[ResponseElement] | None,
+        revocation_data_elements : list[ResponseElement] | None,
         issuer_private_key : bytes | bytearray,
         device_public_key : bytes | bytearray,
         valid_from : str | int | float | datetime.date | datetime.datetime,

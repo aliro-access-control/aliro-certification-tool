@@ -141,9 +141,9 @@ class RevocationData(object):
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the RevocationData to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         revocation_data_dict = {}
@@ -158,14 +158,14 @@ class RevocationData(object):
         if (self.entries is not None) and (len(self.entries) > 0):
             entries_list = []
             for entry in self.entries:
-                entries_list.append(entry.to_dict())
+                entries_list.append(entry.to_dict(validate))
             revocation_data_dict[RevocationData.ENTRIES_LABEL] = entries_list
 
         # Encode the Entries to Remove.
         if (self.entries_to_remove is not None) and (len(self.entries_to_remove) > 0):
             entries_to_remove_list = []
             for entry_to_remove in self.entries_to_remove:
-                entries_to_remove_list.append(entry_to_remove.to_dict())
+                entries_to_remove_list.append(entry_to_remove.to_dict(validate))
             revocation_data_dict[RevocationData.ENTRIES_TO_REMOVE_LABEL] = entries_to_remove_list
 
         # Encode the Revocation Extensions.
@@ -174,7 +174,7 @@ class RevocationData(object):
             for vendor_registered_id, extensions in self.revocation_extensions.items():
                 revocation_extensions_list = []
                 for revocation_extension in extensions:
-                    revocation_extensions_list.append(revocation_extension.to_list())
+                    revocation_extensions_list.append(revocation_extension.to_list(validate))
                 if (len(revocation_extensions_list) > 0):
                     revocation_extensions_dict[vendor_registered_id] = revocation_extensions_list
             revocation_data_dict[RevocationData.REVOCATION_EXTENSIONS_LABEL] = revocation_extensions_dict
@@ -182,9 +182,9 @@ class RevocationData(object):
         return revocation_data_dict
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the RevocationData to CBOR.'''
-        revocation_data_dict = self.to_dict()
+        revocation_data_dict = self.to_dict(validate)
         if revocation_data_dict is None:
             return None
         return cbor2.dumps(revocation_data_dict)

@@ -80,9 +80,9 @@ class ReaderPin(object):
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the ReaderPin to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         reader_pin_dict = {}

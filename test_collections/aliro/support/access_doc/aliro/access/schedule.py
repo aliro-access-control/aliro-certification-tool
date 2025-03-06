@@ -139,9 +139,9 @@ class Schedule(object):
         return (self.end_time == 0) or (self.end_time > self.start_time) or (self.rrule.is_valid())
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the Schedule to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         schedule_dict = {}
@@ -215,9 +215,9 @@ class Schedule(object):
         return self.is_valid()
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the Schedule to CBOR.'''
-        schedule_dict = self.to_dict()
+        schedule_dict = self.to_dict(validate)
         if schedule_dict is None:
             return None
         return cbor2.dumps(schedule_dict)

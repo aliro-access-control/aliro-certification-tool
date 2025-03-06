@@ -151,9 +151,9 @@ class ValidityInfo(object):
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the ValidityInfo to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         validity_info_dict = {}
@@ -210,9 +210,9 @@ class ValidityInfo(object):
         return self.is_valid()
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the ValidityInfo to CBOR.'''
-        validity_info_dict = self.to_dict()
+        validity_info_dict = self.to_dict(validate)
         if validity_info_dict is None:
             return None
         return cbor2.dumps(validity_info_dict)

@@ -151,9 +151,9 @@ class COSE_Sign1(object):
         return mso.is_valid()
 
     ############################################################################
-    def to_list(self) -> list:
+    def to_list(self, validate=True) -> list:
         '''Convert the COSE_Sign1 to a list.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         COSE_Sign1_list = []
@@ -220,9 +220,9 @@ class COSE_Sign1(object):
         return self.is_valid()
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the COSE_Sign1 to CBOR.'''
-        COSE_Sign1_list = self.to_list()
+        COSE_Sign1_list = self.to_list(validate)
         if COSE_Sign1_list is None:
             return None
         return cbor2.dumps(COSE_Sign1_list)

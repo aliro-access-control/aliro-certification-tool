@@ -65,9 +65,9 @@ class Namespaces(object):
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the Namespaces to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
         return copy.deepcopy(self.__data)
 
@@ -82,9 +82,9 @@ class Namespaces(object):
         return self.is_valid()
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the Namespaces to CBOR.'''
-        namespaces_dict = self.to_dict()
+        namespaces_dict = self.to_dict(validate)
         if namespaces_dict is None:
             return None
         return cbor2.dumps(namespaces_dict)
