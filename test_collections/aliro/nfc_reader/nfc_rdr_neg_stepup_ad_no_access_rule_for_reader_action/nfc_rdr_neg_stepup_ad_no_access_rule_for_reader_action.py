@@ -20,17 +20,17 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 
 from ...support.access_doc.mdl.request import DeviceRequest
 from ...support.access_doc.mdl.response import DeviceResponse
-from ...support.access_doc.aliro.access import AccessData, AccessRule, AccessRuleCapabilitiesBits
+from ...support.access_doc.aliro.access import AccessData, AccessRule
 from ...support.access_doc.mdl.response.device_response_builder import DeviceResponseBuilder, ResponseElement
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class NFC_RDR_STEPUP_AD_ACCESS_RULE(AliroReaderTestCase, UserPromptSupport):
+class NFC_RDR_NEG_STEPUP_AD_NO_ACCESS_RULE_FOR_READER_ACTION(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "NFC_RDR_STEPUP_AD_ACCESS_RULE",
+        "public_id": "NFC_RDR_NEG_STEPUP_AD_NO_ACCESS_RULE_FOR_READER_ACTION",
         "version": "0.0.1",
-        "title": "NFC_RDR_STEPUP_AD_ACCESS_RULE",
-        "description": """Verify parsing of Access Document with Access Rule""",
+        "title": "NFC_RDR_NEG_STEPUP_AD_NO_ACCESS_RULE_FOR_READER_ACTION",
+        "description": """Verify rejection of Access Document with no Access Rule for the intended action""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -63,7 +63,7 @@ class NFC_RDR_STEPUP_AD_ACCESS_RULE(AliroReaderTestCase, UserPromptSupport):
         access_element = AccessData()
         access_element.version = 1
         access_rule = AccessRule()
-        access_rule.capabilities = AccessRuleCapabilitiesBits.ALL_CAPABILITIES  # We dont know what DUT will ask for, so enable everything
+        access_rule.capabilities = 1 << 18  # This is currently not defined so should never be requested. If spec changes then modify this.
         access_element.access_rules.append(access_rule)
 
         x = DeviceResponseBuilder.build(
@@ -75,7 +75,7 @@ class NFC_RDR_STEPUP_AD_ACCESS_RULE(AliroReaderTestCase, UserPromptSupport):
             valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
         )
 
-        logger.info(f"Generated Device Response: {x.to_cbor().hex()}")
+        logger.info(f"Generated Device Response: {x.to_cbor(validate=False).hex()}")
         return x
 
 
@@ -91,7 +91,7 @@ class NFC_RDR_STEPUP_AD_ACCESS_RULE(AliroReaderTestCase, UserPromptSupport):
             access_credentials=[access_credential],
             mailbox=0x00,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
-            access_document=self.device_response.to_cbor(),
+            access_document=self.device_response.to_cbor(validate=False),
         )
 
     @log_errors
@@ -197,7 +197,7 @@ class NFC_RDR_STEPUP_AD_ACCESS_RULE(AliroReaderTestCase, UserPromptSupport):
             self.mark_step_failure(str(error))
             return
 
-        if cmds_exchange.reader_status.value.to_bytes(2, 'big')[0] != 0x01:
+        if cmds_exchange.reader_status.value.to_bytes(2, 'big')[0] != 0x00:
             self.mark_step_failure(
                 "Received incorrect EXCHANGE reader status: : 0x{:04x}".format(
                     cmds_exchange.reader_status.value
@@ -206,5 +206,5 @@ class NFC_RDR_STEPUP_AD_ACCESS_RULE(AliroReaderTestCase, UserPromptSupport):
             return
 
     async def cleanup(self) -> None:
-        logger.info("NFC_RDR_STEPUP_AD_ACCESS_RULE Cleanup")
+        logger.info("NFC_RDR_NEG_STEPUP_AD_NO_ACCESS_RULE_FOR_READER_ACTION Cleanup")
         await self.userdevice.transaction_termination()

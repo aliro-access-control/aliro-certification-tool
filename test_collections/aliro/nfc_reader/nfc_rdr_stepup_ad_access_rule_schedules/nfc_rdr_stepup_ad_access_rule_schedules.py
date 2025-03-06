@@ -66,7 +66,7 @@ class NFC_RDR_STEPUP_AD_ACCESS_RULE_SCHEDULES(AliroReaderTestCase, UserPromptSup
         access_element.version = 1
 
         access_rule = AccessRule()
-        access_rule.capabilities = AccessRuleCapabilitiesBits.SECURE | AccessRuleCapabilitiesBits.UNSECURE
+        access_rule.capabilities = AccessRuleCapabilitiesBits.ALL_CAPABILITIES
         access_rule.allow_schedule_ids.append(AccessRuleScheduleIds.SCHEDULE_1)
         access_element.access_rules.append(access_rule)
 
