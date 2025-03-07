@@ -20,13 +20,14 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
+import os
 
-class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
+class NFC_UD_FAST_KPERSISTENT_CACHE_MAX(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-NFC-FSTTXN-1.0",
+        "public_id": "NFC_UD_FAST_KPERSISTENT_CACHE_MAX",
         "version": "0.0.1",
-        "title": "UD-NFC-FSTTXN-1.0",
-        "description": """Verify conformance of User Device UT in AUTH0 command.""",
+        "title": "NFC_UD_FAST_KPERSISTENT_CACHE_MAX",
+        "description": """Verify conformance of User Device UT in AUTH0 command for Fast transaction.""",
     }
 
     reader_ePuBK = bytes.fromhex(
@@ -68,20 +69,21 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step6: Send/Receive EXCHANGE command/response"),
             TestStep("Step7: Transaction initiation (fast)"),
             TestStep("Step8: Send/Receive AUTH0 Fast command/response"),
+            TestStep("Step9: Send/Receive EXCHANGE command/response"),
         ]
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
         # load parameters from project config
-        group_id = self.th_group_identifier()
-        sub_group_id = self.th_sub_group_identifier()
+        self.group_id = self.th_group_identifier()
+        self.sub_group_id = self.th_sub_group_identifier()
         key = self.th_reader_keypair()
 
         # Initialize Aliro NFC Reader
         self.reader = Reader(
             transport_protocol=TransportProtocol.NFC,
-            reader_group_identifier=group_id,
-            reader_group_sub_identifier=sub_group_id,
+            reader_group_identifier=self.group_id,
+            reader_group_sub_identifier=self.sub_group_id,
             reader_key=key,
             transaction_identifier_list=[
                 self.transaction_identifier,
@@ -151,24 +153,37 @@ class UD_NFC_FSTTXN_10(AliroUserDeviceTestCase, UserPromptSupport):
         )
 
         # Test Step 7
-        try:
-            await self.reader.transaction_initiation()  # including select
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        self.next_step()
+        for _ in range(0, 16):
+            self.sub_group_id = self.sub_group_id[:-1] + os.urandom(1)
+            self.reader.reader_identifier(self.group_id + self.sub_group_id)
+            try:
+                await self.reader.transaction_initiation()  # including select
+            except (AccessProtocolError, InvalidResponseError) as error:
+                self.mark_step_failure(str(error))
+                return
+            self.next_step()
 
-        # Test Step 8
-        try:
-            await self.reader.handle_auth0(
-                transaction_type=Transaction.FAST,
-                authentication_policy=AuthenticationPolicy.USER_DEVICE,
-            )
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        self.next_step()
+            # Test Step 8
+            try:
+                await self.reader.handle_auth0(
+                    transaction_type=Transaction.FAST,
+                    authentication_policy=AuthenticationPolicy.USER_DEVICE,
+                )
+            except (AccessProtocolError, InvalidResponseError) as error:
+                self.mark_step_failure(str(error))
+                return
+            self.next_step()
+            
+            # Test step 9
+            try:
+                await self.reader.handle_exchange(
+                    False, reader_status=ReaderStatus.READER_STATE_UNSECURED
+                )
+            except (AccessProtocolError, InvalidResponseError) as error:
+                self.mark_step_failure(str(error))
+                return
+            self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_NFC_FSTTXN_10 Cleanup")
+        logger.info("NFC_UD_FAST_KPERSISTENT_CACHE_MAX Cleanup")
         await self.reader.transaction_termination()

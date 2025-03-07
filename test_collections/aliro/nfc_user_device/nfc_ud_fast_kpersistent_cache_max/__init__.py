@@ -14,4 +14,4 @@
 # limitations under the License.
 #
 
-from .ud_nfc_fsttxn_10 import UD_NFC_FSTTXN_10
+from .nfc_ud_fast_kpersistent_cache_max import NFC_UD_FAST_KPERSISTENT_CACHE_MAX
