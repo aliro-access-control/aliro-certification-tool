@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .ud_nfc_auth0_10 import UD_NFC_AUTH0_10
+from .nfc_ud_auth0_response_chaining import NFC_UD_AUTH0_RESPONSE_CHAINING
