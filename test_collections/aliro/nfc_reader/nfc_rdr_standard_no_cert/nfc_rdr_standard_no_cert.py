@@ -16,11 +16,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
+class NFC_RDR_STANDARD_NO_CERT(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-STDTXN-2.0",
+        "public_id": "NFC_RDR_STANDARD_NO_CERT",
         "version": "0.0.1",
-        "title": "RD-NFC-STDTXN-2.0",
+        "title": "NFC_RDR_STANDARD_NO_CERT",
         "description": """Verify conformance of Reader UT in AUTH1 command.""",
     }
 
@@ -48,6 +48,7 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step3: Transaction initiation"),
             TestStep("Step4: Receive/Send AUTH0 command/response"),
             TestStep("Step5: Receive/Send AUTH1 command/response"),
+            TestStep("Step6: Receive/Send EXCHANGE command/response"),
         ]
 
     async def setup(self) -> None:
@@ -126,7 +127,22 @@ class RD_NFC_STDTXN_20(AliroReaderTestCase, UserPromptSupport):
             self.mark_step_failure(str(error))
             return
         self.next_step()
+        
+        # Test Step 6 Receive/Send EXCHANGE command/response
+        try:
+            cmds_exchange = await self.userdevice.wait_for_command()
+        except InvalidCommandError as error:
+                self.mark_step_failure(str(error))
+                return
+
+        if cmds_exchange.ins == INS.EXCHANGE:
+            try:
+                await self.userdevice.handle_exchange(cmds_exchange)
+            except AccessProtocolError as error:
+                self.mark_step_failure(str(error))
+                return
+        self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_STDTXN_20 Cleanup")
+        logger.info("NFC_RDR_STANDARD_NO_CERT Cleanup")
         await self.userdevice.transaction_termination()
