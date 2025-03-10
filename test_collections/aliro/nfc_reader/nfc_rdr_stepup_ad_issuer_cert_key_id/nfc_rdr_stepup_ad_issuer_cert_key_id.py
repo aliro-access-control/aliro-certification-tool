@@ -43,10 +43,6 @@ class NFC_RDR_STEPUP_AD_ISSUER_CERT_KEY_ID(AliroReaderTestCase, UserPromptSuppor
         "70637ee9b40cee568567c69589276888edca7128bb13fb531f9c4f502d8cc65e"
     )  # from Test Vector
 
-    issuer_leaf_PubK = bytes.fromhex("04E1AD1E196D46C2508088594F7FB5342C85DD133145216B559498BBB148B32EEE0FFD2CAABD751"
-                                     "6A39F3855BC955948F71F72C5771797BAE8032E946F70F0D520")
-    issuer_leaf_PrivK = bytes.fromhex("0000297D2963C5741166C6D1CC3579EF45AB2E5798F92115AC81FE6BBDD7320E")
-
     @classmethod
     def pics(cls) -> set[str]:
         return set(
@@ -69,16 +65,16 @@ class NFC_RDR_STEPUP_AD_ISSUER_CERT_KEY_ID(AliroReaderTestCase, UserPromptSuppor
         access_element.version = 1
 
         # Make Cert
-        leaf_keypair = KeyPair(self.issuer_leaf_PrivK, self.issuer_leaf_PubK)
+        #  In order for the certificate AND key identifier to be valid for the same public key, this cert must be self-signed
         x509 = Certificate.generate(
-            key_info_subject_public_key=leaf_keypair.get_public_key().as_bytes(),
+            key_info_subject_public_key=issuer_keypair.get_public_key().as_bytes(),
             issuer_keypair=issuer_keypair,
         )
 
         x = DeviceResponseBuilder.build(
             [ResponseElement(data_element_id=self.element_id, value=access_element)],
             None,
-            leaf_keypair.get_private_key().as_bytes(),
+            issuer_keypair.get_private_key().as_bytes(),
             access_credential_pk,
             valid_from=datetime.datetime.now(datetime.timezone.utc),
             valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
