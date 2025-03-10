@@ -16,11 +16,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class RD_NFC_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
+class NFC_RDR_FAST_KPERSISTENT_CACHE_MAX(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-FSTTXN-1.0",
+        "public_id": "NFC_RDR_FAST_KPERSISTENT_CACHE_MAX",
         "version": "0.0.1",
-        "title": "RD-NFC-FSTTXN-1.0",
+        "title": "NFC_RDR_FAST_KPERSISTENT_CACHE_MAX",
         "description": """Verify conformance of Reader UT in AUTH0 command.""",
     }
 
@@ -219,5 +219,5 @@ class RD_NFC_FSTTXN_10(AliroReaderTestCase, UserPromptSupport):
 
 
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_FSTTXN_10 Cleanup")
+        logger.info("NFC_RDR_FAST_KPERSISTENT_CACHE_MAX Cleanup")
         await self.userdevice.transaction_termination()
