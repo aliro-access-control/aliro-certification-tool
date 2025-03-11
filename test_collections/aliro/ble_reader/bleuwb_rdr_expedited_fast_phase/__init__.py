@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .rd_ble_fsttxn_10 import RD_BLE_FSTTXN_10
+from .bleuwb_rdr_expedited_fast_phase import BLEUWB_RDR_EXPEDITED_FAST_PHASE
