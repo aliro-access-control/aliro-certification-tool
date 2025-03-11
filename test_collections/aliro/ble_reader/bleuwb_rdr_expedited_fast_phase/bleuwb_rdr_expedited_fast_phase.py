@@ -6,6 +6,10 @@ from aliro_actuator.access_protocol.defines import (
     TransportProtocol,
 )
 from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
+from aliro_actuator.transport_protocol.ble_message_format import (
+    Notification_ID,
+    UWB_RangingService_ID,
+)
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
@@ -66,6 +70,13 @@ class BLEUWB_RDR_EXPEDITED_FAST_PHASE(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step22: Reader acquires UWB ranging result"),
             TestStep("Step23: Reader sends AP message: Status changed"),
         ]
+        
+    def print_uwb_configuration(self, uwb_config: dict) -> None:
+        logger.info("UWB Configuration is:")
+        logger.info("-" * 50)
+        for key, value in uwb_config.items():
+            logger.info(f"{key:<12}: {value}")
+        logger.info("-" * 50)
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")

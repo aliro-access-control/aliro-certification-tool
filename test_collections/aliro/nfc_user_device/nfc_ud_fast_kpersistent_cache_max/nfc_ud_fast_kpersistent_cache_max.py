@@ -63,13 +63,10 @@ class NFC_UD_FAST_KPERSISTENT_CACHE_MAX(AliroUserDeviceTestCase, UserPromptSuppo
         self.test_steps = [
             TestStep("Step1: Initialization"),
             TestStep("Step2: Set to polling mode"),
-            TestStep("Step3: Transaction initiation (standard)"),
-            TestStep("Step4: Send/Receive AUTH0 command/response"),
-            TestStep("Step5: Send/Receive AUTH1 command/response"),
+            TestStep("Step3: Perform Expedited Standard Phase"),
+            TestStep("Step4: Transaction initiation (fast)"),
+            TestStep("Step5: Send/Receive AUTH0 Fast command/response"),
             TestStep("Step6: Send/Receive EXCHANGE command/response"),
-            TestStep("Step7: Transaction initiation (fast)"),
-            TestStep("Step8: Send/Receive AUTH0 Fast command/response"),
-            TestStep("Step9: Send/Receive EXCHANGE command/response"),
         ]
 
     async def setup(self) -> None:
@@ -108,73 +105,31 @@ class NFC_UD_FAST_KPERSISTENT_CACHE_MAX(AliroUserDeviceTestCase, UserPromptSuppo
                 prompt="Tap User Device on the Test Harness NFC", options={"OK": 1}
             )
         )
-
-        # Test Step 3
-        await self.reader.transaction_initiation()  # including SELECT command
-        self.next_step()
-
-        # Test step 4
-        try:
-            await self.reader.handle_auth0(
-                transaction_type=Transaction.STANDARD,
-                authentication_policy=AuthenticationPolicy.USER_DEVICE,
-            )
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        self.next_step()
-
-        # Test step 5
-        try:
-            await self.reader.handle_auth1(
-                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
-            )
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        self.next_step()
-
-        # Test step 6
-        try:
-            await self.reader.handle_exchange(
-                False, reader_status=ReaderStatus.READER_STATE_UNSECURED
-            )
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        self.next_step()
-
-        await self.reader.transaction_termination()
-        await self.send_prompt_request(
-            OptionsSelectPromptRequest(
-                prompt="Remove and Tap User Device again on the Test Harness NFC",
-                options={"OK": 1},
-            )
-        )
-
-        # Test Step 7
+        reader_identifier_list = []
         for _ in range(0, 16):
             self.sub_group_id = self.sub_group_id[:-1] + os.urandom(1)
-            self.reader.reader_identifier(self.group_id + self.sub_group_id)
-            try:
-                await self.reader.transaction_initiation()  # including select
-            except (AccessProtocolError, InvalidResponseError) as error:
-                self.mark_step_failure(str(error))
-                return
-            self.next_step()
+            self.reader.reader_identifier = self.group_id + self.sub_group_id
+            reader_identifier_list.append(self.reader.reader_identifier)
+            # Test Step 3
+            await self.reader.transaction_initiation()  # including SELECT command
 
-            # Test Step 8
             try:
                 await self.reader.handle_auth0(
-                    transaction_type=Transaction.FAST,
+                    transaction_type=Transaction.STANDARD,
                     authentication_policy=AuthenticationPolicy.USER_DEVICE,
                 )
             except (AccessProtocolError, InvalidResponseError) as error:
                 self.mark_step_failure(str(error))
                 return
-            self.next_step()
-            
-            # Test step 9
+
+            try:
+                await self.reader.handle_auth1(
+                    expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
+                )
+            except (AccessProtocolError, InvalidResponseError) as error:
+                self.mark_step_failure(str(error))
+                return
+
             try:
                 await self.reader.handle_exchange(
                     False, reader_status=ReaderStatus.READER_STATE_UNSECURED
@@ -183,6 +138,43 @@ class NFC_UD_FAST_KPERSISTENT_CACHE_MAX(AliroUserDeviceTestCase, UserPromptSuppo
                 self.mark_step_failure(str(error))
                 return
             self.next_step()
+
+            await self.reader.transaction_termination()
+
+
+        # Test Step 4
+        for reader_identifier in reader_identifier_list:
+            self.sub_group_id = self.sub_group_id[:-1] + os.urandom(1)
+            self.reader.reader_identifier = reader_identifier
+            try:
+                await self.reader.transaction_initiation()  # including select
+            except (AccessProtocolError, InvalidResponseError) as error:
+                self.mark_step_failure(str(error))
+                return
+
+            # Test Step 5
+            try:
+                await self.reader.handle_auth0(
+                    transaction_type=Transaction.FAST,
+                    authentication_policy=AuthenticationPolicy.USER_DEVICE,
+                )
+            except (AccessProtocolError, InvalidResponseError) as error:
+                self.mark_step_failure(str(error))
+                return
+            
+            # Test step 6
+            try:
+                await self.reader.handle_exchange(
+                    False, reader_status=ReaderStatus.READER_STATE_UNSECURED
+                )
+            except (AccessProtocolError, InvalidResponseError) as error:
+                self.mark_step_failure(str(error))
+                return
+        
+        # Finish steps 4, 5, 6
+        self.next_step()
+        self.next_step()
+        self.next_step()
 
     async def cleanup(self) -> None:
         logger.info("NFC_UD_FAST_KPERSISTENT_CACHE_MAX Cleanup")

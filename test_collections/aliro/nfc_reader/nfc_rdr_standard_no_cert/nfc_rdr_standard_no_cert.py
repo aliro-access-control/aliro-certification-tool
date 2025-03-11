@@ -1,4 +1,4 @@
-from aliro_actuator.access_protocol.apdu import Auth1Response
+from aliro_actuator.access_protocol.apdu import Auth1Response, INS
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
