@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .ud_ble_stdtxn_30 import UD_BLE_STDTXN_30
+from .bleuwb_ud_expedited_standard_phase import BLEUWB_UD_EXPEDITED_STANDARD_PHASE

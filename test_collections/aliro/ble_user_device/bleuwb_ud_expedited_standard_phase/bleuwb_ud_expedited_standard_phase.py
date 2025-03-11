@@ -22,11 +22,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
+class BLEUWB_UD_EXPEDITED_STANDARD_PHASE(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-BLE-STDTXN-3.0",
+        "public_id": "BLEUWB_UD_EXPEDITED_STANDARD_PHASE",
         "version": "0.0.1",
-        "title": "UD-BLE-STDTXN-3.0",
+        "title": "BLEUWB_UD_EXPEDITED_STANDARD_PHASE",
         "description": """Verify conformance of User Device UT in BLE discovery.""",
     }
 
@@ -204,7 +204,7 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_BLE_STDTXN_30 Cleanup")
+        logger.info("BLEUWB_UD_EXPEDITED_STANDARD_PHASE Cleanup")
         try:
             await self.reader.transaction_termination()
         except NoDeviceConnectedError:
