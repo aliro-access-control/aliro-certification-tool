@@ -20,6 +20,7 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
+import random
 
 class NFC_UD_STANDARD_NO_CERT(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
@@ -98,10 +99,14 @@ class NFC_UD_STANDARD_NO_CERT(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 4
+        authentication_policy = random.randint(
+            AuthenticationPolicy.USER_DEVICE, 
+            AuthenticationPolicy.FORCE_USER_AUTHENTICATION
+        )
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.STANDARD,
-                authentication_policy=AuthenticationPolicy.USER_DEVICE,
+                authentication_policy=AuthenticationPolicy(authentication_policy),
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))

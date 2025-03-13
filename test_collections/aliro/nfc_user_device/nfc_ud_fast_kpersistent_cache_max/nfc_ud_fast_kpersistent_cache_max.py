@@ -113,10 +113,14 @@ class NFC_UD_FAST_KPERSISTENT_CACHE_MAX(AliroUserDeviceTestCase, UserPromptSuppo
             # Test Step 3
             await self.reader.transaction_initiation()  # including SELECT command
 
+            authentication_policy = random.randint(
+                AuthenticationPolicy.USER_DEVICE, 
+                AuthenticationPolicy.FORCE_USER_AUTHENTICATION
+            )
             try:
                 await self.reader.handle_auth0(
                     transaction_type=Transaction.STANDARD,
-                    authentication_policy=AuthenticationPolicy.USER_DEVICE,
+                    authentication_policy=AuthenticationPolicy(authentication_policy),
                 )
             except (AccessProtocolError, InvalidResponseError) as error:
                 self.mark_step_failure(str(error))
@@ -153,10 +157,14 @@ class NFC_UD_FAST_KPERSISTENT_CACHE_MAX(AliroUserDeviceTestCase, UserPromptSuppo
                 return
 
             # Test Step 5
+            authentication_policy = random.randint(
+                AuthenticationPolicy.USER_DEVICE, 
+                AuthenticationPolicy.FORCE_USER_AUTHENTICATION
+            )
             try:
                 await self.reader.handle_auth0(
                     transaction_type=Transaction.FAST,
-                    authentication_policy=AuthenticationPolicy.USER_DEVICE,
+                    authentication_policy=AuthenticationPolicy(authentication_policy),
                 )
             except (AccessProtocolError, InvalidResponseError) as error:
                 self.mark_step_failure(str(error))

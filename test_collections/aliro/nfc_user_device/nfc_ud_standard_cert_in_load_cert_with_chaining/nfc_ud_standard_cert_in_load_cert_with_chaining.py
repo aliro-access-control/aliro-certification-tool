@@ -104,10 +104,14 @@ class NFC_UD_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING(AliroUserDeviceTestCase, U
         self.next_step()
 
         # Test step 4
+        authentication_policy = random.randint(
+            AuthenticationPolicy.USER_DEVICE, 
+            AuthenticationPolicy.FORCE_USER_AUTHENTICATION
+        )
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.STANDARD,
-                authentication_policy=AuthenticationPolicy.USER_DEVICE,
+                authentication_policy=AuthenticationPolicy(authentication_policy),
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
