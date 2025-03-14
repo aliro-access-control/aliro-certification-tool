@@ -21,6 +21,7 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
+import random
 
 class NFC_UD_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
@@ -65,7 +66,7 @@ class NFC_UD_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING(AliroUserDeviceTestCase, U
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
         key = self.th_reader_keypair()
-        cert = self.th_reader_certificate()
+        cert = self.th_reader_certificate_chaining()
         reader_issuer_public_key = self.th_reader_issuer_public_key()
 
         # Initialize Aliro NFC Reader

@@ -21,6 +21,7 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 import os
+import random
 
 class NFC_UD_FAST_KPERSISTENT_CACHE_MAX(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {

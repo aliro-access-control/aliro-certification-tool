@@ -2,6 +2,7 @@ from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     AuthenticationPolicy,
     Transaction,
+    ReaderStatus,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -54,6 +55,8 @@ class NFC_UD_AUTH0_RESPONSE_CHAINING(AliroUserDeviceTestCase, UserPromptSupport)
             TestStep("Step3: Set the User Device UT"),
             TestStep("Step4: Send/Receive Select command/response"),
             TestStep("Step5: Send/Receive AUTH0 command/response"),
+            TestStep("Step6: Send/Receive AUTH1 command/response"),
+            TestStep("Step7: Send/Receive EXCHANGE command/response"),
         ]
 
     async def setup(self) -> None:
@@ -107,6 +110,30 @@ class NFC_UD_AUTH0_RESPONSE_CHAINING(AliroUserDeviceTestCase, UserPromptSupport)
             await self.reader.handle_auth0(
                 transaction_type=Transaction.STANDARD,
                 authentication_policy=AuthenticationPolicy.USER_DEVICE,
+            )
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
+        
+        if self.reader.chaining_response != False:
+            self.mark_step_failure("Response is not chained.")
+            return
+        self.next_step()
+        
+        # Test step 6
+        try:
+            await self.reader.handle_auth1(
+                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
+            )
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
+        self.next_step()
+        
+        # Test step 7
+        try:
+            await self.reader.handle_exchange(
+                False, reader_status=ReaderStatus.READER_STATE_UNSECURED
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
