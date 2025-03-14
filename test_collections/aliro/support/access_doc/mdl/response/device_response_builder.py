@@ -80,15 +80,16 @@ class DeviceResponseBuilder(object):
     ############################################################################
     @staticmethod
     def build(
-        access_data_elements : list[ResponseElement],
-        revocation_data_elements : list[ResponseElement],
+        access_data_elements : list[ResponseElement] | None,
+        revocation_data_elements : list[ResponseElement] | None,
         issuer_private_key : bytes | bytearray,
         device_public_key : bytes | bytearray,
         valid_from : str | int | float | datetime.date | datetime.datetime,
         valid_until : str | int | float | datetime.date | datetime.datetime,
         x509_cert: bytes | None = None,
         validity_iteration : int = -1,
-        time_verification_required : bool = False) -> DeviceResponse:
+        time_verification_required : bool = False,
+        use_keyId : bool = True) -> DeviceResponse:
         '''Build a Device Response from the given data elements, keys, and validity information.'''
 
         # Verify input parameters.
@@ -105,138 +106,160 @@ class DeviceResponseBuilder(object):
 
         device_response = DeviceResponse()
 
-        doc = DeviceResponseBuilder.__build_doc(
+        doc, _ = DeviceResponseBuilder._build_doc(
             IssuerNamespaces.ALIRO_ACCESS,
             DocTypes.ALIRO_ACCESS,
             access_data_elements,
-            issuer_private_key,
             device_public_key,
             valid_from,
             valid_until,
+            x509_cert,
             validity_iteration,
-            time_verification_required,
-            x509_cert)
+            time_verification_required)
 
         if (doc is not None):
+            DeviceResponseBuilder._sign_doc(
+                doc,
+                issuer_private_key,
+                use_keyid=use_keyId
+            )
+
             device_response.documents.append(doc)
 
-        doc = DeviceResponseBuilder.__build_doc(
+        doc, _ = DeviceResponseBuilder._build_doc(
             IssuerNamespaces.ALIRO_REVOCATION,
             DocTypes.ALIRO_REVOCATION,
             revocation_data_elements,
-            issuer_private_key,
             device_public_key,
             valid_from,
             valid_until,
+            x509_cert,
             validity_iteration,
-            time_verification_required,
-            x509_cert)
+            time_verification_required)
 
         if (doc is not None):
+            DeviceResponseBuilder._sign_doc(
+                doc,
+                issuer_private_key,
+                use_keyid=use_keyId
+            )
+
             device_response.documents.append(doc)
 
         return device_response
 
     ############################################################################
     @staticmethod
-    def __build_doc(
+    def _build_doc(
         namespace : str,
         doc_type : str,
         data_elements : list[ResponseElement],
-        issuer_private_key : bytes | bytearray,
         device_public_key : bytes | bytearray,
         valid_from : str | int | float | datetime.date | datetime.datetime,
         valid_until : str | int | float | datetime.date | datetime.datetime,
-        validity_iteration,
-        time_verification_required,
-        x509_cert) -> Document:
+        x509_cert: bytes | None = None,
+        validity_iteration : int = -1,
+        time_verification_required: bool = False) -> (Document, MobileSecurityObject):
         '''Internal method to build a Document containing the given data elements.'''
 
-        doc = None
+        if (data_elements is None) or (len(data_elements) <= 0):
+            return None, None
 
-        if (data_elements is not None) and (len(data_elements) > 0):
-            digest_id = 1
-            cbor_tag_encoded_cbor = 24
+        digest_id = 1
+        cbor_tag_encoded_cbor = 24
 
-            # Create a document to contain a mobile security object and
-            # an issuer signed item for each data element.
-            doc = Document()
-            doc.doc_type = doc_type
+        # Create a document to contain a mobile security object and
+        # an issuer signed item for each data element.
+        doc = Document()
+        doc.doc_type = doc_type
 
-            # Create a mobile security object to contain the validity information
-            # and a hash of each issuer signed item.
-            mso = MobileSecurityObject()
-            mso.doc_type = doc_type
-            mso.time_verification_required = time_verification_required
+        # Create a mobile security object to contain the validity information
+        # and a hash of each issuer signed item.
+        mso = MobileSecurityObject()
+        mso.doc_type = doc_type
+        mso.time_verification_required = time_verification_required
 
-            # Set the device public key as separate x and y components.
-            device_public_key_obj = EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), bytes(device_public_key))
-            if doc_type == 'aliro-a':
-                key_info = DeviceKeyInfo()
-                key_info.device_key.x = int.to_bytes(device_public_key_obj.public_numbers().x, length=32, byteorder='big')
-                key_info.device_key.y = int.to_bytes(device_public_key_obj.public_numbers().y, length=32, byteorder='big')
-                mso.device_key_info = key_info
+        # Set the device public key as separate x and y components.
+        device_public_key_obj = EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), bytes(device_public_key))
+        if doc_type == DocTypes.ALIRO_ACCESS:
+            key_info = DeviceKeyInfo()
+            key_info.device_key.x = int.to_bytes(device_public_key_obj.public_numbers().x, length=32, byteorder='big')
+            key_info.device_key.y = int.to_bytes(device_public_key_obj.public_numbers().y, length=32, byteorder='big')
+            mso.device_key_info = key_info
 
-            # Set the validity information.
-            mso.validity_info.signed = datetime.datetime.now(datetime.timezone.utc)
-            mso.validity_info.valid_from = valid_from
-            mso.validity_info.valid_until = valid_until
-            mso.validity_info.validity_iteration = validity_iteration
+        # Set the validity information.
+        mso.validity_info.signed = datetime.datetime.now(datetime.timezone.utc)
+        mso.validity_info.valid_from = valid_from
+        mso.validity_info.valid_until = valid_until
+        mso.validity_info.validity_iteration = validity_iteration
 
-            # Encode each data element.
-            for data_element in data_elements:
-                assert(isinstance(data_element, ResponseElement))
+        # Encode each data element.
+        for data_element in data_elements:
+            assert(isinstance(data_element, ResponseElement))
 
-                # Create an issuer signed item to contain the data element.
-                issuer_signed_item = IssuerSignedItem()
-                issuer_signed_item.digest_id = digest_id
-                issuer_signed_item.element_identifier = data_element.data_element_id
-                issuer_signed_item.element_value = data_element.value # TODO - Is the element_value supposed to be wrapped in an embedded CBOR tag? #6.24 (bstr .cbor)
+            # Create an issuer signed item to contain the data element.
+            issuer_signed_item = IssuerSignedItem()
+            issuer_signed_item.digest_id = digest_id
+            issuer_signed_item.element_identifier = data_element.data_element_id
+            issuer_signed_item.element_value = data_element.value
 
-                # Convert the issuer signed item to embedded CBOR within a bstr.
-                issuer_signed_item_cbor_obj = cbor2.CBORTag(cbor_tag_encoded_cbor, bytearray(issuer_signed_item.to_cbor()))
-                issuer_signed_item_bytes = cbor2.dumps(issuer_signed_item_cbor_obj)
+            # Convert the issuer signed item to embedded CBOR within a bstr.
+            issuer_signed_item_cbor_obj = cbor2.CBORTag(cbor_tag_encoded_cbor, bytearray(issuer_signed_item.to_cbor()))
+            issuer_signed_item_bytes = cbor2.dumps(issuer_signed_item_cbor_obj)
 
-                # Compute the hash of the issuer signed item embedded CBOR.
-                digest = hashlib.sha256(issuer_signed_item_bytes).digest()
+            # Compute the hash of the issuer signed item embedded CBOR.
+            digest = hashlib.sha256(issuer_signed_item_bytes).digest()
 
-                doc.issuer_signed.set(namespace, issuer_signed_item_cbor_obj)
-                mso.value_digests.set(namespace, digest_id, digest)
+            doc.issuer_signed.set(namespace, issuer_signed_item_cbor_obj)
+            mso.value_digests.set(namespace, digest_id, digest)
 
-                digest_id += 1
+            digest_id += 1
 
-            # Convert the mobile security object to embedded CBOR within a bstr.
+        # Convert the mobile security object to embedded CBOR within a bstr.
+        doc.issuer_signed.issuer_auth.payload = cbor2.dumps(cbor2.CBORTag(cbor_tag_encoded_cbor, mso.to_cbor()))
+
+        # Set x.509 certificate
+        doc.issuer_signed.issuer_auth.x5chain = x509_cert
+        return doc, mso
+
+    @staticmethod
+    def _sign_doc(
+        doc: Document,
+        issuer_private_key: bytes | bytearray,
+        mso: MobileSecurityObject | None = None,
+        use_keyid: bool = True):
+        '''Internal method to sign an existing Document'''
+
+        cbor_tag_encoded_cbor = 24
+
+        if mso is not None:
             doc.issuer_signed.issuer_auth.payload = cbor2.dumps(cbor2.CBORTag(cbor_tag_encoded_cbor, mso.to_cbor()))
 
-            # Set x.509 certificate
-            doc.issuer_signed.issuer_auth.x5chain = x509_cert
+        if (len(issuer_private_key) == 32):
+            # Convert the raw issuer private key to a signing object.
+            pk = ec.derive_private_key(int.from_bytes(issuer_private_key, byteorder='big'), ec.SECP256R1())
+        else:
+            # Convert the DER encoded issuer private key to a signing object.
+            pk = load_der_private_key(issuer_private_key, password=None)
 
-            if (len(issuer_private_key) == 32):
-                # Convert the raw issuer private key to a signing object.
-                pk = ec.derive_private_key(int.from_bytes(issuer_private_key, byteorder='big'), ec.SECP256R1())
-            else:
-                # Convert the DER encoded issuer private key to a signing object.
-                pk = load_der_private_key(issuer_private_key, password=None)
+        # Sign the payload.
+        sig_structure = Sig_structure()
+        sig_structure.body_protected = doc.issuer_signed.issuer_auth.protected
+        sig_structure.payload = doc.issuer_signed.issuer_auth.payload
+        to_be_signed = sig_structure.to_cbor()
+        sig = pk.sign(to_be_signed, ec.ECDSA(hashes.SHA256()))
 
-            # Sign the payload.
-            sig_structure = Sig_structure()
-            sig_structure.body_protected = doc.issuer_signed.issuer_auth.protected
-            sig_structure.payload = doc.issuer_signed.issuer_auth.payload
-            to_be_signed = sig_structure.to_cbor()
-            sig = pk.sign(to_be_signed, ec.ECDSA(hashes.SHA256()))
+        # Convert the signature into a raw bytearray with concatenated r + s components.
+        (r, s) = utils.decode_dss_signature(sig)
+        sig_bytes = bytearray(int.to_bytes(r, length=32, byteorder='big'))
+        sig_bytes.extend(int.to_bytes(s, length=32, byteorder='big'))
 
-            # Convert the signature into a raw bytearray with concatenated r + s components.
-            (r, s) = utils.decode_dss_signature(sig)
-            sig_bytes = bytearray(int.to_bytes(r, length=32, byteorder='big'))
-            sig_bytes.extend(int.to_bytes(s, length=32, byteorder='big'))
+        # Set the raw signature with concatenated r + s components.
+        doc.issuer_signed.issuer_auth.signature = sig_bytes
 
-            # Set the raw signature with concatenated r + s components.
-            doc.issuer_signed.issuer_auth.signature = sig_bytes
-
+        if use_keyid:
             # Create the issuer public key identifier by hashing "key-identifier"
             # concatenated with the issuer public key and keeping the first eight bytes.
             h = hashlib.new('sha256', "key-identifier".encode())
             h.update(pk.public_key().public_bytes(Encoding.X962, PublicFormat.UncompressedPoint))
             doc.issuer_signed.issuer_auth.key_id = h.digest()[0:8]
-
-        return doc

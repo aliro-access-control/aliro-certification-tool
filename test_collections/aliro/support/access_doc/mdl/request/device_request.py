@@ -59,8 +59,6 @@ class DeviceRequest(object):
     def doc_requests(self, val : list[DocRequest]) -> None:
         '''Set the Doc Requests.'''
         assert(isinstance(val, list))
-        for item in val:
-            assert(isinstance(item, DocRequest))
         self.__doc_requests = val
 
     ############################################################################
@@ -74,17 +72,15 @@ class DeviceRequest(object):
 
         # Verify the Doc Requests are valid.
         for doc_request in self.__doc_requests:
-            if not isinstance(doc_request, DocRequest):
-                return False
             if not doc_request.is_valid():
                 return False
 
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the DeviceRequest to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         device_request_dict = {}
@@ -95,7 +91,7 @@ class DeviceRequest(object):
         # Encode the Doc Requests.
         doc_requests_list = []
         for doc_request in self.__doc_requests:
-            doc_requests_list.append(doc_request.to_dict())
+            doc_requests_list.append(doc_request.to_dict(validate))
         device_request_dict[DeviceRequest.DOC_REQUESTS_LABEL] = doc_requests_list
 
         return device_request_dict
@@ -134,9 +130,9 @@ class DeviceRequest(object):
         return self.is_valid()
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the DeviceRequest to CBOR.'''
-        device_request_dict = self.to_dict()
+        device_request_dict = self.to_dict(validate)
         if device_request_dict is None:
             return None
         return cbor2.dumps(device_request_dict)

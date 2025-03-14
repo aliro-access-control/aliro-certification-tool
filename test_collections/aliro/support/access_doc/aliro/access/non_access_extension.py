@@ -64,7 +64,6 @@ class NonAccessExtension(object):
     @data.setter
     def data(self, val : ExtensionData) -> None:
         '''Set the Extension's Data.'''
-        assert(isinstance(val, ExtensionData))
         self.__data = val
 
     ############################################################################
@@ -87,12 +86,12 @@ class NonAccessExtension(object):
         return True
 
     ############################################################################
-    def to_list(self) -> list:
+    def to_list(self, validate=True) -> list:
         '''Convert the NonAccessExtension to a list.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
-        access_extension_list = {}
+        access_extension_list = []
 
         # Encode the Extension ID.
         access_extension_list.append(int(self.id))
@@ -101,14 +100,14 @@ class NonAccessExtension(object):
         access_extension_list.append(int(self.version))
 
         # Encode the Data.
-        access_extension_list.append(self.data.to_dict())
+        access_extension_list.append(self.data.to_dict(validate))
 
         return access_extension_list
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the NonAccessExtension to CBOR.'''
-        access_extension_list = self.to_list()
+        access_extension_list = self.to_list(validate)
         if access_extension_list is None:
             return None
         return cbor2.dumps(access_extension_list)

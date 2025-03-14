@@ -108,9 +108,9 @@ class RevocationEntry(object):
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the RevocationEntry to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         revocation_entry_dict = {}
@@ -131,9 +131,9 @@ class RevocationEntry(object):
         return revocation_entry_dict
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the RevocationEntry to CBOR.'''
-        revocation_entry_dict = self.to_dict()
+        revocation_entry_dict = self.to_dict(validate)
         if revocation_entry_dict is None:
             return None
         return cbor2.dumps(revocation_entry_dict)

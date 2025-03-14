@@ -130,9 +130,9 @@ class Sig_structure(object):
         return True
 
     ############################################################################
-    def to_list(self) -> list:
+    def to_list(self, validate=True) -> list:
         '''Convert the Sig_structure to a list.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         sig_list = []
@@ -152,9 +152,9 @@ class Sig_structure(object):
         return sig_list
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the Sig_structure to CBOR.'''
-        sig_list = self.to_list()
+        sig_list = self.to_list(validate)
         if sig_list is None:
             return None
         return cbor2.dumps(sig_list)
