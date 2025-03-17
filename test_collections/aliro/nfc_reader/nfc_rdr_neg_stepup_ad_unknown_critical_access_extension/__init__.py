@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .nfc_rdr_neg_stepup_ad_unknown_critical_access_extension import NFC_RDR_NEG_STEPUP_AD_UNKNOWN_CRICIAL_ACCESS_EXTENSION
+from .nfc_rdr_neg_stepup_ad_unknown_critical_access_extension import NFC_RDR_NEG_STEPUP_AD_UNKNOWN_CRITICAL_ACCESS_EXTENSION
