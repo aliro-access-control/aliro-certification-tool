@@ -26,11 +26,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_NFC_AUTH1_12(AliroUserDeviceTestCase, UserPromptSupport):
+class NFC_UD_STANDARD_CERT_IN_AUTH1_NO_CHAINING(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-NFC-AUTH1-1.2",
+        "public_id": "NFC_UD_STANDARD_CERT_IN_AUTH1_NO_CHAINING",
         "version": "0.0.1",
-        "title": "UD-NFC-AUTH1-1.2",
+        "title": "NFC_UD_STANDARD_CERT_IN_AUTH1_NO_CHAINING",
         "description": """Verify conformance of User Device UT in AUTH1 command.""",
     }
 
@@ -62,35 +62,11 @@ class UD_NFC_AUTH1_12(AliroUserDeviceTestCase, UserPromptSupport):
         ]
 
     async def setup(self) -> None:
-        logger.info("UD_NFC_AUTH1_12 setup")
-        self.group_id = bytes.fromhex("00113344667799AA00113344667799AA")
-        key = KeyPair(
-            bytes.fromhex(
-                "359449fb6b51ced37d8f516b175a9a210b1b1dcdbd15915e49296b5e802c2d40"
-            ),
-            bytes.fromhex(
-                "0457a25ca8690e0409aa2a094a88f3894e136399efe35b7f25d2991c7ad206239867d9"
-                "9e3f243afd6cec35c21bdee6521af12435e8c4ff9296d1ca970e6ca77b50"
-            ),
-        )
-        cert = bytes.fromhex(
-            "308201523081f9a003020102020101300a06082a8648ce3d0403023011310f300d06035504"
-            "030c06697373756572301e170d3230303130313030303030305a170d343930313031303030"
-            "3030305a30123110300e06035504030c077375626a6563743059301306072a8648ce3d0201"
-            "06082a8648ce3d0301070342000457a25ca8690e0409aa2a094a88f3894e136399efe35b7f"
-            "25d2991c7ad206239867d99e3f243afd6cec35c21bdee6521af12435e8c4ff9296d1ca970e"
-            "6ca77b50a341303f301f0603551d2304183016801472382193af308e03b04d8ea9bafd52e5"
-            "3f492624300c0603551d130101ff04023000300e0603551d0f0101ff040403020780300a06"
-            "082a8648ce3d040302034800304502202d76e93595ea0676428b8d2844975c15d08c1c5608"
-            "e048ed050923e7725d36ce0221008682d7de14388208bee2790dfc6e51bd4e365bc9d594b3"
-            "b7420826e593c80096"
-        )
-        self.reader_issuer_public_key = PublicKey(
-            bytes.fromhex(
-                "043928f322019d4757893bde6a0fe5e13e3e537b9ca0f549c0bd2f40f79060252a0a4f"
-                "291192157a95cb6eb202759428c00cd834998c5d0eab192ee8873c5d34ee"
-            )
-        )
+        logger.info("NFC_UD_STANDARD_CERT_IN_AUTH1_WITH_CHAINING setup")
+        group_id = self.th_group_identifier()
+        key = self.th_reader_keypair()
+        cert = self.th_reader_certificate()
+        self.reader_issuer_public_key = self.th_reader_issuer_public_key()
         self.endpoint_key = self.th_access_credential_public_key()
 
         # Initialize Aliro NFC Reader
@@ -173,5 +149,5 @@ class UD_NFC_AUTH1_12(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_NFC_AUTH1_12 Cleanup")
+        logger.info("NFC_UD_STANDARD_CERT_IN_AUTH1_NO_CHAINING Cleanup")
         await self.reader.transaction_termination()
