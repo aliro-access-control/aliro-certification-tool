@@ -59,6 +59,7 @@ class NFC_UD_STANDARD_CERT_IN_AUTH1_NO_CHAINING(AliroUserDeviceTestCase, UserPro
             TestStep("Step3: Transaction initiation"),
             TestStep("Step4: Send/Receive AUTH0 command/response"),
             TestStep("Step5: Send/Receive AUTH1 command/response"),
+            TestStep("Step6: Send/Receive EXCHANGE command/response"),
         ]
 
     async def setup(self) -> None:
@@ -145,6 +146,16 @@ class NFC_UD_STANDARD_CERT_IN_AUTH1_NO_CHAINING(AliroUserDeviceTestCase, UserPro
             return
         else:
             self.mark_step_failure("No error status returned")
+            return
+        self.next_step()
+        
+        # Test step 6
+        try:
+            await self.reader.handle_exchange(
+                False, reader_status=ReaderStatus.READER_STATE_UNSECURED
+            )
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
             return
         self.next_step()
 
