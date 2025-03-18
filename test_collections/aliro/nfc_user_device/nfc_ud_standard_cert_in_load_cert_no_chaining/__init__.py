@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .ud_nfc_auth1_12 import UD_NFC_AUTH1_12
+from .nfc_ud_standard_cert_in_load_cert_no_chaining import NFC_UD_STANDARD_CERT_IN_LOAD_CERT_NO_CHAINING
