@@ -24,10 +24,10 @@ import random
 
 class NFC_UD_NEG_AUTH0_UNSUPPORTED_PROTOCOL_VERSION(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "NFC_UD_NEG_AUTH0_UNKNOWN_READER_ID",
+        "public_id": "NFC_UD_NEG_AUTH0_UNSUPPORTED_PROTOCOL_VERSION",
         "version": "0.0.1",
-        "title": "NFC_UD_NEG_AUTH0_UNKNOWN_READER_ID",
-        "description": """Expedited Standard Phase With Unknown Reader Group Identifier.""",
+        "title": "NFC_UD_NEG_AUTH0_UNSUPPORTED_PROTOCOL_VERSION",
+        "description": """Expedited Standard Phase With Unsupported Protocol Version.""",
     }
 
     reader_ePuBK = bytes.fromhex(
