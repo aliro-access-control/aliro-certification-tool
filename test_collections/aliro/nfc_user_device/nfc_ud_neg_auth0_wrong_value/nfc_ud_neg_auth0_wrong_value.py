@@ -2,11 +2,14 @@ from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     AuthenticationPolicy,
     Transaction,
+    INS,
+    APDU,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
     PROTOCOL_VERSION,
+    Auth0,
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
@@ -59,7 +62,7 @@ class NFC_UD_NEG_AUTH0_WRONG_VALUE(AliroUserDeviceTestCase, UserPromptSupport):
         ]
 
     async def setup(self) -> None:
-        logger.info("UD_NFC_AUTH0_11 setup")
+        logger.info("NFC_UD_NEG_AUTH0_WRONG_VALUE setup")
         # load parameters from project config
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
@@ -105,15 +108,29 @@ class NFC_UD_NEG_AUTH0_WRONG_VALUE(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 5
         try:
-            auth0_response = await self.reader.command_auth0(
-                transaction=Transaction.STANDARD,
-                authentication_policy=AuthenticationPolicy.USER_DEVICE,
-                protocol_version=PROTOCOL_VERSION,
-                reader_epubk=self.reader.session.get_reader_epubkey().as_bytes(),
-                transaction_identifier=self.reader.session.transaction_identifier,
-                reader_identifier=self.reader.reader_group_identifier
-                + self.reader.reader_group_sub_identifier,
+            data_tlv: list[tuple[int, bytes | list]] = [
+                (Auth0.COMMAND_TAG, transaction_type.to_bytes(1, "big")),
+                (Auth0.AUTHENTICATION_POLICY_TAG, authentication_policy.to_bytes(1, "big")),
+                (Auth0.ETPV_TAG, protocol_version.to_bytes(2, "big")),
+                (0x88, reader_epubk), # wrong tag for public key
+                (Auth0.TRANSACTION_ID_TAG, transaction_identifier),
+                (Auth0.READER_IDENTIFIER_TAG, reader_identifier),
+            ]
+            data = TLV(data_tlv)
+            command = self.create_command(
+                cla=0x80,
+                ins=INS.AUTH0,
+                p1=0x00,
+                p2=0x00,
+                data=bytes(data.to_bytes()),
+                le=0x00,
             )
+            response = await self.apdu.handle_chaining_send_command(
+            "AUTH0", command, self.reader.transport_protocol
+            )
+            response = self.apdu.parse_response(response, INS.AUTH0)
+            self.mark_step_failure("Wrong tag sent, but it was accepted as a valid ")
+            return
         except InvalidStatusError as error:
             logger.info(
                 "Received error status (as expected), status received: 0x{:04x}".format(
