@@ -11,7 +11,6 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
-    InvalidStatusError,
 )
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair
@@ -23,12 +22,12 @@ from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 import random
 
-class NFC_UD_NEG_AUTH0_UNSUPPORTED_PROTOCOL_VERSION(AliroUserDeviceTestCase, UserPromptSupport):
+class NFC_UD_EXCHANGE_READ_REQUEST(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "NFC_UD_NEG_AUTH0_UNSUPPORTED_PROTOCOL_VERSION",
+        "public_id": "NFC_UD_EXCHANGE_READ_REQUEST",
         "version": "0.0.1",
-        "title": "NFC_UD_NEG_AUTH0_UNSUPPORTED_PROTOCOL_VERSION",
-        "description": """Expedited Standard Phase With Unsupported Protocol Version.""",
+        "title": "NFC_UD_EXCHANGE_READ_REQUEST",
+        "description": """Expedited Phase With EXCHANGE command sending multiple READ requests multiple times.""",
     }
 
     reader_ePuBK = bytes.fromhex(
@@ -54,9 +53,10 @@ class NFC_UD_NEG_AUTH0_UNSUPPORTED_PROTOCOL_VERSION(AliroUserDeviceTestCase, Use
             TestStep("Step1: Initialization"),
             TestStep("Step2: Set to polling mode"),
             TestStep("Step3: Transaction initiation"), #include select command and response
-            TestStep("Step4: Send/Receive AUTH0 command (with unsupported protocol version)/response"),
+            TestStep("Step4: Send/Receive AUTH0 command/response"),
             TestStep("Step5: Send/Receive AUTH1 command/response"),
-            TestStep("Step6: Send/Receive EXCHANGE command/response"),
+            TestStep("Step6: Send EXCHANGE command  multiple times with multiple READ requests and Receive EXCHANGE response"),
+            TestStep("Step7: Send/Receive EXCHANGE command/response with Tag 0x97"),
         ]
 
     async def setup(self) -> None:
@@ -75,12 +75,12 @@ class NFC_UD_NEG_AUTH0_UNSUPPORTED_PROTOCOL_VERSION(AliroUserDeviceTestCase, Use
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
         )
+        
 
     @log_errors
     async def execute(self) -> None:
         # Test step 1
         # Done in setup
-        protocol_version = 0x0001 #Assigining an unsupported protocol version
         self.next_step()
 
         # Test step 2
@@ -93,21 +93,10 @@ class NFC_UD_NEG_AUTH0_UNSUPPORTED_PROTOCOL_VERSION(AliroUserDeviceTestCase, Use
         self.next_step()
 
         # Test step 3
-        await self.reader.setup_connection()  # up to RATS command/ ATS response
-        self.reader.start_new_session()
         try:
-            await self.reader.handle_select(aid=EXPEDITED_PHASE_AID)
+            await self.reader.transaction_initiation()  # including SELECT command
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
-            return
-        if (
-            protocol_version
-            in self.reader.session.expedited_phase_supported_protocol_versions
-        ):
-            self.mark_step_failure(
-                "version 0x{:04x} is supported by the device, but this version does "
-                "not exist".format(protocol_version)
-            )
             return
         self.next_step()
 
@@ -117,25 +106,9 @@ class NFC_UD_NEG_AUTH0_UNSUPPORTED_PROTOCOL_VERSION(AliroUserDeviceTestCase, Use
             AuthenticationPolicy.FORCE_USER_AUTHENTICATION
         )
         try:
-            auth0_response = await self.reader.command_auth0(
-                transaction=Transaction.STANDARD,
-                authentication_policy=authentication_policy,
-                protocol_version=protocol_version,
-                reader_epubk=self.reader.session.get_reader_epubkey().as_bytes(),
-                transaction_identifier=self.reader.session.transaction_identifier,
-                reader_identifier=self.reader.reader_group_identifier
-                + self.reader.reader_group_sub_identifier,
-            )
-            self.mark_step_failure(
-                "Invalid protocol version send, but it was accepted as a valid "
-                "protocol version"
-            )
-            return
-        except InvalidStatusError as error:
-            logger.info(
-                "Received error status (as expected), status received: 0x{:04x}".format(
-                    error.status
-                )
+            await self.reader.handle_auth0(
+                transaction_type=Transaction.STANDARD,
+                authentication_policy=AuthenticationPolicy(authentication_policy),
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
@@ -150,9 +123,32 @@ class NFC_UD_NEG_AUTH0_UNSUPPORTED_PROTOCOL_VERSION(AliroUserDeviceTestCase, Use
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
+        bitmap_1 = self.reader.session.signaling_bitmap[1]
+        if not (bitmap_1 & (1 << 4) == (1 << 4)):
+            self.mark_step_failure("Auth1 response indicates mailbox cannot be read")
+            return
         self.next_step()
         
         # Test step 6
+        read_requests_sequences = [[(0x00, 0x08), (0x04, 0x07)], [(0x19, 0x07), (0x20, 0x04), (0xA4, 0x08)]]
+        random_response_set = set()
+        for read_requests_sequence in read_requests_sequences:
+            try:
+                result = await self.reader.handle_exchange(
+                    False, read_requests = read_requests_sequence, reader_status=ReaderStatus.READER_STATE_UNSECURED
+                )
+                if result in random_response_set:
+                    self.mark_step_failure("Multiple read requests does not return random data")
+                    return
+                else:
+                    random_response_set.add(result)
+
+            except (AccessProtocolError, InvalidResponseError) as error:
+                self.mark_step_failure(str(error))
+                return
+        self.next_step()
+
+        # Test step 7
         try:
             await self.reader.handle_exchange(
                 False, reader_status=ReaderStatus.READER_STATE_UNSECURED
@@ -163,5 +159,5 @@ class NFC_UD_NEG_AUTH0_UNSUPPORTED_PROTOCOL_VERSION(AliroUserDeviceTestCase, Use
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("NFC_UD_NEG_AUTH0_UNSUPPORTED_PROTOCOL_VERSION Cleanup")
+        logger.info("NFC_UD_EXCHANGE_READ_REQUEST Cleanup")
         await self.reader.transaction_termination()
