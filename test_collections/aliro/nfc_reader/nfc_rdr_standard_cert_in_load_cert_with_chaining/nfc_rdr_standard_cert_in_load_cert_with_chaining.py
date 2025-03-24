@@ -18,11 +18,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class RD_NFC_STDTXN_40(AliroReaderTestCase, UserPromptSupport):
+class NFC_RDR_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "RD-NFC-STDTXN-4.0",
+        "public_id": "NFC_RDR_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING",
         "version": "0.0.1",
-        "title": "RD-NFC-STDTXN-4.0",
+        "title": "NFC_RDR_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING",
         "description": """Verify conformance of Reader during NFC standard """
         """"transaction using alternative LOAD CERT protocol.""",
     }
@@ -52,6 +52,7 @@ class RD_NFC_STDTXN_40(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step4: Receive/Send AUTH0 command/response"),
             TestStep("Step5: Receive/Send LOAD_CERT command/response"),
             TestStep("Step6: Receive/Send AUTH1 command/response"),
+            TestStep("Step7: Receive/Send EXCHANGE command/response"),
         ]
 
     async def setup(self) -> None:
@@ -135,6 +136,8 @@ class RD_NFC_STDTXN_40(AliroReaderTestCase, UserPromptSupport):
         except AccessProtocolError as error:
             self.mark_step_failure(str(error))
             return
+        if self.userdevice.chaining_command == False:
+            self.mark_step_failure("Load cert was used without chaining!")
         self.next_step()
 
         # Test step 6 Receive/Send Auth1 command/response
@@ -149,7 +152,20 @@ class RD_NFC_STDTXN_40(AliroReaderTestCase, UserPromptSupport):
             self.mark_step_failure(str(error))
             return
         self.next_step()
+        
+        # Test step 7
+        try:
+            cmds_exchange = await self.userdevice.wait_for_command()
+        except InvalidCommandError as error:
+            self.mark_step_failure(str(error))
+            return
+
+        try:
+            await self.userdevice.handle_exchange(cmds_exchange)
+        except AccessProtocolError as error:
+            self.mark_step_failure(str(error))
+            return
 
     async def cleanup(self) -> None:
-        logger.info("RD_NFC_STDTXN_40 Cleanup")
+        logger.info("NFC_RDR_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING Cleanup")
         await self.userdevice.transaction_termination()
