@@ -6,6 +6,7 @@ from aliro_actuator.access_protocol.apdu import (
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
+    PROTOCOL_VERSION,
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
@@ -21,12 +22,12 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_NFC_AUTH0_11(AliroUserDeviceTestCase, UserPromptSupport):
+class NFC_UD_NEG_AUTH0_WRONG_VALUE(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-NFC-AUTH0-1.1",
+        "public_id": "NFC_UD_NEG_AUTH0_WRONG_VALUE",
         "version": "0.0.1",
-        "title": "UD-NFC-AUTH0-1.1",
-        "description": """Verify conformance of User Device UT in AUTH0 command, expedited_phase_protocol_version different from  0x0100, not part of SELECT response.""",
+        "title": "NFC_UD_NEG_AUTH0_WRONG_VALUE",
+        "description": """Verify conformance of User Device UT in AUTH0 command.""",
     }
 
     reader_ePuBK = bytes.fromhex(
@@ -54,6 +55,7 @@ class UD_NFC_AUTH0_11(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step3: Set the User Device UT"),
             TestStep("Step4: Send/Receive Select command/response"),
             TestStep("Step5: Send/Receive AUTH0 command/response"),
+            TestStep("Step6: Send/Receive CONTROL FLOW command/response"),
         ]
 
     async def setup(self) -> None:
@@ -77,7 +79,6 @@ class UD_NFC_AUTH0_11(AliroUserDeviceTestCase, UserPromptSupport):
     async def execute(self) -> None:
         # Test step 1
         # Done in setup
-        protocol_version = 0x0001
         self.next_step()
 
         # Test step 2
@@ -100,15 +101,6 @@ class UD_NFC_AUTH0_11(AliroUserDeviceTestCase, UserPromptSupport):
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
-        if (
-            protocol_version
-            in self.reader.session.expedited_phase_supported_protocol_versions
-        ):
-            self.mark_step_failure(
-                "version 0x{:04x} is supported by the device, but this version does "
-                "not exist".format(protocol_version)
-            )
-            return
         self.next_step()
 
         # Test step 5
@@ -116,17 +108,12 @@ class UD_NFC_AUTH0_11(AliroUserDeviceTestCase, UserPromptSupport):
             auth0_response = await self.reader.command_auth0(
                 transaction=Transaction.STANDARD,
                 authentication_policy=AuthenticationPolicy.USER_DEVICE,
-                protocol_version=protocol_version,
+                protocol_version=PROTOCOL_VERSION,
                 reader_epubk=self.reader.session.get_reader_epubkey().as_bytes(),
                 transaction_identifier=self.reader.session.transaction_identifier,
                 reader_identifier=self.reader.reader_group_identifier
                 + self.reader.reader_group_sub_identifier,
             )
-            self.mark_step_failure(
-                "Invalid protocol version send, but it was accepted as a valid "
-                "protocol version"
-            )
-            return
         except InvalidStatusError as error:
             logger.info(
                 "Received error status (as expected), status received: 0x{:04x}".format(
@@ -137,7 +124,15 @@ class UD_NFC_AUTH0_11(AliroUserDeviceTestCase, UserPromptSupport):
             self.mark_step_failure(str(error))
             return
         self.next_step()
+        
+        # Test step 6
+        try:
+            await self.reader.handle_control_flow(S2.NONE)
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
+        self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_NFC_AUTH0_11 Cleanup")
+        logger.info("NFC_UD_NEG_AUTH0_WRONG_VALUE Cleanup")
         await self.reader.transaction_termination()
