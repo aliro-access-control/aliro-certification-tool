@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .rd_nfc_stdtxn_40 import RD_NFC_STDTXN_40
+from .nfc_rdr_standard_cert_in_load_cert_with_chaining import NFC_RDR_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING
