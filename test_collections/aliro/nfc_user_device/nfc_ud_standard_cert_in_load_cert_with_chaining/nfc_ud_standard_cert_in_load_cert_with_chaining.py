@@ -125,6 +125,8 @@ class NFC_UD_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING(AliroUserDeviceTestCase, U
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
+        if self.reader.chaining_response == False:
+            self.mark_step_failure("Load cert was used without chaining!")
         self.next_step()
 
         # Test step 6
