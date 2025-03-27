@@ -55,7 +55,7 @@ class NFC_UD_EXCHANGE_READ_REQUEST(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step3: Transaction initiation"), #include select command and response
             TestStep("Step4: Send/Receive AUTH0 command/response"),
             TestStep("Step5: Send/Receive AUTH1 command/response"),
-            TestStep("Step6: Send EXCHANGE command  multiple times with multiple READ requests and Receive EXCHANGE response"),
+            TestStep("Step6: Send EXCHANGE command multiple times with multiple READ requests and Receive EXCHANGE response"),
             TestStep("Step7: Send/Receive EXCHANGE command/response with Tag 0x97"),
         ]
 
@@ -130,22 +130,23 @@ class NFC_UD_EXCHANGE_READ_REQUEST(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
         
         # Test step 6
-        read_requests_sequences = [[(0x00, 0x08), (0x04, 0x07)], [(0x19, 0x07), (0x20, 0x04), (0xA4, 0x08)]]
-        random_response_set = set()
+        read_requests_sequences = [[(0x00, 0x08), (0x04, 0x07)], [(0x19, 0x07), (0x20, 0x04), (0xA4, 0x08)]] #  Each sequence is used to send multiple read requests in the exchange command one time.
+        random_response_set = set() #  set to check if different responses are generated for different read requests or not.
         for read_requests_sequence in read_requests_sequences:
             try:
-                result = await self.reader.handle_exchange(
+                result_list = await self.reader.handle_exchange(
                     False, read_requests = read_requests_sequence, reader_status=ReaderStatus.READER_STATE_UNSECURED
                 )
+            except (AccessProtocolError, InvalidResponseError) as error:
+                self.mark_step_failure(str(error))
+                return
+            for result in result_list:
                 if result in random_response_set:
                     self.mark_step_failure("Multiple read requests does not return random data")
                     return
                 else:
                     random_response_set.add(result)
 
-            except (AccessProtocolError, InvalidResponseError) as error:
-                self.mark_step_failure(str(error))
-                return
         self.next_step()
 
         # Test step 7
