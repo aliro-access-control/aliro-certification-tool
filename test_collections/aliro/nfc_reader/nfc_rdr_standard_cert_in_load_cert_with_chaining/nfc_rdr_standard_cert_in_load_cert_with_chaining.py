@@ -127,12 +127,12 @@ class NFC_RDR_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING(AliroReaderTestCase, User
 
         # Test step 5 Receive/Send LOAD CERT command/response
         try:
-            cmds_auth1 = await self.userdevice.wait_for_command()
+            cmds_load_cert = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:
             self.mark_step_failure(str(error))
             return
         try:
-            await self.userdevice.handle_load_cert(cmds_auth1)
+            await self.userdevice.handle_load_cert(cmds_load_cert)
         except AccessProtocolError as error:
             self.mark_step_failure(str(error))
             return
