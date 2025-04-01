@@ -61,14 +61,15 @@ class BLEUWB_RDR_EXPEDITED_FAST_PHASE(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step13: User Device sends AP_RS message: AUTH0 response"),
             TestStep("Step14: Reader sends AP_RQ message: EXCHANGE cmd"),
             TestStep("Step15: User Device sends AP_RS message: EXCHANGE response"),
-            TestStep("Step16: User Device sends AP message: Timesync"),
-            TestStep("Step17: User Device sends AP message: Initiate Ranging"),
-            TestStep("Step18: Reader sends AP message: RSS-M1"),
-            TestStep("Step19: User Device sends AP message: RSS-M2"),
-            TestStep("Step20: Reader sends AP message: RSS-M3"),
-            TestStep("Step21: User Device sends AP message: RSS-M4"),
-            TestStep("Step22: Reader acquires UWB ranging result"),
-            TestStep("Step23: Reader sends AP message: Status changed"),
+            TestStep("Step16: Reader sends AP message: AP completed"),
+            TestStep("Step17: User Device sends AP message: Timesync"),
+            TestStep("Step18: User Device sends AP message: Initiate Ranging"),
+            TestStep("Step19: Reader sends AP message: RSS-M1"),
+            TestStep("Step20: User Device sends AP message: RSS-M2"),
+            TestStep("Step21: Reader sends AP message: RSS-M3"),
+            TestStep("Step22: User Device sends AP message: RSS-M4"),
+            TestStep("Step23: Reader acquires UWB ranging result"),
+            TestStep("Step24: Reader sends AP message: Status changed"),
         ]
         
     def print_uwb_configuration(self, uwb_config: dict) -> None:
@@ -300,8 +301,22 @@ class BLEUWB_RDR_EXPEDITED_FAST_PHASE(AliroReaderTestCase, UserPromptSupport):
                 "EXCHANGE command does not contain tag 0x98 (make URSK available)"
             )
         self.next_step()
+        
+        # Test step 16
+        try:
+            message_ap_completed = await self.userdevice.wait_for_ble_message()
 
-        # Test step 16: User Device sends AP message: Timesync
+            self.userdevice.handle_reader_status_access_protocol_completed_message(
+                message_ap_completed
+            )
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        await self.userdevice.transaction_termination()
+        self.next_step()
+
+        # Test step 17: User Device sends AP message: Timesync
         try:
             await self.userdevice.send_timesync()
         except Exception as error:
@@ -310,7 +325,7 @@ class BLEUWB_RDR_EXPEDITED_FAST_PHASE(AliroReaderTestCase, UserPromptSupport):
             return
         self.next_step()
 
-        # Test step 17: User Device sends AP message: Initiate Ranging
+        # Test step 18: User Device sends AP message: Initiate Ranging
         try:
             await self.userdevice.send_initiate_ranging()
         except Exception as error:
@@ -319,8 +334,8 @@ class BLEUWB_RDR_EXPEDITED_FAST_PHASE(AliroReaderTestCase, UserPromptSupport):
             return
         self.next_step()
 
-        # Test step 18: Reader sends AP message: RSS-M1
-        # Test step 19: User Device sends AP message: RSS-M2
+        # Test step 19: Reader sends AP message: RSS-M1
+        # Test step 20: User Device sends AP message: RSS-M2
         try:
             message = await self.userdevice.wait_for_ble_message(
                 self.userdevice.session.get_ble_encryption()
@@ -333,8 +348,8 @@ class BLEUWB_RDR_EXPEDITED_FAST_PHASE(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
         self.next_step()
 
-        # Test step 20: Reader sends AP message: RSS-M3
-        # Test step 21: User Device sends AP message: RSS-M4
+        # Test step 21: Reader sends AP message: RSS-M3
+        # Test step 22: User Device sends AP message: RSS-M4
         try:
             message = await self.userdevice.wait_for_ble_message(
                 self.userdevice.session.get_ble_encryption()
@@ -347,7 +362,7 @@ class BLEUWB_RDR_EXPEDITED_FAST_PHASE(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
         self.next_step()
 
-        # Test step 22: Reader acquires UWB ranging result
+        # Test step 23: Reader acquires UWB ranging result
         # only reader
         try:
             await self.userdevice.transport_protocol.start_ranging()
@@ -368,7 +383,7 @@ class BLEUWB_RDR_EXPEDITED_FAST_PHASE(AliroReaderTestCase, UserPromptSupport):
             return
         self.next_step()
 
-        # Test step 23: Reader sends AP message: Status changed
+        # Test step 24: Reader sends AP message: Status changed
         while True:
             try:
                 message = await self.userdevice.wait_for_ble_message()
