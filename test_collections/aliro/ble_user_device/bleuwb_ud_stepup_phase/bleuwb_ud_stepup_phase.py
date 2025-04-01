@@ -61,7 +61,7 @@ class BLEUWB_UD_STEPUP_PHASE(AliroUserDeviceTestCase, UserPromptSupport):
         self.test_steps = [
             TestStep("Step0: Prerequisites"),
             TestStep("Step1: STEPUP: Request Access Document"),
-            TestStep("Step2: STEPUP:Exchange Routine "),
+            TestStep("Step2: Send AP Complete "),
             TestStep("Step3: User Device sends AP message: Timesync"),
             TestStep("Step4: User Device sends AP message: Initiate Ranging"),
             TestStep("Step5: Reader sends AP message: RSS-M1"),
@@ -122,10 +122,7 @@ class BLEUWB_UD_STEPUP_PHASE(AliroUserDeviceTestCase, UserPromptSupport):
             await self.reader.expedited_transaction_standard(
                 authentication_policy=AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
             )
-            await self.reader.reader_status_access_protocol_completed(
-                UnsolicitedReaderStatusReporting_Values.SEND_TO_EACH_CONNECTED,
-                ReaderStatusInformation_Values.SECURED,
-            )
+            await self.reader.handle_exchange(ursk=True)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -165,8 +162,9 @@ class BLEUWB_UD_STEPUP_PHASE(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 2: STEPUP:Exchange Routine
         try:
-            await self.reader.handle_exchange(
-                False, reader_status=ReaderStatus.READER_STATE_UNSECURED
+            await self.reader.reader_status_access_protocol_completed(
+                UnsolicitedReaderStatusReporting_Values.SEND_TO_EACH_CONNECTED,
+                ReaderStatusInformation_Values.SECURED
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))

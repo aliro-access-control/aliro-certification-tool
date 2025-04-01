@@ -10,10 +10,11 @@ from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidCommandError,
 )
-from aliro_actuator.access_protocol.user_device import UserDevice
+from aliro_actuator.access_protocol.user_device import UserDevice, RkeAction
 from aliro_actuator.transport_protocol.ble_message_format import (
     Notification_ID,
     UWB_RangingService_ID,
+    ReaderStatusInformation_Values,
 )
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
@@ -27,11 +28,11 @@ from ...support.access_doc.mdl.response import DeviceResponse
 from ...support.access_doc.aliro.access import AccessData
 from ...support.access_doc.mdl.response.device_response_builder import DeviceResponseBuilder, ResponseElement
 
-class BLEUWB_RDR_STEPUP_PHASE(AliroReaderTestCase, UserPromptSupport):
+class BLERKE_RDR_STEPUP_PHASE(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "BLEUWB_RDR_STEPUP_PHASE",
+        "public_id": "BLERKE_RDR_STEPUP_PHASE",
         "version": "0.0.1",
-        "title": "BLEUWB_RDR_STEPUP_PHASE",
+        "title": "BLERKE_RDR_STEPUP_PHASE",
         "description": """Verify conformance of Reader in BLE discovery.""",
     }
 
@@ -57,14 +58,8 @@ class BLEUWB_RDR_STEPUP_PHASE(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step0: Prerequisites"),
             TestStep("Step1: STEPUP: envelope"),
             TestStep("Step2: Handle AP Completed"),
-            TestStep("Step4: User Device sends AP message: Timesync"),
-            TestStep("Step5: User Device sends AP message: Initiate Ranging"),
-            TestStep("Step6: Reader sends AP message: RSS-M1"),
-            TestStep("Step7: User Device sends AP message: RSS-M2"),
-            TestStep("Step8: Reader sends AP message: RSS-M3"),
-            TestStep("Step9: User Device sends AP message: RSS-M4"),
-            TestStep("Step10: Reader acquires UWB ranging result"),
-            TestStep("Step11: Reader sends AP message: Status changed"),
+            TestStep("Step4: User Device sends RKE Request"),
+            TestStep("Step5: Reader status changed"),
         ]
 
     def build_access_document(self, access_credential_pk: bytes) -> bytes:
@@ -148,7 +143,7 @@ class BLEUWB_RDR_STEPUP_PHASE(AliroReaderTestCase, UserPromptSupport):
 
         # Test step 0: Prerequisites
         try:
-            await self.userdevice.send_initiate_access_protocol_notification()
+            await self.userdevice.send_initiate_access_protocol_notification(rke=True)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -235,7 +230,7 @@ class BLEUWB_RDR_STEPUP_PHASE(AliroReaderTestCase, UserPromptSupport):
 
         # Test step 4: User Device sends AP message: Timesync
         try:
-            await self.userdevice.send_timesync()
+            await self.userdevice.send_rke_request(RkeAction.UNSECURE)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -244,94 +239,16 @@ class BLEUWB_RDR_STEPUP_PHASE(AliroReaderTestCase, UserPromptSupport):
 
         # Test step 5: User Device sends AP message: Initiate Ranging
         try:
-            await self.userdevice.send_initiate_ranging()
+            status_changed = await self.userdevice.wait_for_ble_message()
+            if status_changed.id == Notification_ID.READER_STATUS_CHANGED:
+                self.userdevice.handle_reader_status_changed_message(status_changed)
+                # If we receive Reader Status Changed then we end the test
+            if status_changed.reader_status_information != ReaderStatusInformation_Values.UNSECURED:
+                self.mark_step_failure("Wrong reader status information")
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
-        self.next_step()
-
-        # Test step 5: Reader sends AP message: RSS-M1
-        # Test step 7: User Device sends AP message: RSS-M2
-        try:
-            message = await self.userdevice.wait_for_ble_message(
-                self.userdevice.session.get_ble_encryption()
-            )
-            await self.userdevice.handle_ranging_setup_m1(message)
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-        self.next_step()
-        self.next_step()
-
-        # Test step 8: Reader sends AP message: RSS-M3
-        # Test step 9: User Device sends AP message: RSS-M4
-        try:
-            message = await self.userdevice.wait_for_ble_message(
-                self.userdevice.session.get_ble_encryption()
-            )
-            await self.userdevice.handle_ranging_setup_m3(message)
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-        self.next_step()
-        self.next_step()
-
-        # Test step 10: Reader acquires UWB ranging result
-        # only reader
-        try:
-            await self.userdevice.transport_protocol.start_ranging()
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-
-        # Print UWB configuration
-        try:
-            uwb_configuration = (
-                await self.userdevice.transport_protocol.get_uwb_configuration()
-            )
-            self.print_uwb_configuration(uwb_configuration)
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-        self.next_step()
-
-        # Test step 11: Reader sends AP message: Status changed
-        while True:
-            try:
-                message = await self.userdevice.wait_for_ble_message()
-                if message.id == Notification_ID.READER_STATUS_CHANGED:
-                    self.userdevice.handle_reader_status_changed_message(message)
-                    # If we receive Reader Status Changed then we end the test
-                    break
-                elif (
-                    message.id == UWB_RangingService_ID.RANGING_SESSION_SUSPEND_REQUEST
-                ):
-                    await self.userdevice.handle_ranging_session_suspend_request(
-                        message
-                    )
-                elif (
-                    message.id == UWB_RangingService_ID.RANGING_SESSION_SUSPEND_RESPONSE
-                ):
-                    await self.userdevice.handle_ranging_session_suspend_response(
-                        message
-                    )
-                elif message.id == UWB_RangingService_ID.RANGING_SESSION_RESUME_REQUEST:
-                    await self.userdevice.handle_ranging_session_resume_request(message)
-                elif (
-                    message.id == UWB_RangingService_ID.RANGING_SESSION_RESUME_RESPONSE
-                ):
-                    await self.userdevice.handle_ranging_session_resume_response(
-                        message
-                    )
-            except Exception as error:
-                error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-                self.mark_step_failure(error_str)
-                return
 
     async def cleanup(self) -> None:
         logger.info("BLEUWB_RDR_STEPUP_PHASE Cleanup")
