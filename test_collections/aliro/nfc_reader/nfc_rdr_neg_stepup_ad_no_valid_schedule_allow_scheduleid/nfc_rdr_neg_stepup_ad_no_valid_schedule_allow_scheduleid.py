@@ -75,7 +75,7 @@ class NFC_RDR_NEG_STEPUP_AD_NO_VALID_SCHEDULE_ALLOW_SCHEDULEID(AliroReaderTestCa
         schedule.start_time = Utility.time_val_to_seconds(
             datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=2)  # Make invalid
         )
-        schedule.rrule.duration_seconds = 180
+        schedule.rrule.duration_seconds = 1800
         schedule.rrule.pattern = RecurrenceRulePatternType.DAILY
         schedule.rrule.interval = 1
         access_element.schedules.append(schedule)

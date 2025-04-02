@@ -73,7 +73,7 @@ class NFC_RDR_STEPUP_AD_ACCESS_RULE_SCHEDULES(AliroReaderTestCase, UserPromptSup
         schedule = Schedule()
         schedule.flags = ScheduleFlagBits.TIME_IN_UTC
         schedule.start_time = Utility.time_val_to_seconds(datetime.datetime.now(datetime.timezone.utc))
-        schedule.rrule.duration_seconds = 180
+        schedule.rrule.duration_seconds = 1800
         schedule.rrule.pattern = RecurrenceRulePatternType.DAILY
         schedule.rrule.interval = 1
         access_element.schedules.append(schedule)
