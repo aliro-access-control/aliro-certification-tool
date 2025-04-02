@@ -6,6 +6,7 @@ from aliro_actuator.access_protocol.apdu import (
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
+    PROTOCOL_VERSION
     TransportProtocol,
 )
 from aliro_actuator.access_protocol.errors import (
@@ -65,6 +66,7 @@ class NFC_UD_AUTH0_RESPONSE_CHAINING(AliroUserDeviceTestCase, UserPromptSupport)
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
         key = self.th_reader_keypair()
+        protocol_version = self.th
 
         # Initialize Aliro NFC Reader
         self.reader = Reader(
@@ -74,7 +76,7 @@ class NFC_UD_AUTH0_RESPONSE_CHAINING(AliroUserDeviceTestCase, UserPromptSupport)
             reader_key=key,
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
-            vendor_extension=os.urandom(300),
+            vendor_extension=os.urandom(30),
         )
 
     @log_errors
@@ -106,16 +108,35 @@ class NFC_UD_AUTH0_RESPONSE_CHAINING(AliroUserDeviceTestCase, UserPromptSupport)
         self.next_step()
 
         # Test step 5
+        data_tlv: list[tuple[int, bytes | list]] = [
+            (Auth0.COMMAND_TAG, Transaction.STANDARD.to_bytes(1, "big")),
+            (Auth0.AUTHENTICATION_POLICY_TAG, AuthenticationPolicy.USER_DEVICE.to_bytes(1, "big")),
+            (Auth0.ETPV_TAG, PROTOCOL_VERSION.to_bytes(2, "big")),
+            (Auth0.READER_EPUBK_TAG, self.reader_epubk),
+            (Auth0.TRANSACTION_ID_TAG, self.transaction_identifier),
+            (Auth0.READER_IDENTIFIER_TAG, self.reader.reader_identifier),
+            (Auth0.VENDOR_SPECIFIC_TAG, self.reader.vendor_extension),
+        ]
+        data = TLV(data_tlv)
+
+        command  = self.reader.apdu.create_command(
+            cla=0x80,
+            ins=INS.AUTH0,
+            p1=0x00,
+            p2=0x00,
+            data=bytes(data.to_bytes()),
+            le=0x3C, # Le set to 60
+        )
         try:
-            await self.reader.handle_auth0(
-                transaction_type=Transaction.STANDARD,
-                authentication_policy=AuthenticationPolicy.USER_DEVICE,
+            response = await self.reader.apdu.handle_chaining_send_command(
+                "AUTH0", command, self.reader.transport_protocol
             )
+            response = self.reader.apdu.parse_response(response, INS.AUTH0)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
         
-        if self.reader.chaining_response != False:
+        if self.reader.chaining_response != True:
             self.mark_step_failure("Response is not chained.")
             return
         self.next_step()
