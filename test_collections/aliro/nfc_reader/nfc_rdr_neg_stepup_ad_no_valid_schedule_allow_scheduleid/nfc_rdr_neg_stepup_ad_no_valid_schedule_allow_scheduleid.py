@@ -73,7 +73,7 @@ class NFC_RDR_NEG_STEPUP_AD_NO_VALID_SCHEDULE_ALLOW_SCHEDULEID(AliroReaderTestCa
         schedule = Schedule()
         schedule.flags = ScheduleFlagBits.TIME_IN_UTC
         schedule.start_time = Utility.time_val_to_seconds(
-            datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=2)  # Make invalid
+            datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=2)  # Make invalid
         )
         schedule.rrule.duration_seconds = 180
         schedule.rrule.pattern = RecurrenceRulePatternType.DAILY
