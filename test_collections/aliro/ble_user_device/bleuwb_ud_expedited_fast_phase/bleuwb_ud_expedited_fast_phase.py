@@ -217,7 +217,7 @@ class BLEUWB_UD_EXPEDITED_FAST_PHASE(AliroUserDeviceTestCase, UserPromptSupport)
 
         # Test step 16 and step 17
         try:
-            await self.reader.handle_exchange(False, ursk=b"")
+            await self.reader.handle_exchange(False, ursk=True)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
