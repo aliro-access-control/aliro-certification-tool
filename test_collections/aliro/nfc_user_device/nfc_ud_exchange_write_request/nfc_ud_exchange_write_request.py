@@ -132,64 +132,65 @@ class NFC_UD_EXCHANGE_WRITE_REQUEST(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
         
         # Pre work for Test step 6
-        mailbox = {
+        initial_mailbox = {
             0x00: None,
-            0x42: None,
-            0x63: None,
+            0x12: None,
+            0x43: None,
             0x22: None,
         } # To store mailbox initial data at pre-defined offsets .
 
-        data_to_write_at_offsets = {
-            0x00: bytes.fromhex("0011223344556677"),
-            0x42: bytes.fromhex("001622334455657"),
-            0x63: bytes.fromhex("1122334455668"),
+        updated_mailbox = {
+            0x00: bytes.fromhex("11A2223344556677"),
+            0x12: bytes.fromhex("3B162233445565"),
+            0x43: bytes.fromhex("112233445566"),
             0x22: bytes.fromhex("44162233448597"),
         } # Keys are the offsets, values are the data to be written at those offsets
 
         read_requests_sequence = []
-        for k,v in data_to_write_at_offsets.items():
+        for k,v in updated_mailbox.items():
             read_requests_sequence.append((k,len(v)))
-        # read_requests = [(0x00, 16), (0x42, 15), (0x63, 13), (0x22, 14)]
+        # read_requests = [(0x00, 16), (0x12, 14), (0x43, 12), (0x22, 14)]
 
         mailbox_data_before_write = []
         try:
             # Reading the non-updated values of mailbox
             mailbox_data_before_write.extend(await self.reader.handle_exchange(
-                False, read_requests = read_requests_sequence, reader_status=ReaderStatus.READER_STATE_UNSECURED
+                False, read_requests = read_requests_sequence
             ))
 
             idx = 0
-            for k in mailbox.keys():
-                mailbox[k] = mailbox_data_before_write[idx] # storing the fetched non-updated values in the mailbox at corresponding offsets
+            for k in initial_mailbox.keys():
+                initial_mailbox[k] = mailbox_data_before_write[idx] # storing the fetched non-updated values in the mailbox at corresponding offsets
                 idx += 1
 
-            '''mailbox[0x00] = mailbox_data_before_write[0]
-            mailbox[0x42] = mailbox_data_before_write[1]
-            mailbox[0x63] = mailbox_data_before_write[2]
-            mailbox[0x22] = mailbox_data_before_write[3]
+            '''initial_mailbox[0x00] = mailbox_data_before_write[0]
+            initial_mailbox[0x12] = mailbox_data_before_write[1]
+            initial_mailbox[0x43] = mailbox_data_before_write[2]
+            initial_mailbox[0x22] = mailbox_data_before_write[3]
             '''
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
+
         # TODO: Read entire mailbox instead of data at pre-defined offsets.
 
         #  Test step 6 
 
         write_request_sequences = []
-        for k,v in data_to_write_at_offsets.items():
+        for k,v in updated_mailbox.items():
             write_request_sequences.append((k,v))
 
         write_request_sequences = [write_request_sequences[i:i+2] for i in range(0, len(write_request_sequences), 2)]
         # write_request_sequences = [
-        #     [(0x00, bytes.fromhex(data_to_be_written[0])), (0x42, bytes.fromhex(data_to_be_written[1]))], 
-        #     [(0x63, bytes.fromhex(data_to_be_written[2])), (0x22, bytes.fromhex(data_to_be_written[3]))]
+        #     [(0x00, bytes.fromhex("11A2223344556677")), (0x42, bytes.fromhex("3B162233445565"))], 
+        #     [(0x63, bytes.fromhex("112233445566")), (0x22, bytes.fromhex("44162233448597"))]
         # ]
         # Each sequence is used to send multiple write requests in the exchange command one time.
 
         for write_request_sequence in write_request_sequences:
             try:
                 await self.reader.handle_exchange(
-                    True, write_requests= write_request_sequence, reader_status=ReaderStatus.READER_STATE_UNSECURED
+                    True, write_requests= write_request_sequence
                 )
             except (AccessProtocolError, InvalidResponseError) as error:
                 self.mark_step_failure(str(error))
@@ -202,16 +203,16 @@ class NFC_UD_EXCHANGE_WRITE_REQUEST(AliroUserDeviceTestCase, UserPromptSupport):
         write_requests = []
         for i in range(self.number_of_random_requests): # Sending random requests for pre-defined times
             r = random.randint(0,100)
-            offset = random.choice(data_to_write_at_offsets.keys())
+            offset = random.choice(list(updated_mailbox.keys()))
             if r % 2:
-                read_requests.append((offset, len(data_to_write_at_offsets[offset])))
+                read_requests.append((offset, len(updated_mailbox[offset])))
             else:
-                data = random.randbytes(len(data_to_write_at_offsets[offset]))
+                data = random.randbytes(len(updated_mailbox[offset]))
                 write_requests.append((offset, data))
-                # mailbox[offset] = data
+                updated_mailbox[offset] = data
         try:
             result = await self.reader.handle_exchange(
-                False, read_requests=read_requests, write_requests=write_requests, reader_status=ReaderStatus.READER_STATE_UNSECURED
+                False, read_requests=read_requests, write_requests=write_requests
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
@@ -220,7 +221,7 @@ class NFC_UD_EXCHANGE_WRITE_REQUEST(AliroUserDeviceTestCase, UserPromptSupport):
         if len(read_requests) > 0:
             index = 0
             for request in read_requests:
-                if result[index] != mailbox[request[0]]:
+                if result[index] != initial_mailbox[request[0]]:
                     # Compare with original data
                     self.mark_step_failure("Original / non-updated data of mailbox is not returned.")
                     return
@@ -232,7 +233,7 @@ class NFC_UD_EXCHANGE_WRITE_REQUEST(AliroUserDeviceTestCase, UserPromptSupport):
         mailbox_data_after_write = []
         try:
             mailbox_data_after_write.extend(await self.reader.handle_exchange(
-                False, read_requests = read_requests_sequence, reader_status=ReaderStatus.READER_STATE_UNSECURED
+                False, read_requests = read_requests_sequence
             ))
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
@@ -240,7 +241,7 @@ class NFC_UD_EXCHANGE_WRITE_REQUEST(AliroUserDeviceTestCase, UserPromptSupport):
             
         idx = 0
         for request_sequence in read_requests_sequence:
-            if mailbox_data_after_write[idx] != data_to_write_at_offsets[request_sequence[0]]:
+            if mailbox_data_after_write[idx] != updated_mailbox[request_sequence[0]]:
                 self.mark_step_failure("Data is not written in to mail box")
                 return
             idx += 1
