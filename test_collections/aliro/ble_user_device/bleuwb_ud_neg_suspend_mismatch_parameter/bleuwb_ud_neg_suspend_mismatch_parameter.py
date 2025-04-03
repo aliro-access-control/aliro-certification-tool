@@ -8,6 +8,7 @@ from aliro_actuator.access_protocol.defines import (
     TransportProtocol,
 )
 from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.access_protocol.encryption import EncryptionEngine
 from aliro_actuator.transport_protocol.ble_message_format import (
     BleMessage,
     OperationSourceInformation_Values,
@@ -15,6 +16,8 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     UnsolicitedReaderStatusReporting_Values,
     Notification_ID,
     GeneralError_Values,
+    ProtocolType,
+    UWB_RangingService_ID,
 )
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
@@ -89,6 +92,19 @@ class BLEUWB_UD_NEG_SUSPEND_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserProm
             group_resolving_key=group_resolving_key,
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
         )
+
+    def create_ranging_session_suspend_request(self,
+        ble_encryption: EncryptionEngine | None = None,
+    ) -> BleMessage:
+        payload = bytearray()
+
+        message = BleMessage(
+            ProtocolType.UWB_RANGING_SERVICE,
+            UWB_RangingService_ID.RANGING_SESSION_SUSPEND_REQUEST,
+            payload,
+        )
+        message._encrypt(ble_encryption)
+        return message
 
     @log_errors
     async def execute(self) -> None:
@@ -201,8 +217,7 @@ class BLEUWB_UD_NEG_SUSPEND_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserProm
             uwb_session_id = self.reader.transport_protocol.get_uwb_session_id()
             uwb_session_id += 1
 
-            message = BleMessage.create_ranging_session_suspend_request(
-                uwb_session_id,
+            message = self.create_ranging_session_suspend_request(
                 self.reader.session.get_ble_encryption(),
             )
             await self.reader.transport_protocol.send_message(message)

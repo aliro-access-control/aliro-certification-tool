@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .neg_bleuwb_resume_mismatch_parameter import NEG_BLEUWB_RESUME_MISMATCH_PARAMETER
+from .bleuwb_ud_neg_resume_mismatch_parameter import BLEUWB_UD_NEG_RESUME_MISMATCH_PARAMETER
