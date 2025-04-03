@@ -8,6 +8,7 @@ from aliro_actuator.access_protocol.defines import (
     TransportProtocol,
 )
 from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.access_protocol.encryption import EncryptionEngine
 from aliro_actuator.transport_protocol.ble_message_format import (
     BleMessage,
     OperationSourceInformation_Values,
@@ -15,6 +16,8 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     UnsolicitedReaderStatusReporting_Values,
     Notification_ID,
     GeneralError_Values,
+    ProtocolType,
+    UWB_RangingService_ID,
 )
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
@@ -25,11 +28,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class NEG_BLEUWB_RESUME_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserPromptSupport):
+class BLEUWB_UD_NEG_RESUME_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "NEG_BLEUWB_RESUME_MISMATCH_PARAMETER",
+        "public_id": "BLEUWB_UD_NEG_RESUME_MISMATCH_PARAMETER",
         "version": "0.0.1",
-        "title": "NEG_BLEUWB_RESUME_MISMATCH_PARAMETER",
+        "title": "BLEUWB_UD_NEG_RESUME_MISMATCH_PARAMETER",
         "description": """Verify conformance of User Device UT in BLE discovery.""",
     }
 
@@ -90,6 +93,20 @@ class NEG_BLEUWB_RESUME_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserPromptSu
             group_resolving_key=group_resolving_key,
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
         )
+
+    def create_ranging_session_resume_request(self,
+        ble_encryption: EncryptionEngine | None = None,
+    ) -> BleMessage:
+
+        payload = bytearray()
+
+        message = BleMessage(
+            ProtocolType.UWB_RANGING_SERVICE,
+            UWB_RangingService_ID.RANGING_SESSION_RESUME_REQUEST,
+            payload,
+        )
+        message._encrypt(ble_encryption)
+        return message
 
     @log_errors
     async def execute(self) -> None:
@@ -215,8 +232,7 @@ class NEG_BLEUWB_RESUME_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserPromptSu
             uwb_session_id = self.reader.transport_protocol.get_uwb_session_id()
             uwb_session_id += 1 # Wrong session ID
 
-            message = BleMessage.create_ranging_session_resume_request(
-                uwb_session_id,
+            message = self.create_ranging_session_resume_request(
                 self.reader.session.get_ble_encryption(),
             )
             await self.reader.transport_protocol.send_message(message)
