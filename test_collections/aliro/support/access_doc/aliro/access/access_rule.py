@@ -30,6 +30,8 @@ class AccessRuleCapabilitiesBits(IntFlag):
 
     ALL_CAPABILITIES            = 0x3F
 
+    MAX_CAPABILITIES            = 0xFFFF
+
 ################################################################################
 class AccessRuleScheduleIds(IntEnum):
     SCHEDULE_1  = 0
@@ -87,10 +89,9 @@ class AccessRule(object):
     @capabilities.setter
     def capabilities(self, val : int | AccessRuleCapabilitiesBits) -> None:
         '''Set the Capabilities bit mask.'''
+        assert(val <= AccessRuleCapabilitiesBits.MAX_CAPABILITIES)
         if val < 0:
             self.__capabilities = int(0)
-        elif val > AccessRuleCapabilitiesBits.ALL_CAPABILITIES:
-            self.__capabilities = int(AccessRuleCapabilitiesBits.ALL_CAPABILITIES)
         else:
             self.__capabilities = int(val)
 
@@ -149,7 +150,7 @@ class AccessRule(object):
         # Verify the Capabilities.
         if ((type(self.capabilities) is not int) or
             (self.capabilities <= 0) or
-            ((self.capabilities & ~(int(AccessRuleCapabilitiesBits.ALL_CAPABILITIES))) != 0)):
+            (self.capabilities > AccessRuleCapabilitiesBits.MAX_CAPABILITIES)):
             return False
 
         # Verify the Allow Schedule IDs.

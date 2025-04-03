@@ -63,7 +63,7 @@ class NFC_RDR_NEG_STEPUP_AD_NO_ACCESS_RULE_FOR_READER_ACTION(AliroReaderTestCase
         access_element = AccessData()
         access_element.version = 1
         access_rule = AccessRule()
-        access_rule.capabilities = 1 << 18  # This is currently not defined so should never be requested. If spec changes then modify this.
+        access_rule.capabilities = 1 << 12  # This is currently not defined so should never be requested. If spec changes then modify this.
         access_element.access_rules.append(access_rule)
 
         x = DeviceResponseBuilder.build(
