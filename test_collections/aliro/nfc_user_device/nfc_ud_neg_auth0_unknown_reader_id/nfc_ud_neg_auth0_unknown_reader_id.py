@@ -39,8 +39,9 @@ class NFC_UD_NEG_AUTH0_UNKNOWN_READER_ID(AliroUserDeviceTestCase, UserPromptSupp
         "3c0f74114cd2a021e8066efbaa31dbb97ef0054272192606fd96633a04f66214"
     )
     transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
-    unknown_reader_identifier = "00113344667799AA00113344667799AA113344667799AA00113344667799AA44"
-
+    #unknown_reader_identifier = bytes.fromhex("00113344667799AA00113344667799AA113344667799AA00113344667799AA44")
+    unknown_reader_identifier = bytes.fromhex("AA113344667799AA00113344667799AA44F758971AA4213544F758971AA42135")
+    
     @classmethod
     def pics(cls) -> set[str]:
         return set(
