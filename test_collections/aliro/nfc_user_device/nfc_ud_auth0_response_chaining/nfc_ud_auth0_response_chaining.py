@@ -6,7 +6,8 @@ from aliro_actuator.access_protocol.apdu import (
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
-    PROTOCOL_VERSION
+    Auth0,
+    PROTOCOL_VERSION,
     TransportProtocol,
 )
 from aliro_actuator.access_protocol.errors import (
