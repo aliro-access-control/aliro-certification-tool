@@ -126,12 +126,11 @@ class NFC_UD_EXCHANGE_WITH_CHAINING(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
         
         # Test step 6
-        read_requests = [[(0x00, 0x107)],    # Read request with offset-length difference > 256 to undergo chaining
-                         [(0x19, 0x10E)],
-        ] 
-        write_requests = [[(0x01, b'\xAB\xCD' * 150)],     # Large write requests to undergo chaining
-                          [(0x19, b'\x11\x22\x33\x44' * 90)],
+        read_requests = [(0x00, 0x12C),    # Read request with offset-length difference > 256 to undergo chaining
+                         (0x2C, 0x100),
         ]
+        write_requests = [(0x00, b'\xAB' * 300),     # Large write requests to undergo chaining
+                        (0x2C, b'\x01\x02' * 128)]
         try:
             result_list = await self.reader.handle_exchange(
                 False, read_requests = read_requests, write_requests=write_requests
