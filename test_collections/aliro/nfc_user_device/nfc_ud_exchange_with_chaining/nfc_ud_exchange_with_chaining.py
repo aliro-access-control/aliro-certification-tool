@@ -22,12 +22,12 @@ from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 import random
 
-class NFC_UD_EXCHANGE_WITH_EXTENDED_LENGTH(AliroUserDeviceTestCase, UserPromptSupport):
+class NFC_UD_EXCHANGE_WITH_CHAINING(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "NFC_UD_EXCHANGE_WITH_EXTENDED_LENGTH",
+        "public_id": "NFC_UD_EXCHANGE_WITH_CHAINING",
         "version": "0.0.1",
-        "title": "NFC_UD_EXCHANGE_WITH_EXTENDED_LENGTH",
-        "description": """Expedited Phase With EXCHANGE command sending extended length APDU and large Read request""",
+        "title": "NFC_UD_EXCHANGE_WITH_CHAINING",
+        "description": """Expedited Phase With EXCHANGE command sending READ/WRITE requests with chaining multiple times.""",
     }
 
     reader_ePuBK = bytes.fromhex(
@@ -55,7 +55,7 @@ class NFC_UD_EXCHANGE_WITH_EXTENDED_LENGTH(AliroUserDeviceTestCase, UserPromptSu
             TestStep("Step3: Transaction initiation"), #include select command and response
             TestStep("Step4: Send/Receive AUTH0 command/response"),
             TestStep("Step5: Send/Receive AUTH1 command/response"),
-            TestStep("Step6: Send EXCHANGE command with extended length APDU, large Read request and Receive EXCHANGE response"),
+            TestStep("Step6: Send EXCHANGE command multiple times with chaining with READ/WRITE requests and Receive EXCHANGE response"),
             TestStep("Step7: Send/Receive EXCHANGE command/response with Tag 0x97"),
         ]
 
@@ -126,20 +126,23 @@ class NFC_UD_EXCHANGE_WITH_EXTENDED_LENGTH(AliroUserDeviceTestCase, UserPromptSu
         self.next_step()
         
         # Test step 6
-        read_requests = [(0x00, 0x113)] # Giving a large read request(length > 256)
-    
-
-        self.reader.apdu.set_extended_length(275, 275)
-        # Sets maximum_command_apdu and maximum_response_apdu to extended lengths
-
+        read_requests = [[(0x00, 0x107)],    # Read request with offset-length difference > 256 to undergo chaining
+                         [(0x19, 0x10E)],
+        ] 
+        write_requests = [[(0x01, b'\xAB\xCD' * 150)],     # Large write requests to undergo chaining
+                          [(0x19, b'\x11\x22\x33\x44' * 90)],
+        ]
         try:
-            #Exchange command with  extended length APDU and large Read request
             result_list = await self.reader.handle_exchange(
+                False, read_requests = read_requests, write_requests=write_requests
+            )
+            result_list_after_write = await self.reader.handle_exchange(
                 False, read_requests = read_requests
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
+        
         
         self.next_step()
 
@@ -154,5 +157,5 @@ class NFC_UD_EXCHANGE_WITH_EXTENDED_LENGTH(AliroUserDeviceTestCase, UserPromptSu
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("NFC_UD_EXCHANGE_WITH_EXTENDED_LENGTH Cleanup")
+        logger.info("NFC_UD_EXCHANGE_WITH_CHAINING Cleanup")
         await self.reader.transaction_termination()
