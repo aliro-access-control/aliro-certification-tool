@@ -313,7 +313,6 @@ class BLEUWB_RDR_EXPEDITED_FAST_PHASE(AliroReaderTestCase, UserPromptSupport):
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
-        await self.userdevice.transaction_termination()
         self.next_step()
 
         # Test step 17: User Device sends AP message: Timesync
