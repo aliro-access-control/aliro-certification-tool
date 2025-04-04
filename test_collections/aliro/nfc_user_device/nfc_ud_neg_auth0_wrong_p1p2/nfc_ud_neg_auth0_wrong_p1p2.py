@@ -15,6 +15,7 @@ from aliro_actuator.access_protocol.errors import (
 )
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair
+from aliro_actuator.access_protocol.tlv import TLV
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -122,20 +123,22 @@ class NEG_AUTH0_WRONG_P1P2(AliroUserDeviceTestCase, UserPromptSupport):
                 data=bytes(data.to_bytes()),
                 le=0x00,
             )
-            response = await self.apdu.handle_chaining_send_command(
+            response = await self.reader.apdu.handle_chaining_send_command(
             "AUTH0", command, self.reader.transport_protocol
             )
             response = self.apdu.parse_response(response, INS.AUTH0)
-            self.mark_step_failure("Wrong P1/P2 sent, but it was accepted as a valid")
-            return
         except InvalidStatusError as error:
             logger.info(
                 "Received error status (as expected), status received: 0x{:04x}".format(
                     error.status
                 )
             )
+            pass
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
+            return
+        else:
+            self.mark_step_failure("No error status returned")
             return
         self.next_step()
         
