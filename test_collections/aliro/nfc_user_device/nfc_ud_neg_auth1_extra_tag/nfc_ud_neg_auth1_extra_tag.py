@@ -16,6 +16,7 @@ from aliro_actuator.access_protocol.errors import (
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair
 from aliro_actuator.access_protocol.tlv import TLV
+from aliro_actuator.access_protocol.authentication import create_reader_authentication
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -118,6 +119,13 @@ class NFC_UD_NEG_AUTH1_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupport):
         # Test step 5
         try:
             command_parameters = Auth1Response.CREDENTIAL_PUBLIC_KEY
+            data = create_reader_authentication(
+                self.reader.reader_identifier, 
+                self.reader.session.credential_ephemeral_key,
+                self.reader.session.get_reader_epubkey(),
+                self.reader.session.transaction_identifier,
+            )
+            reader_sig = self.reader.reader_key.sign(data.to_bytes())
 
             data_fields: list[tuple[int, bytes | list]] = [
                 (Auth1.COMMAND_TAG, command_parameters.to_bytes(1, "big")),
