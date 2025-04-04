@@ -137,8 +137,16 @@ class NFC_UD_NEG_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING_INCORRECT_FORMAT(Aliro
             await self.reader.handle_auth1(
                 expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
             )
+        except InvalidStatusError as error:
+            logger.info(
+                "Error status returned: 0x{:04x}, as expected".format(error.status)
+            )
+            pass
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
+            return
+        else:
+            self.mark_step_failure("No error status returned")
             return
         self.next_step()
 
