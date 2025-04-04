@@ -150,8 +150,7 @@ class NFC_UD_EXCHANGE_SET_REQUEST(AliroUserDeviceTestCase, UserPromptSupport):
 
         read_requests_sequence = []
         for k,v in updated_mailbox.items():
-            read_requests_sequence.append((k, sys.getsizeof(v)))
-        # read_request_sequences = [(0x00, 32), (0x12, 32), (0x43, 32), (0x22, 32)]
+            read_requests_sequence.append((k, (v.bit_length() + 7) // 8))
 
         mailbox_data_before_write = []
         try:
@@ -178,14 +177,8 @@ class NFC_UD_EXCHANGE_SET_REQUEST(AliroUserDeviceTestCase, UserPromptSupport):
         #  Test step 6 
         set_requests_sequences = []
         for k,v in updated_mailbox.items():
-            set_requests_sequences.append((k, sys.getsizeof(v),v))
+            set_requests_sequences.append((k,(v.bit_length() + 7) // 8,v))
         set_requests_sequences = [set_requests_sequences[i:i+2] for i in range(0, len(set_requests_sequences), 2)]
-        
-        # set_requests_sequences = [
-        #     [(0x00, 32, 11223344556677), (0x42, 32, 1622334455657)], 
-        #     [(0x63, 32, 112233445568), (0x22, 32, 44162233448597)]
-        # ]
-        # Each sequence is used to send multiple set requests in the exchange command one time 
 
         for set_requests_sequence in set_requests_sequences:
             try:
@@ -205,9 +198,9 @@ class NFC_UD_EXCHANGE_SET_REQUEST(AliroUserDeviceTestCase, UserPromptSupport):
             r = random.randint(0,100)
             offset = random.choice(list(updated_mailbox.keys()))
             if r % 2:
-                read_requests.append((offset, sys.getsizeof(updated_mailbox[offset])))
+                read_requests.append((offset, (updated_mailbox[offset].bit_length() + 7) // 8))
             else:
-                byte_length = sys.getsizeof(updated_mailbox[offset])
+                byte_length = (updated_mailbox[offset].bit_length() + 7) // 8
                 data = random.randbytes(byte_length)
                 write_requests.append((offset, data))
                 updated_mailbox[offset] = int.from_bytes(data, byteorder = 'big')
