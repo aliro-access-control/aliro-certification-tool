@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .nfc_ud_exchange_mailbox_out_of_bounds import NFC_UD_EXCHANGE_MAILBOX_OUT_OF_BOUNDS
+from .nfc_ud_neg_exchange_with_wrong_length import NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH
