@@ -105,10 +105,11 @@ class BLEUWB_UD_UD_DESCRIPTOR_TAG(AliroUserDeviceTestCase, UserPromptSupport):
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
-        self.next_step()  
+        self.next_step()
         
         # Step3: Send Reader Status Access Protocol Completed Message ID carrying Reader Information Attribute ID
         try:
+            await self.reader.handle_exchange(False, ursk=True)
             await self.reader.reader_status_access_protocol_completed(
                 UnsolicitedReaderStatusReporting_Values.SEND_TO_EACH_CONNECTED,
                 ReaderStatusInformation_Values.SECURED,
