@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .ud_nfc_auth0_11 import UD_NFC_AUTH0_11
+from .nfc_ud_neg_auth0_wrong_value import NFC_UD_NEG_AUTH0_WRONG_VALUE

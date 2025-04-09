@@ -1,3 +1,4 @@
+from binascii import hexlify
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     AuthenticationPolicy,
@@ -11,8 +12,9 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
+    InvalidStatusError,
 )
-from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.access_protocol.reader import Reader, ReaderMode
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
@@ -67,10 +69,16 @@ class NFC_UD_NEG_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING_INCORRECT_FORMAT(Aliro
         sub_group_id = self.th_sub_group_identifier()
         key = self.th_reader_keypair()
         cert = bytes.fromhex(
-            "3081940402ffff30818d8542000457a25ca8690e0409aa2a094a88f3894e136399efe35b7f"
+            "308201513081f9a003020102020101300a06082a8648ce3d0403023011310f300d06035504"
+            "030c06697373756572301e170d3230303130313030303030305a170d343930313031303030"
+            "3030305a30123110300e06035504030c077375626a6563743059301306072a8648ce3d0201"
+            "06082a8648ce3d0301070342000457a25ca8690e0409aa2a094a88f3894e136399efe35b7f"
             "25d2991c7ad206239867d99e3f243afd6cec35c21bdee6521af12435e8c4ff9296d1ca970e"
-            "6ca77b50864700304402207c387cfebd826878541f2202316338446509b6a2225c74857113"
-            "7c9303fb685e02204678b2021fc6623a0796a630d4c2b840ed86e9bbea7043abcb4a766b881a457d"
+            "6ca77b50a341303f301f0603551d230418301680147fc93128a61c0cedf94e11732dbe4601"
+            "7c431901300c0603551d130101ff04023000300e0603551d0f0101ff040403020780300a06"
+            "082a8648ce3d040302034700304402207c387cfebd826878541f2202316338446509b6a222"
+            "5c748571137c9303fb685e02204678b2021fc6623a0796a630d4c2b840ed86e9bbea7043ab"
+            "cb4a766b881a457d"
         )
         reader_issuer_public_key = self.th_reader_issuer_public_key()
 
@@ -84,6 +92,7 @@ class NFC_UD_NEG_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING_INCORRECT_FORMAT(Aliro
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
             reader_system_issuer_ca=reader_issuer_public_key,
+            mode=ReaderMode.READER,
         )
 
     @log_errors
@@ -126,7 +135,16 @@ class NFC_UD_NEG_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING_INCORRECT_FORMAT(Aliro
 
         # Test step 5
         try:
-            await self.reader.handle_load_cert()
+            compressed_cert = bytearray(self.reader.reader_cert.encode_compressed())
+            logger.debug("compressed cert: {!r}".format(hexlify(compressed_cert)))
+            compressed_cert[6] = 0xFF
+            compressed_cert[5] = 0xFF
+            logger.debug(
+                "compressed cert with encoding error: {!r}".format(
+                    hexlify(compressed_cert)
+                )
+            )
+            await self.reader.command_load_cert(bytes(compressed_cert))
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
@@ -147,16 +165,6 @@ class NFC_UD_NEG_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING_INCORRECT_FORMAT(Aliro
             return
         else:
             self.mark_step_failure("No error status returned")
-            return
-        self.next_step()
-
-        # Test step 7
-        try:
-            await self.reader.handle_exchange(
-                False, reader_status=ReaderStatus.READER_STATE_UNSECURED
-            )
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
             return
         self.next_step()
 
