@@ -64,7 +64,7 @@ class NFC_UD_STANDARD_CERT_IN_AUTH1_WITH_CHAINING(AliroUserDeviceTestCase, UserP
 
     async def setup(self) -> None:
         logger.info("NFC_UD_STANDARD_CERT_IN_AUTH1_WITH_CHAINING setup")
-        group_id = self.th_group_identifier()
+        self.group_id = self.th_group_identifier()
         key = self.th_reader_keypair()
         cert = self.th_reader_certificate_chaining()
         self.reader_issuer_public_key = self.th_reader_issuer_public_key()
@@ -136,17 +136,11 @@ class NFC_UD_STANDARD_CERT_IN_AUTH1_WITH_CHAINING(AliroUserDeviceTestCase, UserP
             await self.reader.handle_auth1(
                 expected_response=Auth1Response.KEY_SLOT, certificate=True
             )
-        except InvalidStatusError as error:
-            logger.info(
-                "Error status returned: 0x{:04x}, as expected".format(error.status)
-            )
-            pass
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
-        else:
-            self.mark_step_failure("No error status returned")
-            return
+        if self.reader.command_chaining == False:
+            self.mark_step_failure("Auth1 was used without chaining!")
         self.next_step()
         
         # Test step 6

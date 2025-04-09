@@ -11,8 +11,9 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
+    InvalidStatusError,
 )
-from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.access_protocol.reader import Reader, ReaderMode
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
@@ -90,6 +91,7 @@ class NFC_UD_NEG_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING_INCORRECT_SIGNATURE(Al
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
             reader_system_issuer_ca=reader_issuer_public_key,
+            mode=ReaderMode.READER,
         )
 
     @log_errors
@@ -153,16 +155,6 @@ class NFC_UD_NEG_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING_INCORRECT_SIGNATURE(Al
             return
         else:
             self.mark_step_failure("No error status returned")
-            return
-        self.next_step()
-
-        # Test step 7
-        try:
-            await self.reader.handle_exchange(
-                False, reader_status=ReaderStatus.READER_STATE_UNSECURED
-            )
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
             return
         self.next_step()
 

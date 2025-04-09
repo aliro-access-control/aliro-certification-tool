@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .nfc_ud_neg_auth1_wrong_reader_signature import NFC_UD_STANDARD_NO_CERT
+from .nfc_ud_neg_auth1_wrong_reader_signature import NFC_UD_NEG_AUTH1_WRONG_READER_SIGNATURE
