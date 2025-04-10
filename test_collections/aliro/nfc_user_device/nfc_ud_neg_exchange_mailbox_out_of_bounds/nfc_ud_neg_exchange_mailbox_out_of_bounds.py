@@ -145,7 +145,7 @@ class NFC_UD_NEG_EXCHANGE_MAILBOX_OUT_OF_BOUNDS(AliroUserDeviceTestCase, UserPro
         # Test step 7
         try:
             await self.reader.handle_exchange(
-                False, reader_status=ReaderStatus.READER_STATE_UNSECURED
+                False, reader_status=ReaderStatus.STATUS_WORD_ERROR
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
