@@ -19,7 +19,7 @@ from aliro_actuator.access_protocol.encryption import (
     VerificationError,
     EncryptionEngine,
 )
-from aliro_actuator.access_protocol.reader import Reader, ReaderSession
+from aliro_actuator.access_protocol.reader import Reader
 from binascii import hexlify
 
 from aliro_actuator.trust_framework.key import KeyPair
@@ -134,7 +134,7 @@ class NFC_UD_NEG_EXCHANGE_WITH_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupp
         )
 
         response = await self.reader.apdu.handle_chaining_send_command(
-            "EXCHANGE", command, TransportProtocol.NFC
+            "EXCHANGE", command, self.reader.transport_protocol
         )
 
         Global.logger.info("Received response")
@@ -286,7 +286,7 @@ class NFC_UD_NEG_EXCHANGE_WITH_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupp
         Global.logger.info("Handling EXCHANGE response done")
 
         return read_data
-        
+    
     async def setup(self) -> None:
         logger.info("This is a test case setup")
         # load parameters from project config
