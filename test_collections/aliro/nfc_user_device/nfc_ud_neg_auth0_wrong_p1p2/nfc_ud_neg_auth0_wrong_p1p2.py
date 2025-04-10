@@ -2,18 +2,20 @@ from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     AuthenticationPolicy,
     Transaction,
+    INS,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
     PROTOCOL_VERSION,
+    Auth0,
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
     InvalidStatusError,
 )
-from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.access_protocol.reader import Reader, ReaderMode
 from aliro_actuator.trust_framework.key import KeyPair
 from aliro_actuator.access_protocol.tlv import TLV
 from app.test_engine.logger import test_engine_logger as logger
@@ -23,11 +25,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class NEG_AUTH0_WRONG_P1P2(AliroUserDeviceTestCase, UserPromptSupport):
+class NFC_UD_NEG_AUTH0_WRONG_P1P2(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "NEG_AUTH0_WRONG_P1P2",
+        "public_id": "NFC_UD_NEG_AUTH0_WRONG_P1P2",
         "version": "0.0.1",
-        "title": "NEG_AUTH0_WRONG_P1P2",
+        "title": "NFC_UD_NEG_AUTH0_WRONG_P1P2",
         "description": """Verify conformance of User Device UT in AUTH0 command.""",
     }
 
@@ -74,6 +76,7 @@ class NEG_AUTH0_WRONG_P1P2(AliroUserDeviceTestCase, UserPromptSupport):
             reader_key=key,
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
+            mode=ReaderMode.READER,
         )
 
     @log_errors
@@ -107,15 +110,15 @@ class NEG_AUTH0_WRONG_P1P2(AliroUserDeviceTestCase, UserPromptSupport):
         # Test step 5
         try:
             data_tlv: list[tuple[int, bytes | list]] = [
-                (Auth0.COMMAND_TAG, transaction_type.to_bytes(1, "big")),
-                (Auth0.AUTHENTICATION_POLICY_TAG, authentication_policy.to_bytes(1, "big")),
-                (Auth0.ETPV_TAG, protocol_version.to_bytes(2, "big")),
-                (Auth0.READER_EPUBK_TAG, reader_epubk), 
-                (Auth0.TRANSACTION_ID_TAG, transaction_identifier),
-                (Auth0.READER_IDENTIFIER_TAG, reader_identifier),
+                (Auth0.COMMAND_TAG, Transaction.STANDARD.to_bytes(1, "big")),
+                (Auth0.AUTHENTICATION_POLICY_TAG, AuthenticationPolicy.USER_DEVICE.to_bytes(1, "big")),
+                (Auth0.ETPV_TAG, PROTOCOL_VERSION.to_bytes(2, "big")),
+                (Auth0.READER_EPUBK_TAG, self.reader_ePuBK), 
+                (Auth0.TRANSACTION_ID_TAG, self.reader.session.transaction_identifier),
+                (Auth0.READER_IDENTIFIER_TAG, self.reader.reader_identifier),
             ]
             data = TLV(data_tlv)
-            command = self.create_command(
+            command = self.reader.apdu.create_command(
                 cla=0x80,
                 ins=INS.AUTH0,
                 p1=0x01,
@@ -126,7 +129,7 @@ class NEG_AUTH0_WRONG_P1P2(AliroUserDeviceTestCase, UserPromptSupport):
             response = await self.reader.apdu.handle_chaining_send_command(
             "AUTH0", command, self.reader.transport_protocol
             )
-            response = self.apdu.parse_response(response, INS.AUTH0)
+            response = self.reader.apdu.parse_response(response, INS.AUTH0)
         except InvalidStatusError as error:
             logger.info(
                 "Received error status (as expected), status received: 0x{:04x}".format(
@@ -141,15 +144,7 @@ class NEG_AUTH0_WRONG_P1P2(AliroUserDeviceTestCase, UserPromptSupport):
             self.mark_step_failure("No error status returned")
             return
         self.next_step()
-        
-        # Test step 6
-        try:
-            await self.reader.handle_control_flow(S2.NONE)
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("NEG_AUTH0_WRONG_P1P2 Cleanup")
+        logger.info("NFC_UD_NEG_AUTH0_WRONG_P1P2 Cleanup")
         await self.reader.transaction_termination()

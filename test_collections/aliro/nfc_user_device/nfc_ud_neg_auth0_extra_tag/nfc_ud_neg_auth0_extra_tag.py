@@ -2,6 +2,7 @@ from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     AuthenticationPolicy,
     Transaction,
+    S2,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -13,8 +14,9 @@ from aliro_actuator.access_protocol.errors import (
     InvalidResponseError,
     InvalidStatusError,
 )
-from aliro_actuator.access_protocol.reader import Reader
-from aliro_actuator.trust_framework.key import KeyPair
+from aliro_actuator.access_protocol.reader import Reader, ReaderMode
+from aliro_actuator.trust_framework.key import KeyPair, PublicKey
+from aliro_actuator.trust_framework.errors import InvalidKeyError
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -55,8 +57,7 @@ class NFC_UD_NEG_AUTH0_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step3: Set the User Device UT"),
             TestStep("Step4: Send/Receive Select command/response"),
             TestStep("Step5: Send/Receive AUTH0 command/response"),
-            TestStep("Step6: Send/Receive AUTH1 command/response"),
-            TestStep("Step7: Send/Receive EXCHANGE command/response"),
+            TestStep("Step6: Send/Receive Control Flow command/response"),
         ]
 
     async def setup(self) -> None:
@@ -74,6 +75,7 @@ class NFC_UD_NEG_AUTH0_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupport):
             reader_key=key,
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
+            mode=ReaderMode.READER,
         )
 
     @log_errors
@@ -126,39 +128,12 @@ class NFC_UD_NEG_AUTH0_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupport):
                     error.status
                 )
             )
+            await self.reader.failure_process(S2.NONE)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
         self.next_step()
         
-        # Test step 6
-        try:
-            await self.reader.handle_auth1(
-                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY,
-            )
-        except InvalidStatusError as error:
-            logger.info(
-                "Error status returned: 0x{:04x}, as expected".format(error.status)
-            )
-            pass
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        else:
-            self.mark_step_failure("No error status returned")
-            return
-        self.next_step()
-        
-        # Test step 7
-        try:
-            await self.reader.handle_exchange(
-                False, reader_status=ReaderStatus.READER_STATE_UNSECURED
-            )
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        self.next_step()
-
     async def cleanup(self) -> None:
         logger.info("NFC_UD_NEG_AUTH0_EXTRA_TAG Cleanup")
         await self.reader.transaction_termination()
