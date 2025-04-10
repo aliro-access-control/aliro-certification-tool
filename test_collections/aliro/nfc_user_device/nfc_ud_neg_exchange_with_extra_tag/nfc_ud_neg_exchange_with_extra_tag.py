@@ -84,7 +84,7 @@ class NFC_UD_NEG_EXCHANGE_WITH_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupp
             TestStep("Step7: Send/Receive EXCHANGE command/response with Tag 0x97"),
         ]
 
-    def create_exchange_command_with_extra_tag(self, 
+    async def create_exchange_command_with_extra_tag(self, 
         mailbox_commands: bytes | None = None,
         notify: bytes | None = None,
         reader_status: int | None = None,
@@ -133,7 +133,7 @@ class NFC_UD_NEG_EXCHANGE_WITH_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupp
             le=0x00,
         )
 
-        response = self.reader.apdu.handle_chaining_send_command(
+        response = await self.reader.apdu.handle_chaining_send_command(
             "EXCHANGE", command, TransportProtocol.NFC
         )
 
@@ -142,7 +142,7 @@ class NFC_UD_NEG_EXCHANGE_WITH_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupp
         return response
 
         
-    def handle_exchange_with_extra_tag(self, 
+    async def handle_exchange_with_extra_tag(self, 
         atomic_session: bool = False,
         read_requests: list[tuple[int, int]] | None = None,
         write_requests: list[tuple[int, bytes]] | None = None,
@@ -212,7 +212,7 @@ class NFC_UD_NEG_EXCHANGE_WITH_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupp
             notify_bytes = None
 
         try:
-            response = self.create_exchange_command_with_extra_tag(
+            response = await self.create_exchange_command_with_extra_tag(
                 mailbox_commands=mailbox_commands,
                 notify=notify_bytes,
                 reader_status=reader_status,
@@ -226,27 +226,27 @@ class NFC_UD_NEG_EXCHANGE_WITH_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupp
                 "Response status does not indicate success, "
                 "status: 0x{:04x}".format(error.status)
             )
-            self.reader.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
+            await self.reader.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
             raise error
         except InvalidResponseError as error:
             Global.logger.error("EXCHANGE response format invalid")
-            self.reader.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
+            await self.reader.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
             raise error
         except VerificationError as error:
             Global.logger.error("EXCHANGE response decryption failed")
-            self.reader.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
+            await self.reader.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
             raise error
         
         Global.logger.info("Handling EXCHANGE response")
         if len(response.status_code) != 4:
-            self.reader.failure_process(ReaderStatus.STATUS_WORD_ERROR)
+            await self.reader.failure_process(ReaderStatus.STATUS_WORD_ERROR)
             raise AccessProtocolError(
                 "EXCHANGE payload status has invalid length: {!r}".format(
                     response.status_code
                 )
             )
         if response.status_code != bytes.fromhex("00020000"):
-            self.reader.failure_process(ReaderStatus.STATUS_WORD_ERROR)
+            await self.reader.failure_process(ReaderStatus.STATUS_WORD_ERROR)
             raise AccessProtocolError(
                 "EXCHANGE returned error status at end of payload: {!r}".format(
                     response.status_code
