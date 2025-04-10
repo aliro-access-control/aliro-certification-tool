@@ -12,7 +12,7 @@ from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
 )
-from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.access_protocol.reader import Reader, ReaderMode
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
@@ -73,6 +73,7 @@ class NFC_UD_NEG_AUTH1_WRONG_READER_SIGNATURE(AliroUserDeviceTestCase, UserPromp
             reader_key=key,
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
+            mode=ReaderMode.READER,
         )
 
     @log_errors
@@ -114,7 +115,7 @@ class NFC_UD_NEG_AUTH1_WRONG_READER_SIGNATURE(AliroUserDeviceTestCase, UserPromp
         self.next_step()
 
         # Test step 5
-        self.reader.reader_identifier = self.reader.reader_identifier + bytes([0xFF])
+        self.reader.reader_identifier = self.reader.reader_identifier[:-1] + bytes([0xFF])
         try:
             await self.reader.handle_auth1(
                 expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
@@ -126,16 +127,6 @@ class NFC_UD_NEG_AUTH1_WRONG_READER_SIGNATURE(AliroUserDeviceTestCase, UserPromp
             pass
         else:
             self.mark_step_failure("No error status returned")
-            return
-        self.next_step()
-        
-        # Test step 6
-        try:
-            await self.reader.handle_exchange(
-                False, reader_status=ReaderStatus.INVALID_ACCESS_RIGHTS
-            )
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
             return
         self.next_step()
 

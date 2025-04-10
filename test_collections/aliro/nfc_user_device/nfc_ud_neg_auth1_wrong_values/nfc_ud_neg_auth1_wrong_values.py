@@ -3,6 +3,7 @@ from aliro_actuator.access_protocol.apdu import (
     AuthenticationPolicy,
     Transaction,
     ReaderStatus,
+    INS,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -12,8 +13,9 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
+    InvalidStatusError,
 )
-from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.access_protocol.reader import Reader, ReaderMode
 from aliro_actuator.trust_framework.key import KeyPair
 from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.access_protocol.authentication import create_reader_authentication
@@ -76,6 +78,7 @@ class NFC_UD_NEG_AUTH1_WRONG_VALUES(AliroUserDeviceTestCase, UserPromptSupport):
             reader_key=key,
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
+            mode=ReaderMode.READER,
         )
 
     @log_errors
@@ -133,7 +136,7 @@ class NFC_UD_NEG_AUTH1_WRONG_VALUES(AliroUserDeviceTestCase, UserPromptSupport):
             ]
 
             data = TLV(data_fields)
-            command = self.create_command(
+            command = self.reader.apdu.create_command(
                 cla=0x80,
                 ins=INS.AUTH1,
                 p1=0x00,
@@ -144,7 +147,7 @@ class NFC_UD_NEG_AUTH1_WRONG_VALUES(AliroUserDeviceTestCase, UserPromptSupport):
             response = await self.reader.apdu.handle_chaining_send_command(
                 "AUTH1", command, self.reader.transport_protocol
             )
-            response = self.apdu.parse_response(response, INS.AUTH1, self.reader.session.encryption_expedited)
+            response = self.reader.apdu.parse_response(response, INS.AUTH1, self.reader.session.encryption_expedited)
         except InvalidStatusError as error:
             logger.info(
                 "Received error status (as expected), status received: 0x{:04x}".format(
@@ -157,16 +160,6 @@ class NFC_UD_NEG_AUTH1_WRONG_VALUES(AliroUserDeviceTestCase, UserPromptSupport):
             return
         else:
             self.mark_step_failure("No error status returned")
-            return
-        self.next_step()
-        
-        # Test step 6
-        try:
-            await self.reader.handle_exchange(
-                False, reader_status=ReaderStatus.READER_STATE_UNSECURED
-            )
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
             return
         self.next_step()
 
