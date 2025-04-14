@@ -43,7 +43,6 @@ class DeviceKeyInfo(object):
     @device_key.setter
     def device_key(self, val : COSE_Key) -> None:
         '''Set the Device Key.'''
-        assert(isinstance(val, COSE_Key))
         self.__device_key = val
 
     ############################################################################
@@ -55,7 +54,6 @@ class DeviceKeyInfo(object):
     @key_info.setter
     def key_info(self, val : KeyInfo) -> None:
         '''Get the Key Info.'''
-        assert(isinstance(val, KeyInfo))
         self.__key_info = val
 
     ############################################################################
@@ -73,9 +71,9 @@ class DeviceKeyInfo(object):
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the DeviceKeyInfo to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         device_key_info_dict = {}
@@ -106,9 +104,9 @@ class DeviceKeyInfo(object):
         return self.is_valid()
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the DeviceKeyInfo to CBOR.'''
-        device_key_info_dict = self.to_dict()
+        device_key_info_dict = self.to_dict(validate)
         if device_key_info_dict is None:
             return None
         return cbor2.dumps(device_key_info_dict)

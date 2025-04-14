@@ -62,7 +62,6 @@ class ItemsRequest(object):
     @namespaces.setter
     def namespaces(self, val : Namespaces) -> None:
         '''Set the Namespaces.'''
-        assert(isinstance(val, Namespaces))
         self.__namespaces = val
 
     ############################################################################
@@ -92,15 +91,15 @@ class ItemsRequest(object):
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the ItemsRequest to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         items_request_dict = {}
 
         # Encode the Namespaces.
-        items_request_dict[ItemsRequest.NAMESPACES_LABEL] = self.__namespaces.to_dict()
+        items_request_dict[ItemsRequest.NAMESPACES_LABEL] = self.__namespaces.to_dict(validate)
 
         # Encode the optional Request Info.
         if (self.__request_info is not None) and (len(self.__request_info) > 0):
@@ -153,9 +152,9 @@ class ItemsRequest(object):
         return self.is_valid()
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the ItemsRequest to CBOR.'''
-        items_request_dict = self.to_dict()
+        items_request_dict = self.to_dict(validate)
         if items_request_dict is None:
             return None
         return cbor2.dumps(items_request_dict)

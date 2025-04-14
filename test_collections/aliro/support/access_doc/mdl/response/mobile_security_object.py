@@ -192,9 +192,9 @@ class MobileSecurityObject(object):
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the MobileSecurityObject to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         mobile_security_object_dict = {}
@@ -206,17 +206,17 @@ class MobileSecurityObject(object):
         mobile_security_object_dict[MobileSecurityObject.DIGEST_ALGORITHM_LABEL] = str(self.__digest_algorithm)
 
         # Encode the Value Digests field.
-        mobile_security_object_dict[MobileSecurityObject.VALUE_DIGESTS_LABEL] = self.__value_digests.to_dict()
+        mobile_security_object_dict[MobileSecurityObject.VALUE_DIGESTS_LABEL] = self.__value_digests.to_dict(validate)
 
         # Encode the Device Key Info field.
         if self.__doc_type == self.DOC_TYPE_ALIRO_ACCESS:
-            mobile_security_object_dict[MobileSecurityObject.DEVICE_KEY_INFO_LABEL] = self.__device_key_info.to_dict()
+            mobile_security_object_dict[MobileSecurityObject.DEVICE_KEY_INFO_LABEL] = self.__device_key_info.to_dict(validate)
 
         # Encode the DocType field.
         mobile_security_object_dict[MobileSecurityObject.DOC_TYPE_LABEL] = str(self.__doc_type)
 
         # Encode the Validity Info field.
-        mobile_security_object_dict[MobileSecurityObject.VALIDITY_INFO_LABEL] = self.__validity_info.to_dict()
+        mobile_security_object_dict[MobileSecurityObject.VALIDITY_INFO_LABEL] = self.__validity_info.to_dict(validate)
 
         # Encode the Time Verification Required field.
         mobile_security_object_dict[MobileSecurityObject.TIME_VERIFICATION_REQUIRED_LABEL] = self.__time_verification_required
@@ -267,9 +267,9 @@ class MobileSecurityObject(object):
         return self.is_valid()
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the MobileSecurityObject to CBOR.'''
-        mobile_security_object_dict = self.to_dict()
+        mobile_security_object_dict = self.to_dict(validate)
         if mobile_security_object_dict is None:
             return None
         return cbor2.dumps(mobile_security_object_dict)

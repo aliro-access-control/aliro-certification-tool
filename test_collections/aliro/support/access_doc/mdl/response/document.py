@@ -92,15 +92,15 @@ class Document(object):
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the Document to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         document_dict = {}
 
         # Encode the Issuer Signed field.
-        document_dict[Document.ISSUER_SIGNED_LABEL] = self.__issuer_signed.to_dict()
+        document_dict[Document.ISSUER_SIGNED_LABEL] = self.__issuer_signed.to_dict(validate)
 
         # Encode the Doc Type field.
         document_dict[Document.DOC_TYPE_LABEL] = str(self.__doc_type)
@@ -133,9 +133,9 @@ class Document(object):
         return self.is_valid()
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the Document to CBOR.'''
-        document_dict = self.to_dict()
+        document_dict = self.to_dict(validate)
         if document_dict is None:
             return None
         return cbor2.dumps(document_dict)

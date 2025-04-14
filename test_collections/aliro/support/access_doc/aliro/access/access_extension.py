@@ -86,7 +86,6 @@ class AccessExtension(object):
     @data.setter
     def data(self, val : ExtensionData) -> None:
         '''Set the Extension's Data.'''
-        assert(isinstance(val, ExtensionData))
         self.__data = val
 
     ############################################################################
@@ -94,7 +93,7 @@ class AccessExtension(object):
         '''Returns True if the AccessExtension contains valid fields,
            otherwise returns False.'''
         # Verify the Criticality.
-        if (not isinstance(self.__criticality, (int, CriticalityBits))) or ((self.__criticality & ~(int(CriticalityBits.CRITICAL))) != 0):
+        if (self.__criticality & ~(int(CriticalityBits.CRITICAL))) != 0:
             return False
 
         # Verify the ID.
@@ -113,9 +112,9 @@ class AccessExtension(object):
         return True
 
     ############################################################################
-    def to_list(self) -> list:
+    def to_list(self, validate=True) -> list:
         '''Convert the AccessExtension to a list.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         access_extension_list = []
@@ -130,14 +129,14 @@ class AccessExtension(object):
         access_extension_list.append(int(self.version))
 
         # Encode the Data.
-        access_extension_list.append(self.data.to_dict())
+        access_extension_list.append(self.data.to_dict(validate))
 
         return access_extension_list
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the AccessExtension to CBOR.'''
-        access_extension_list = self.to_list()
+        access_extension_list = self.to_list(validate)
         if access_extension_list is None:
             return None
         return cbor2.dumps(access_extension_list)
