@@ -1,7 +1,15 @@
-from aliro_actuator.access_protocol.apdu import Auth1Response, INS
+from aliro_actuator.access_protocol.apdu import (
+    Auth1Response,
+    INS,
+    Transaction,
+    TLV,
+    S1,
+    S2,
+)
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
+    Auth0,
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
@@ -9,11 +17,15 @@ from aliro_actuator.access_protocol.errors import (
 )
 from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
 from aliro_actuator.trust_framework.key import KeyPair
+from aliro_actuator.trust_framework.errors import (
+    KeyLookupFailed,
+)
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
+from binascii import hexlify
 
 
 class NFC_RDR_NEG_AUTH0_WRONG_VALUE(AliroReaderTestCase, UserPromptSupport):
@@ -47,8 +59,7 @@ class NFC_RDR_NEG_AUTH0_WRONG_VALUE(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step2: Set Reader Device Under Test in polling mode"),
             TestStep("Step3: Transaction initiation"),
             TestStep("Step4: Receive/Send AUTH0 command/response"),
-            TestStep("Step5: Receive/Send AUTH1 command/response"),
-            TestStep("Step6: Receive/Send EXCHANGE command/response"),
+            TestStep("Step5: Receive/Send CONTROL FLOW command/response"),
         ]
 
     async def setup(self) -> None:
@@ -115,7 +126,7 @@ class NFC_RDR_NEG_AUTH0_WRONG_VALUE(AliroReaderTestCase, UserPromptSupport):
                 await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
                 raise SessionError("unexpected state for auth0 command: {}".format(state))
 
-            Global.logger.info("Handling AUTH0 Command")
+            logger.info("Handling AUTH0 Command")
             if (
                 cmds_auth0.expedited_phase_protocol_version
                 not in self.userdevice.supported_versions
@@ -123,19 +134,19 @@ class NFC_RDR_NEG_AUTH0_WRONG_VALUE(AliroReaderTestCase, UserPromptSupport):
                 await self.failure_process(StatusBytes.CONDITIONS_OF_USE_NOT_SATISFIED)
                 raise VersionError
             else:
-                Global.logger.info(
+                logger.info(
                     "Requested version 0x{:04x} is supported (supported versions: {})".format(
                         cmds_auth0.expedited_phase_protocol_version,
                         ", ".join(str(hex(x)) for x in self.userdevice.supported_versions),
                     )
                 )
 
-            Global.logger.info("Saving AUTH0 data")
+            logger.info("Saving AUTH0 data")
             try:
                 self.userdevice.session.set_auth0_data(cmds_auth0)
             except InvalidKeyError:
                 raise AccessProtocolError("Reader ephemeral key is invalid")
-            Global.logger.info("Reader ephemeral key is a valid key")
+            logger.info("Reader ephemeral key is a valid key")
 
             # Setup UWB session id
             if (
@@ -146,16 +157,16 @@ class NFC_RDR_NEG_AUTH0_WRONG_VALUE(AliroReaderTestCase, UserPromptSupport):
                     session_id=self.userdevice.session.transaction_identifier[-4:]
                 )
 
-            Global.logger.info("Looking up access credential")
-            for access_credential in self.access_credentials:
+            logger.info("Looking up access credential")
+            for access_credential in self.userdevice.access_credentials:
                 if access_credential.has_identifier(self.userdevice.session.reader_group_identifier):
                     self.userdevice.session.set_access_credential(access_credential)
-                    Global.logger.info("Access credential found")
+                    logger.info("Access credential found")
                     try:
                         key = access_credential.get_reader_public_key(
                             self.userdevice.session.reader_group_identifier
                         ).as_bytes()
-                        Global.logger.info(
+                        logger.info(
                             "Reader public key in access credential: {!r}".format(
                                 hexlify(key)
                             )
@@ -171,7 +182,7 @@ class NFC_RDR_NEG_AUTH0_WRONG_VALUE(AliroReaderTestCase, UserPromptSupport):
                 )
 
             if self.userdevice.session.get_transaction_type() == Transaction.STANDARD:
-                Global.logger.info("Standard transaction requested")
+                logger.info("Standard transaction requested")
                 self.userdevice.session.update_state(UserSessionState.AUTH0_STD_DONE)
 
                 credential_epubk = self.userdevice.session.get_credential_epubkey().as_bytes()
@@ -179,9 +190,13 @@ class NFC_RDR_NEG_AUTH0_WRONG_VALUE(AliroReaderTestCase, UserPromptSupport):
                     (0x88, credential_epubk), # wrong tag
                 ]
                 data_bytes = TLV(data_tlv)
-                auth0_response = self.create_response(data_bytes.to_bytes(), cmds_auth0.tlv_check)
-                await self.apdu.handle_chaining_send_response(
-                    auth0_response, self.transport_protocol
+                if hasattr(cmds_auth0, "tlv_check"):
+                    command_status = cmds_auth0.tlv_check
+                else:
+                    command_status = True
+                auth0_response = self.userdevice.apdu.create_response(data_bytes.to_bytes(), command_status)
+                await self.userdevice.apdu.handle_chaining_send_response(
+                    auth0_response, self.userdevice.transport_protocol
                 )
         except AccessProtocolError as error:
             self.mark_step_failure(str(error))
@@ -193,37 +208,23 @@ class NFC_RDR_NEG_AUTH0_WRONG_VALUE(AliroReaderTestCase, UserPromptSupport):
             )
         self.next_step()
 
-        # Test step 5 Receive/Send Auth1 command/response
+        # Test step 5 Receive/Send CONTROL FLOW command/response
         try:
-            cmds_auth1 = await self.userdevice.wait_for_command()
+            cmds_controlflow = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:
             self.mark_step_failure(str(error))
             return
-        if cmds_auth1.expected_response != Auth1Response.CREDENTIAL_PUBLIC_KEY:
-            self.mark_step_failure(
-                "Access Credential key type request is not endpoint public key!"
-            )
-            return
         try:
-            await self.userdevice.handle_auth1(cmds_auth1)
+            await self.userdevice.handle_control_flow(cmds_controlflow)
         except AccessProtocolError as error:
             self.mark_step_failure(str(error))
             return
-        self.next_step()
-        
-        # Test Step 6 Receive/Send EXCHANGE command/response
-        try:
-            cmds_exchange = await self.userdevice.wait_for_command()
-        except InvalidCommandError as error:
-                self.mark_step_failure(str(error))
-                return
-
-        if cmds_exchange.ins == INS.EXCHANGE:
-            try:
-                await self.userdevice.handle_exchange(cmds_exchange)
-            except AccessProtocolError as error:
-                self.mark_step_failure(str(error))
-                return
+        if cmds_controlflow.s1 != S1.FINISHED_WITH_FAILURE:
+            self.mark_step_failure(
+                "S1 value of CONTROL FLOW not '0x00 transaction finished with failure'"
+            )
+        if cmds_controlflow.s2 != S2.NONE:
+            self.mark_step_failure("S2 value of CONTROL FLOW not '0x00 no information'")
         self.next_step()
 
     async def cleanup(self) -> None:

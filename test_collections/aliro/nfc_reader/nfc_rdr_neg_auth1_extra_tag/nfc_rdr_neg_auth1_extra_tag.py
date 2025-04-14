@@ -2,18 +2,23 @@ from aliro_actuator.access_protocol.apdu import Auth1Response, INS
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
+    Auth1,
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidCommandError,
 )
 from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
+from aliro_actuator.access_protocol.authentication import (
+    create_user_device_authentication,
+)
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
+from binascii import hexlify
 
 
 class NFC_RDR_NEG_AUTH1_EXTRA_TAG(AliroReaderTestCase, UserPromptSupport):
@@ -134,43 +139,43 @@ class NFC_RDR_NEG_AUTH1_EXTRA_TAG(AliroReaderTestCase, UserPromptSupport):
                 [UserSessionState.AUTH0_FAST_DONE, UserSessionState.AUTH0_STD_DONE]
             ):
                 state = self.userdevice.session.state
-                await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
+                await self.userdevice.failure_process(StatusBytes.INVALID_INSTRUCTION)
                 raise SessionError("unexpected state for auth1 command: {}".format(state))
 
-            Global.logger.info("Handling AUTH1 Command")
+            logger.info("Handling AUTH1 Command")
             if cmds_auth1.certificate_data is not None:
-                Global.logger.info("AUTH1 Command contains certificate")
+                logger.info("AUTH1 Command contains certificate")
 
                 reader_issuer_public_key = self.userdevice.session.get_reader_group_identifier_key()
                 self.userdevice.session.set_cert_and_verify(
                     cmds_auth1.certificate_data, reader_issuer_public_key
                 )
 
-            if hasattr(self.session, "cert_decoded") and not self.session.cert_decoded:
-                Global.logger.error("Error decoding certificate")
+            if hasattr(self.userdevice.session, "cert_decoded") and not self.userdevice.session.cert_decoded:
+                logger.error("Error decoding certificate")
                 await self.userdevice.failure_process(StatusBytes.GENERIC_ERROR)
                 raise AccessProtocolError("Certificate decoding failed")
-            if hasattr(self.session, "cert_verified") and not self.session.cert_verified:
-                Global.logger.error("Error verifying certificate")
+            if hasattr(self.userdevice.session, "cert_verified") and not self.userdevice.session.cert_verified:
+                logger.error("Error verifying certificate")
                 await self.userdevice.failure_process(StatusBytes.SECURITY_STATUS_NOT_SATISFIED)
                 raise AccessProtocolError("Certificate verification failed")
 
             await self.userdevice.check_reader_authentication_data(cmds_auth1.reader_signature)
 
             try:
-                Global.logger.info("Creating shared keys")
+                logger.info("Creating shared keys")
                 self.userdevice.session.set_shared_key()
                 self.userdevice.session.derive_key_volatile(self.userdevice.transport_protocol_type)
                 if self.userdevice.transport_protocol_type in [
                     TransportProtocol.BLE_UWB,
                     TransportProtocol.SOCKET_BLE,
                 ]:
-                    Global.logger.info("Setting up BLE encryption")
+                    logger.info("Setting up BLE encryption")
                     self.userdevice.session.set_ble_encryption(self.transport_protocol)
-                    Global.logger.info("Setting up UWB secure ranging")
+                    logger.info("Setting up UWB secure ranging")
                     await self.userdevice.transport_protocol.set_session_key(self.session.UR_SK)
 
-                Global.logger.info("Creating Kpersistent")
+                logger.info("Creating Kpersistent")
                 self.userdevice.storage.add_kpersistent(
                     kpersistent=self.userdevice.session.derive_key_persistent(
                         self.userdevice.transport_protocol_type
@@ -182,17 +187,17 @@ class NFC_RDR_NEG_AUTH1_EXTRA_TAG(AliroReaderTestCase, UserPromptSupport):
                 await self.userdevice.failure_process(StatusBytes.GENERIC_ERROR)
                 raise error
 
-            Global.logger.info("Creating user device authentication")
+            logger.info("Creating user device authentication")
             device_authentication = create_user_device_authentication(
-                self.session.reader_identifier,
-                self.session.get_credential_epubkey(),
-                self.session.reader_epubk,
-                self.session.transaction_identifier,
+                self.userdevice.session.reader_identifier,
+                self.userdevice.session.get_credential_epubkey(),
+                self.userdevice.session.reader_epubk,
+                self.userdevice.session.transaction_identifier,
             )
             signature = self.userdevice.session.access_credential.sign(
                 device_authentication.to_bytes()
             )
-            Global.logger.debug(
+            logger.debug(
                 "Created user device authentication_data signature: {!r}".format(
                     hexlify(signature)
                 )
@@ -221,7 +226,7 @@ class NFC_RDR_NEG_AUTH1_EXTRA_TAG(AliroReaderTestCase, UserPromptSupport):
                 auth1_response, self.userdevice.transport_protocol
             )
 
-            Global.logger.info("Handling AUTH1 command done")
+            logger.info("Handling AUTH1 command done")
         except AccessProtocolError as error:
             self.mark_step_failure(str(error))
             return
