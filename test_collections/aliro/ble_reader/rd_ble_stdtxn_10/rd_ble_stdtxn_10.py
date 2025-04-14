@@ -168,9 +168,13 @@ class RD_BLE_STDTXN_10(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 12
+        value = bytearray()
+        value.extend(int.to_bytes(CURRENT_VERSION, 2, "big"))
+        value.append(0x01) # Features Supported Length 
+        value.append(features[0] & 0x07)
         try:
             await self.userdevice.transport_protocol.driver.handle_GATT_layer_write_characteristic(
-                primary_service, CURRENT_VERSION
+                primary_service, value
             )
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
