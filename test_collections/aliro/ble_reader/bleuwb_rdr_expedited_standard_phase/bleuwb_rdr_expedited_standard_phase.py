@@ -1,17 +1,14 @@
-from aliro_actuator.access_protocol.apdu import (
-    Auth1Response,
-    AuthenticationPolicy,
-    Transaction,
-)
+from binascii import hexlify
+
+from aliro_actuator.access_protocol.apdu import INS
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
 )
-from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.access_protocol.user_device import UserDevice
 from aliro_actuator.transport_protocol.ble_message_format import (
-    OperationSourceInformation_Values,
-    ReaderStatusInformation_Values,
-    UnsolicitedReaderStatusReporting_Values,
+    Notification_ID,
+    UWB_RangingService_ID,
 )
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
@@ -19,27 +16,25 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
-from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
+from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
+class BLEUWB_RDR_EXPEDITED_STANDARD_PHASE(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-BLE-STDTXN-3.0",
+        "public_id": "BLEUWB_RDR_EXPEDITED_STANDARD_PHASE",
         "version": "0.0.1",
-        "title": "UD-BLE-STDTXN-3.0",
-        "description": """Verify conformance of User Device UT in BLE discovery.""",
+        "title": "BLEUWB_RDR_EXPEDITED_STANDARD_PHASE",
+        "description": """Verify conformance of Reader in BLE discovery.""",
     }
 
-    reader_ePuBK = bytes.fromhex(
-        "049696afe33de58b7d3253d1cba86d14147c16d455e8"
-        "a27373b38d454af21b70e75e13ebc6d55743ba6a6ffc"
-        "4ed37a55515a9346fdae311f60be30421fa6dc61c5"
-    )
-    reader_ePrivK = bytes.fromhex(
-        "3c0f74114cd2a021e8066efbaa31dbb97ef0054272192606fd96633a04f66214"
-    )
-    transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
-    group_resolving_key = 16 * bytes.fromhex("00")
+    endpoint_ePuBK = bytes.fromhex(
+        "045d75ab60136a2c54ff27b799ee157f3f3329435c0d"
+        "f608de904c920ac29f72bd4274c2edc810a93e240bf5"
+        "d6394a92c9766b690b2bf5128ae70d6e29257ea786"
+    )  # from Test Vector
+    endpoint_ePrivK = bytes.fromhex(
+        "70637ee9b40cee568567c69589276888edca7128bb13fb531f9c4f502d8cc65e"
+    )  # from Test Vector
 
     @classmethod
     def pics(cls) -> set[str]:
@@ -71,23 +66,31 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
-        group_id = self.th_group_identifier()
-        sub_group_id = self.th_sub_group_identifier()
-        key = self.th_reader_keypair()
-        spsm = self.th_spsm()
-        group_resolving_key = self.th_group_resolving_key()
-        self.reader = Reader(
+        self.access_credential = self.reader_access_credential(add_issuer_public_key=True)
+        group_resolving_key = self.reader_group_resolving_key()
+        self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.BLE_UWB,
-            reader_group_identifier=group_id,
-            reader_group_sub_identifier=sub_group_id,
-            reader_key=key,
-            spsm=spsm,
+            access_credentials=[self.access_credential],
+            mailbox=0x20,
             group_resolving_key=group_resolving_key,
-            ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
+            ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
         )
 
     @log_errors
     async def execute(self) -> None:
+        # Done in setup
+        issuer_group_id = self.access_credential.reader_id_key_list[1][0]
+        prompt = "In case LOAD_CERT is used set correct group ID"
+        prompt += "Set the reader_group_identifier of the reader device to: {}\n".format(hexlify(issuer_group_id))
+        prompt += "to the Access Credential of the reader device\n"
+
+        await self.send_prompt_request(
+            OptionsSelectPromptRequest(
+                prompt=prompt,
+                options={"OK": 1},
+            )
+        )
+
         await self.send_prompt_request(
             OptionsSelectPromptRequest(
                 prompt="Reset murata board by pressing switch SW1",
@@ -96,20 +99,14 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         )
         await self.send_prompt_request(
             OptionsSelectPromptRequest(
-                prompt="Start user device scanning", options={"OK": 1}
+                prompt="Set Reader Device Under Test in BLE advertising mode",
+                options={"OK": 1},
             )
         )
 
         # Test step 0: Prerequisites
         try:
-            await self.reader.transaction_initiation()
-            await self.reader.expedited_transaction_standard(
-                authentication_policy=AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
-            )
-            await self.reader.reader_status_access_protocol_completed(
-                UnsolicitedReaderStatusReporting_Values.SEND_TO_EACH_CONNECTED,
-                ReaderStatusInformation_Values.SECURED,
-            )
+            await self.userdevice.single_transaction(False)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -118,10 +115,7 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 1: User Device sends AP message: Timesync
         try:
-            message = await self.reader.wait_for_ble_message(
-                self.reader.session.get_ble_encryption()
-            )
-            self.reader.handle_timesync(message)
+            await self.userdevice.send_timesync()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -129,26 +123,21 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 2: User Device sends AP message: Initiate Ranging
+        try:
+            await self.userdevice.send_initiate_ranging()
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+
         # Test step 3: Reader sends AP message: RSS-M1
-        try:
-            message = await self.reader.wait_for_ble_message(
-                self.reader.session.get_ble_encryption()
-            )
-            await self.reader.handle_initiate_ranging(message)
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-        self.next_step()
-        self.next_step()
-
         # Test step 4: User Device sends AP message: RSS-M2
-        # Test step 5: Reader sends AP message: RSS-M3
         try:
-            message = await self.reader.wait_for_ble_message(
-                self.reader.session.get_ble_encryption()
+            message = await self.userdevice.wait_for_ble_message(
+                self.userdevice.session.get_ble_encryption()
             )
-            await self.reader.handle_ranging_setup_m2(message)
+            await self.userdevice.handle_ranging_setup_m1(message)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -156,24 +145,24 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
         self.next_step()
 
+        # Test step 5: Reader sends AP message: RSS-M3
         # Test step 6: User Device sends AP message: RSS-M4
         try:
-            message = await self.reader.wait_for_ble_message(
-                self.reader.session.get_ble_encryption()
+            message = await self.userdevice.wait_for_ble_message(
+                self.userdevice.session.get_ble_encryption()
             )
-            await self.reader.handle_ranging_setup_m4(message)
+            await self.userdevice.handle_ranging_setup_m3(message)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
+        self.next_step()
         self.next_step()
 
         # Test step 7: Reader acquires UWB ranging result
+        # only reader
         try:
-            await self.reader.transport_protocol.start_ranging()
-            range = await self.reader.transport_protocol.get_ranging_data()
-            logger.info(f"Ranging value is: {range}")
-            await self.reader.transport_protocol.stop_ranging()
+            await self.userdevice.transport_protocol.start_ranging()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -182,7 +171,7 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         # Print UWB configuration
         try:
             uwb_configuration = (
-                await self.reader.transport_protocol.get_uwb_configuration()
+                await self.userdevice.transport_protocol.get_uwb_configuration()
             )
             self.print_uwb_configuration(uwb_configuration)
         except Exception as error:
@@ -192,21 +181,42 @@ class UD_BLE_STDTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 8: Reader sends AP message: Status changed
-        try:
-            await self.reader.reader_status_status_changed(
-                ReaderStatusInformation_Values.UNSECURED,
-                OperationSourceInformation_Values.UNSPECIFIED,
-            )
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-        self.next_step()
+        while True:
+            try:
+                message = await self.userdevice.wait_for_ble_message()
+                if message.id == Notification_ID.READER_STATUS_CHANGED:
+                    self.userdevice.handle_reader_status_changed_message(message)
+                    # If we receive Reader Status Changed then we end the test
+                    break
+                elif (
+                    message.id == UWB_RangingService_ID.RANGING_SESSION_SUSPEND_REQUEST
+                ):
+                    await self.userdevice.handle_ranging_session_suspend_request(
+                        message
+                    )
+                elif (
+                    message.id == UWB_RangingService_ID.RANGING_SESSION_SUSPEND_RESPONSE
+                ):
+                    await self.userdevice.handle_ranging_session_suspend_response(
+                        message
+                    )
+                elif message.id == UWB_RangingService_ID.RANGING_SESSION_RESUME_REQUEST:
+                    await self.userdevice.handle_ranging_session_resume_request(message)
+                elif (
+                    message.id == UWB_RangingService_ID.RANGING_SESSION_RESUME_RESPONSE
+                ):
+                    await self.userdevice.handle_ranging_session_resume_response(
+                        message
+                    )
+            except Exception as error:
+                error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+                self.mark_step_failure(error_str)
+                return
 
     async def cleanup(self) -> None:
-        logger.info("UD_BLE_STDTXN_30 Cleanup")
+        logger.info("BLEUWB_RDR_EXPEDITED_STANDARD_PHASE Cleanup")
         try:
-            await self.reader.transaction_termination()
+            await self.userdevice.transaction_termination()
         except NoDeviceConnectedError:
             # it is possible to end the test before any device is connected
             pass

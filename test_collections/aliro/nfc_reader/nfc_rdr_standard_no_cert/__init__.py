@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .ud_nfc_stdtxn_40 import UD_NFC_STDTXN_40
+from .nfc_rdr_standard_no_cert import NFC_RDR_STANDARD_NO_CERT

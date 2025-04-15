@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .rd_ble_fsttxn_10 import RD_BLE_FSTTXN_10
+from .nfc_ud_standard_no_cert import NFC_UD_STANDARD_NO_CERT

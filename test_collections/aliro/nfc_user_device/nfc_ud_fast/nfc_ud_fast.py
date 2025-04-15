@@ -22,12 +22,12 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
+class NFC_UD_FAST(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-NFC-FSTTXN-3.0",
+        "public_id": "NFC_UD_FAST",
         "version": "0.0.1",
-        "title": "UD-NFC-FSTTXN-3.0",
-        "description": """Verify conformance of User Device UT in CONTROL_FLOW command.""",
+        "title": "NFC_UD_FAST",
+        "description": """Verify conformance of User Device UT in Fast transaction.""",
     }
 
     reader_ePuBK = bytes.fromhex(
@@ -195,5 +195,5 @@ class UD_NFC_FSTTXN_30(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_NFC_FSTTXN_30 Cleanup")
+        logger.info("NFC_UD_FAST Cleanup")
         await self.reader.transaction_termination()

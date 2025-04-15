@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .ud_nfc_stdtxn_20 import UD_NFC_STDTXN_20
+from .nfc_rdr_fast_kpersistent_cache_max import NFC_RDR_FAST_KPERSISTENT_CACHE_MAX
