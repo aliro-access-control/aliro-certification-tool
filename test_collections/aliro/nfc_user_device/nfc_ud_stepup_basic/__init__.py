@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .ud_nfc_envelope_10 import UD_NFC_ENVELOPE_10
+from .nfc_ud_stepup_basic import NFC_UD_STEPUP_BASIC
