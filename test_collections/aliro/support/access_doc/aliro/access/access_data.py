@@ -188,9 +188,9 @@ class AccessData(object):
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the AccessData to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         access_data_dict = {}
@@ -206,14 +206,14 @@ class AccessData(object):
         if (self.access_rules is not None) and (len(self.access_rules) > 0):
             access_rules_list = []
             for access_rule in self.access_rules:
-                access_rules_list.append(access_rule.to_dict())
+                access_rules_list.append(access_rule.to_dict(validate))
             access_data_dict[AccessData.ACCESS_RULES_LABEL] = access_rules_list
 
         # Encode the Schedules.
         if (self.schedules is not None) and (len(self.schedules) > 0):
             schedules_list = []
             for schedule in self.schedules:
-                schedules_list.append(schedule.to_dict())
+                schedules_list.append(schedule.to_dict(validate))
             access_data_dict[AccessData.SCHEDULES_LABEL] = schedules_list
 
         # Encode the Reader Rule IDs.
@@ -226,7 +226,7 @@ class AccessData(object):
             for vendor_registered_id, extensions in self.non_access_extensions.items():
                 non_access_extensions_list = []
                 for non_access_extension in extensions:
-                    non_access_extensions_list.append(non_access_extension.to_list())
+                    non_access_extensions_list.append(non_access_extension.to_list(validate))
                 if (len(non_access_extensions_list) > 0):
                     non_access_extensions_dict[vendor_registered_id] = non_access_extensions_list
             access_data_dict[AccessData.NON_ACCESS_EXTENSIONS_LABEL] = non_access_extensions_dict
@@ -237,7 +237,7 @@ class AccessData(object):
             for vendor_registered_id, extensions in self.access_extensions.items():
                 access_extensions_list = []
                 for access_extension in extensions:
-                    access_extensions_list.append(access_extension.to_list())
+                    access_extensions_list.append(access_extension.to_list(validate))
                 if (len(access_extensions_list) > 0):
                     access_extensions_dict[vendor_registered_id] = access_extensions_list
             access_data_dict[AccessData.ACCESS_EXTENSIONS_LABEL] = access_extensions_dict
@@ -324,9 +324,9 @@ class AccessData(object):
         return self.is_valid()
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the AccessData to CBOR.'''
-        access_data_dict = self.to_dict()
+        access_data_dict = self.to_dict(validate)
         if access_data_dict is None:
             return None
         return cbor2.dumps(access_data_dict)

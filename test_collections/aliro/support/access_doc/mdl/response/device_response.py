@@ -111,9 +111,9 @@ class DeviceResponse(object):
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the DeviceResponse to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         device_response_dict = {}
@@ -124,7 +124,7 @@ class DeviceResponse(object):
         # Encode the Documents.
         documents_list = []
         for document in self.__documents:
-            documents_list.append(document.to_dict())
+            documents_list.append(document.to_dict(validate))
         device_response_dict[DeviceResponse.DOCUMENTS_LABEL] = documents_list
 
         # Encode the Status.
@@ -178,9 +178,9 @@ class DeviceResponse(object):
         return self.is_valid()
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the DeviceResponse to CBOR.'''
-        device_response_dict = self.to_dict()
+        device_response_dict = self.to_dict(validate)
         if device_response_dict is None:
             return None
         return cbor2.dumps(device_response_dict)

@@ -164,7 +164,6 @@ class RecurrenceRule(object):
     @pattern.setter
     def pattern(self, val : int | RecurrenceRulePatternType) -> None:
         '''Set the recurrence pattern type.'''
-        assert(isinstance(val, (int, RecurrenceRulePatternType)))
         if val >= RecurrenceRulePatternType.DAILY and val <= RecurrenceRulePatternType.YEARLY_BY_MONTH_WEEK:
             self.__pattern = int(val)
         else:

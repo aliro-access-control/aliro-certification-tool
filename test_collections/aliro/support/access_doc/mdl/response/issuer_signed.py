@@ -82,9 +82,9 @@ class IssuerSigned(object):
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the IssuerSigned to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         issuer_signed_dict = {}
@@ -101,7 +101,7 @@ class IssuerSigned(object):
             issuer_signed_dict[IssuerSigned.NAMESPACES_LABEL] = namespaces_dict
 
         # Encode the Issuer Auth field.
-        issuer_signed_dict[IssuerSigned.ISSUER_AUTH_LABEL] = self.__issuer_auth.to_list()
+        issuer_signed_dict[IssuerSigned.ISSUER_AUTH_LABEL] = self.__issuer_auth.to_list(validate)
 
         return issuer_signed_dict
 
@@ -136,9 +136,9 @@ class IssuerSigned(object):
         return self.is_valid()
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the IssuerSigned to CBOR.'''
-        issuer_signed_dict = self.to_dict()
+        issuer_signed_dict = self.to_dict(validate)
         if issuer_signed_dict is None:
             return None
         return cbor2.dumps(issuer_signed_dict)

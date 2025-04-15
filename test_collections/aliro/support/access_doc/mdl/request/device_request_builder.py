@@ -84,7 +84,6 @@ class DeviceRequestBuilder(object):
 
         # Specify which Access Docs to request.
         for access_request in access_data_elements:
-            assert(isinstance(access_request, RequestElement))
             access_doc_request.items_request.namespaces.set(
                 IssuerNamespaces.ALIRO_ACCESS,
                 access_request.data_element_id,
@@ -98,7 +97,6 @@ class DeviceRequestBuilder(object):
 
         # Specify which Revocation Docs to request.
         for revocation_request in revocation_data_elements:
-            assert(isinstance(revocation_request, RequestElement))
             revocation_doc_request.items_request.namespaces.set(
                 IssuerNamespaces.ALIRO_REVOCATION,
                 revocation_request.data_element_id,

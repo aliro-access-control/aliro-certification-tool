@@ -147,9 +147,9 @@ class COSE_Key(object):
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the COSE_Key to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         cose_key_dict = {}

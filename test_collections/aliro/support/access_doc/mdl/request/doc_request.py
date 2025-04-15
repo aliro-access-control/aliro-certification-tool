@@ -38,7 +38,6 @@ class DocRequest(object):
     @items_request.setter
     def items_request(self, val : ItemsRequest) -> None:
         '''Set the Item Request.'''
-        assert(isinstance(val, ItemsRequest))
         self.__items_request = val
 
     ############################################################################
@@ -47,24 +46,22 @@ class DocRequest(object):
            otherwise returns False.'''
 
         # Verify the Items Request is valid.
-        if not isinstance(self.__items_request, ItemsRequest):
-            return False
         if not self.__items_request.is_valid():
             return False
 
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the DocRequest to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         doc_request_dict = {}
 
         # Encode the Item Request.
         cbor_tag_encoded_cbor = 24
-        doc_request_dict[DocRequest.ITEMS_REQUEST_LABEL] = cbor2.CBORTag(cbor_tag_encoded_cbor, self.__items_request.to_cbor())
+        doc_request_dict[DocRequest.ITEMS_REQUEST_LABEL] = cbor2.CBORTag(cbor_tag_encoded_cbor, self.__items_request.to_cbor(validate))
 
         return doc_request_dict
 
@@ -93,9 +90,9 @@ class DocRequest(object):
         return self.is_valid()
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the DocRequest to CBOR.'''
-        doc_request_dict = self.to_dict()
+        doc_request_dict = self.to_dict(validate)
         if doc_request_dict is None:
             return None
         return cbor2.dumps(doc_request_dict)

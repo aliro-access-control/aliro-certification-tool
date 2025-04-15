@@ -30,6 +30,8 @@ class AccessRuleCapabilitiesBits(IntFlag):
 
     ALL_CAPABILITIES            = 0x3F
 
+    MAX_CAPABILITIES            = 0xFFFF
+
 ################################################################################
 class AccessRuleScheduleIds(IntEnum):
     SCHEDULE_1  = 0
@@ -87,11 +89,9 @@ class AccessRule(object):
     @capabilities.setter
     def capabilities(self, val : int | AccessRuleCapabilitiesBits) -> None:
         '''Set the Capabilities bit mask.'''
-        assert(isinstance(val, (int, AccessRuleCapabilitiesBits)))
+        assert(val <= AccessRuleCapabilitiesBits.MAX_CAPABILITIES)
         if val < 0:
             self.__capabilities = int(0)
-        elif val > AccessRuleCapabilitiesBits.ALL_CAPABILITIES:
-            self.__capabilities = int(AccessRuleCapabilitiesBits.ALL_CAPABILITIES)
         else:
             self.__capabilities = int(val)
 
@@ -106,7 +106,7 @@ class AccessRule(object):
         '''Get the Allow Schedule IDs bit mask.'''
         mask = 0
         for id in self.__allow_schedule_ids:
-            if isinstance(id, (int, AccessRuleScheduleIds)) and (id >= AccessRule.SCHEDULE_ID_MIN) and (id <= AccessRule.SCHEDULE_ID_MAX):
+            if (id >= AccessRule.SCHEDULE_ID_MIN) and (id <= AccessRule.SCHEDULE_ID_MAX):
                 mask |= 1 << int(id)
         return mask
 
@@ -130,7 +130,7 @@ class AccessRule(object):
         '''Get the Deny Schedule IDs bit mask.'''
         mask = 0
         for id in self.__deny_schedule_ids:
-            if isinstance(id, (int, AccessRuleScheduleIds)) and (id >= AccessRule.SCHEDULE_ID_MIN) and (id <= AccessRule.SCHEDULE_ID_MAX):
+            if (id >= AccessRule.SCHEDULE_ID_MIN) and (id <= AccessRule.SCHEDULE_ID_MAX):
                 mask |= 1 << int(id)
         return mask
 
@@ -150,28 +150,28 @@ class AccessRule(object):
         # Verify the Capabilities.
         if ((type(self.capabilities) is not int) or
             (self.capabilities <= 0) or
-            ((self.capabilities & ~(int(AccessRuleCapabilitiesBits.ALL_CAPABILITIES))) != 0)):
+            (self.capabilities > AccessRuleCapabilitiesBits.MAX_CAPABILITIES)):
             return False
 
         # Verify the Allow Schedule IDs.
         for id in self.allow_schedule_ids:
             # Valid Schedule IDs are a bit number in the range [0..7].
-            if (not isinstance(id, (int, AccessRuleScheduleIds))) or (id < AccessRule.SCHEDULE_ID_MIN) or (id > AccessRule.SCHEDULE_ID_MAX):
+            if (id < AccessRule.SCHEDULE_ID_MIN) or (id > AccessRule.SCHEDULE_ID_MAX):
                 return False
 
         # Verify the Deny Schedule IDs.
         for id in self.deny_schedule_ids:
             # Valid Schedule IDs are a bit number in the range [0..7].
-            if (not isinstance(id, (int, AccessRuleScheduleIds))) or (id < AccessRule.SCHEDULE_ID_MIN) or (id > AccessRule.SCHEDULE_ID_MAX):
+            if (id < AccessRule.SCHEDULE_ID_MIN) or (id > AccessRule.SCHEDULE_ID_MAX):
                 return False
 
         # The Access Rule is valid.
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the AccessRule to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         access_rule_dict = {}
@@ -236,9 +236,9 @@ class AccessRule(object):
         return self.is_valid()
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the AccessRule to CBOR.'''
-        access_rule_dict = self.to_dict()
+        access_rule_dict = self.to_dict(validate)
         if access_rule_dict is None:
             return None
         return cbor2.dumps(access_rule_dict)

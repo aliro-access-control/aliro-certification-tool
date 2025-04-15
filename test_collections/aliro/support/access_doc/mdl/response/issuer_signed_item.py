@@ -90,7 +90,6 @@ class IssuerSignedItem(object):
     @element_value.setter
     def element_value(self, val : AccessData | RevocationData) -> None:
         '''Set the Element Value.'''
-        assert(isinstance(val, (AccessData | RevocationData)))
         self.__element_value = val
 
     ############################################################################
@@ -117,9 +116,9 @@ class IssuerSignedItem(object):
         return True
 
     ############################################################################
-    def to_dict(self) -> dict:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the IssuerSignedItem to a dictionary.'''
-        if not self.is_valid():
+        if validate and not self.is_valid():
             return None
 
         issuer_signed_item_dict = {}
@@ -139,9 +138,9 @@ class IssuerSignedItem(object):
         return issuer_signed_item_dict
 
     ############################################################################
-    def to_cbor(self) -> bytes:
+    def to_cbor(self, validate=True) -> bytes:
         '''Convert the IssuerSignedItem to CBOR.'''
-        issuer_signed_item_dict = self.to_dict()
+        issuer_signed_item_dict = self.to_dict(validate)
         if issuer_signed_item_dict is None:
             return None
         return cbor2.dumps(issuer_signed_item_dict)
