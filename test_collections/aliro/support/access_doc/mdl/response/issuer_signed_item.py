@@ -138,9 +138,23 @@ class IssuerSignedItem(object):
         return issuer_signed_item_dict
 
     ############################################################################
+    def from_dict(self, issuer_signed_item_dict: dict) -> bool:
+        self.digest_id = int(issuer_signed_item_dict[IssuerSignedItem.DIGEST_ID_LABEL])
+        self.random = bytearray(issuer_signed_item_dict[IssuerSignedItem.RANDOM_LABEL])
+        self.element_identifier = str(issuer_signed_item_dict[IssuerSignedItem.ELEMENT_IDENTIFIER_LABEL])
+        self.element_value = issuer_signed_item_dict[IssuerSignedItem.ELEMENT_VALUE_LABEL]
+        return True
+
+    ############################################################################
     def to_cbor(self, validate=True) -> bytes:
         '''Convert the IssuerSignedItem to CBOR.'''
         issuer_signed_item_dict = self.to_dict(validate)
         if issuer_signed_item_dict is None:
             return None
         return cbor2.dumps(issuer_signed_item_dict)
+
+    ############################################################################
+    def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
+        '''Parse CBOR to populate the IssuerSignedItem.'''
+        assert(isinstance(cbor_data, (bytes, bytearray)))
+        return self.from_dict(cbor2.loads(cbor_data))
