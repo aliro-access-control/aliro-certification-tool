@@ -278,4 +278,4 @@ class MobileSecurityObject(object):
     def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
         '''Parse CBOR to populate the MobileSecurityObject.'''
         assert(isinstance(cbor_data, (bytes, bytearray)))
-        return self.from_dict(cbor2.loads(cbor_data))  
+        return self.from_dict(cbor2.loads(cbor_data))
