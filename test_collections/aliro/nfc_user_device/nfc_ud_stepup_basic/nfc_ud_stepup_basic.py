@@ -82,7 +82,9 @@ class NFC_UD_STEPUP_BASIC(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Build the Device Request.
         self.issuer_public_key, self.element_id = self.th_access_document_data()
-        self.request = DeviceRequestBuilder.build([RequestElement(self.element_id, False)], []).to_cbor()
+        self.request = DeviceRequestBuilder.build(
+            [RequestElement(self.element_id, False)], [RequestElement(self.element_id, False)]
+        ).to_cbor()
         logger.info(f"Generated Device Request: {self.request.hex()}")
 
 
@@ -147,7 +149,7 @@ class NFC_UD_STEPUP_BASIC(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Validate hash and signature
         for document in device_response.documents:
-            if not document.check_signature(self.issuer_public_key):
+            if not document.check_signature(self.issuer_public_key, self.reader.credential_pubk.as_bytes()):
                 self.mark_step_failure("Document signature is invalid.")
                 return
         self.next_step()

@@ -16,6 +16,12 @@
 
 import cbor2
 from .mobile_security_object import MobileSecurityObject
+from .sig_structure import Sig_structure
+
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.asymmetric import utils
+from cryptography.exceptions import InvalidSignature
 
 ################################################################################
 class COSE_Sign1(object):
@@ -72,7 +78,7 @@ class COSE_Sign1(object):
 
     ############################################################################
     @property
-    def x5chain(self) -> int:
+    def x5chain(self) -> bytes:
         '''Get the x5 certificate chain.'''
         return self.__x5chain
 
@@ -226,3 +232,18 @@ class COSE_Sign1(object):
         if COSE_Sign1_list is None:
             return None
         return cbor2.dumps(COSE_Sign1_list)
+
+    def check_signature(self, public_key: ec.EllipticCurvePublicKey) -> bool:
+        sig_structure = Sig_structure()
+        sig_structure.body_protected = self.protected
+        sig_structure.payload = self.payload
+        signed_data = sig_structure.to_cbor()
+
+        r = int.from_bytes(self.signature[0:32], byteorder='big')
+        s = int.from_bytes(self.signature[32:64], byteorder='big')
+        signature = utils.encode_dss_signature(r, s)
+        try:
+            public_key.verify(signature, signed_data, ec.ECDSA(hashes.SHA256()))
+        except InvalidSignature:
+            return False
+        return True
