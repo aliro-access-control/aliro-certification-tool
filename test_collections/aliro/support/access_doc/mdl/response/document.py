@@ -161,7 +161,7 @@ class Document(object):
         cert = None
         if self.issuer_signed.issuer_auth.key_id is not None:
             if not self._check_keyid(public_key):
-                print("Invalid Public Key.")
+                print("Invalid Key ID.")
                 return False
         elif self.issuer_signed.issuer_auth.x5chain is not None:
             cert = self._check_x5chain(public_key, check_time)

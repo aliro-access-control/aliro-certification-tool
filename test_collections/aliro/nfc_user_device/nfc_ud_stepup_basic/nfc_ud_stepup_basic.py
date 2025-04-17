@@ -134,7 +134,7 @@ class NFC_UD_STEPUP_BASIC(AliroUserDeviceTestCase, UserPromptSupport):
             return
 
         # Parse response
-        logger.info(f"Cbor = {response}")
+        logger.info(f"Cbor = {response.hex()}")
         device_response = DeviceResponse()
         if device_response.from_cbor(response):
             logger.info("Successfully parsed the CBOR to populate a Device Response.")
@@ -149,7 +149,10 @@ class NFC_UD_STEPUP_BASIC(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Validate hash and signature
         for document in device_response.documents:
-            if not document.check_signature(self.issuer_public_key, self.reader.credential_pubk.as_bytes()):
+            if not document.check_signature(
+                    self.issuer_public_key.as_bytes(),
+                    self.reader.session.credential_pubk.as_bytes()
+            ):
                 self.mark_step_failure("Document signature is invalid.")
                 return
         self.next_step()
