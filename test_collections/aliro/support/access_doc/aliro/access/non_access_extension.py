@@ -105,6 +105,16 @@ class NonAccessExtension(object):
         return access_extension_list
 
     ############################################################################
+    def from_list(self, non_access_extension_list: list) -> bool:
+        if len(non_access_extension_list) != 3:
+            return False
+
+        self.id = int(non_access_extension_list[0])
+        self.version = int(non_access_extension_list[1])
+        self.data = non_access_extension_list[2]
+        return True
+
+    ############################################################################
     def to_cbor(self, validate=True) -> bytes:
         '''Convert the NonAccessExtension to CBOR.'''
         access_extension_list = self.to_list(validate)
