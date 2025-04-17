@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .ud_ble_fsttxn_10 import UD_BLE_FSTTXN_10
+from .bleuwb_ud_expedited_fast_phase import BLEUWB_UD_EXPEDITED_FAST_PHASE
