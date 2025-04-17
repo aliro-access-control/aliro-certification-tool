@@ -182,9 +182,53 @@ class RevocationData(object):
         return revocation_data_dict
 
     ############################################################################
+    def from_dict(self, revocation_data_dict: dict) -> bool:
+        self.__entries = []
+        self.__entries_to_remove = []
+        self.__revocation_extensions = {}
+
+        self.version = int(revocation_data_dict[RevocationData.VERSION_LABEL])
+        self.change_mode = RevocationChangeMode(revocation_data_dict[RevocationData.CHANGE_MODE_LABEL])
+
+        for item in revocation_data_dict[RevocationData.ENTRIES_LABEL]:
+            entry = RevocationEntry()
+            if not entry.from_dict(item):
+                return False
+            self.__entries.append(entry)
+
+        for item in revocation_data_dict[RevocationData.ENTRIES_TO_REMOVE_LABEL]:
+            entry = RevocationEntry()
+            if not entry.from_dict(item):
+                return False
+            self.__entries_to_remove.append(entry)
+
+        extension_dict = revocation_data_dict.get(RevocationData.REVOCATION_EXTENSIONS_LABEL)
+        if extension_dict is not None:
+            if not isinstance(extension_dict, dict):
+                return False
+            for vendor_registered_id, elements in extension_dict:
+                if not isinstance(vendor_registered_id, str):
+                    return False
+                for element in elements:
+                    if not isinstance(element, list):
+                        return False
+                    ext = RevocationExtension()
+                    if not ext.from_list(element):
+                        return False
+                    self.__revocation_extensions[vendor_registered_id].append(ext)
+
+        return True
+
+    ############################################################################
     def to_cbor(self, validate=True) -> bytes:
         '''Convert the RevocationData to CBOR.'''
         revocation_data_dict = self.to_dict(validate)
         if revocation_data_dict is None:
             return None
         return cbor2.dumps(revocation_data_dict)
+
+    ############################################################################
+    def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
+        '''Parse CBOR to populate the RevocationData.'''
+        assert(isinstance(cbor_data, (bytes, bytearray)))
+        return self.from_dict(cbor2.loads(cbor_data))
