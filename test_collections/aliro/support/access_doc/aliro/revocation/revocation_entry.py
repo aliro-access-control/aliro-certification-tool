@@ -131,9 +131,22 @@ class RevocationEntry(object):
         return revocation_entry_dict
 
     ############################################################################
+    def from_dict(self, revocation_entry_dict: dict) -> bool:
+        self.public_key_hash = revocation_entry_dict.get(RevocationEntry.PUBLIC_KEY_HASH_LABEL, bytearray())
+        self.id = revocation_entry_dict.get(RevocationEntry.ID_LABEL, bytearray())
+        self.expiry_time = revocation_entry_dict.get(RevocationEntry.EXPIRY_TIME_LABEL, 0)
+        return True
+
+    ############################################################################
     def to_cbor(self, validate=True) -> bytes:
         '''Convert the RevocationEntry to CBOR.'''
         revocation_entry_dict = self.to_dict(validate)
         if revocation_entry_dict is None:
             return None
         return cbor2.dumps(revocation_entry_dict)
+
+    ############################################################################
+    def from_cbor(self, cbor_data : (bytes | bytearray)) -> bool:
+        '''Parse CBOR to populate the RevocationEntry.'''
+        assert(isinstance(cbor_data, (bytes, bytearray)))
+        return self.from_dict(cbor2.loads(cbor_data))

@@ -134,6 +134,17 @@ class AccessExtension(object):
         return access_extension_list
 
     ############################################################################
+    def from_list(self, access_extension_list: list) -> bool:
+        if len(access_extension_list) != 4:
+            return False
+
+        self.__criticality = int(access_extension_list[0])
+        self.id = int(access_extension_list[1])
+        self.version = int(access_extension_list[2])
+        self.data = access_extension_list[3]
+        return True
+
+    ############################################################################
     def to_cbor(self, validate=True) -> bytes:
         '''Convert the AccessExtension to CBOR.'''
         access_extension_list = self.to_list(validate)
