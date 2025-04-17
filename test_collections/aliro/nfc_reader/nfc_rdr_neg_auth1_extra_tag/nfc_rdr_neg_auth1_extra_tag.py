@@ -1,4 +1,8 @@
-from aliro_actuator.access_protocol.apdu import Auth1Response, INS
+from aliro_actuator.access_protocol.apdu import (
+    Auth1Response,
+    INS,
+    StatusBytes,
+)
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
@@ -13,6 +17,7 @@ from aliro_actuator.access_protocol.authentication import (
     create_user_device_authentication,
 )
 from aliro_actuator.trust_framework.key import KeyPair
+from aliro_actuator.access_protocol.tlv import TLV
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -49,11 +54,10 @@ class NFC_RDR_NEG_AUTH1_EXTRA_TAG(AliroReaderTestCase, UserPromptSupport):
     def create_test_steps(self) -> None:
         self.test_steps = [
             TestStep("Step1: Initialization"),
-            TestStep("Step2: Set Reader Device Under Test in polling mode"),
-            TestStep("Step3: Transaction initiation"),
-            TestStep("Step4: Receive/Send AUTH0 command/response"),
-            TestStep("Step5: Receive/Send AUTH1 command/response"),
-            TestStep("Step6: Receive/Send EXCHANGE command/response"),
+            TestStep("Step2: Transaction initiation"),
+            TestStep("Step3: Receive/Send AUTH0 command/response"),
+            TestStep("Step4: Receive/Send AUTH1 command/response"),
+            TestStep("Step5: Receive/Send EXCHANGE command/response"),
         ]
 
     async def setup(self) -> None:
@@ -73,16 +77,6 @@ class NFC_RDR_NEG_AUTH1_EXTRA_TAG(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 2
-        # Display pop-up to set the Reader Device Under Test in polling mode
-        await self.send_prompt_request(
-            OptionsSelectPromptRequest(
-                prompt="Set Reader Device Under Test in NFC polling mode",
-                options={"OK": 1},
-            )
-        )
-        self.next_step()
-
-        # Test step 3
         # Display pop-up to put the Test Harness on the Reader device Under Test
         await self.send_prompt_request(
             OptionsSelectPromptRequest(
@@ -97,7 +91,7 @@ class NFC_RDR_NEG_AUTH1_EXTRA_TAG(AliroReaderTestCase, UserPromptSupport):
             return
         self.next_step()
 
-        # Test step 4 Receive/Send Auth0 command/response
+        # Test step 3 Receive/Send Auth0 command/response
         try:
             cmds_auth0 = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:
@@ -115,7 +109,7 @@ class NFC_RDR_NEG_AUTH1_EXTRA_TAG(AliroReaderTestCase, UserPromptSupport):
             )
         self.next_step()
 
-        # Test step 5 Receive/Send Auth1 command/response
+        # Test step 4 Receive/Send Auth1 command/response
         try:
             cmds_auth1 = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:
@@ -212,7 +206,7 @@ class NFC_RDR_NEG_AUTH1_EXTRA_TAG(AliroReaderTestCase, UserPromptSupport):
             auth1_payload: list[tuple[int, bytes | list]] = [
                 (Auth1.CREDENTIAL_PUBK_TAG, self.userdevice.session.access_credential.get_access_credential_public_key().as_bytes()),
                 (Auth1.USER_DEVICE_SIG_TAG, signature),
-                (Auth1.SIGNALING_BITMAP_TAG, self.userdevice.get_signaling_bitmap())
+                (Auth1.SIGNALING_BITMAP_TAG, self.userdevice.get_signaling_bitmap()),
                 (Auth1.UNKNOWN_TAG, bytes([0x01, 0x02, 0x03])),
             ]
             auth1_payload_tlv = TLV(auth1_payload)
@@ -220,7 +214,7 @@ class NFC_RDR_NEG_AUTH1_EXTRA_TAG(AliroReaderTestCase, UserPromptSupport):
                 auth1_payload_tlv.to_bytes(),
             )
             payload = bytes([*encrypted_payload, *tag])
-            auth1_response = self.userdevice.apdu.create_response(payload, status)
+            auth1_response = self.userdevice.apdu.create_response(payload, StatusBytes.SUCCESS)
 
             await self.userdevice.apdu.handle_chaining_send_response(
                 auth1_response, self.userdevice.transport_protocol
@@ -232,7 +226,7 @@ class NFC_RDR_NEG_AUTH1_EXTRA_TAG(AliroReaderTestCase, UserPromptSupport):
             return
         self.next_step()
         
-        # Test Step 6 Receive/Send EXCHANGE command/response
+        # Test Step 5 Receive/Send EXCHANGE command/response
         try:
             cmds_exchange = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:
