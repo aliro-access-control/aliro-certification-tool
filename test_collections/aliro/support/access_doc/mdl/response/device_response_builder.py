@@ -106,30 +106,59 @@ class DeviceResponseBuilder(object):
 
         device_response = DeviceResponse()
 
-        doc, _ = DeviceResponseBuilder._build_doc(
+        doc = DeviceResponseBuilder.build_doc(
             IssuerNamespaces.ALIRO_ACCESS,
             DocTypes.ALIRO_ACCESS,
             access_data_elements,
+            issuer_private_key,
             device_public_key,
             valid_from,
             valid_until,
             x509_cert,
             validity_iteration,
-            time_verification_required)
+            time_verification_required,
+            use_keyId)
 
-        if (doc is not None):
-            DeviceResponseBuilder._sign_doc(
-                doc,
-                issuer_private_key,
-                use_keyid=use_keyId
-            )
-
+        if doc is not None:
             device_response.documents.append(doc)
 
-        doc, _ = DeviceResponseBuilder._build_doc(
+        doc = DeviceResponseBuilder.build_doc(
             IssuerNamespaces.ALIRO_REVOCATION,
             DocTypes.ALIRO_REVOCATION,
             revocation_data_elements,
+            issuer_private_key,
+            device_public_key,
+            valid_from,
+            valid_until,
+            x509_cert,
+            validity_iteration,
+            time_verification_required,
+            use_keyId)
+
+        if doc is not None:
+            device_response.documents.append(doc)
+
+        return device_response
+
+    ############################################################################
+    @staticmethod
+    def build_doc(
+            namespace: str,
+            doc_type: str,
+            data_elements: list[ResponseElement] | None,
+            issuer_private_key: bytes | bytearray,
+            device_public_key: bytes | bytearray,
+            valid_from: str | int | float | datetime.date | datetime.datetime,
+            valid_until: str | int | float | datetime.date | datetime.datetime,
+            x509_cert: bytes | None = None,
+            validity_iteration: int = -1,
+            time_verification_required: bool = False,
+            use_keyId: bool = True
+    ) -> Document | None:
+        doc, _ = DeviceResponseBuilder._build_doc(
+            namespace,
+            doc_type,
+            data_elements,
             device_public_key,
             valid_from,
             valid_until,
@@ -137,16 +166,13 @@ class DeviceResponseBuilder(object):
             validity_iteration,
             time_verification_required)
 
-        if (doc is not None):
+        if doc is not None:
             DeviceResponseBuilder._sign_doc(
                 doc,
                 issuer_private_key,
                 use_keyid=use_keyId
             )
-
-            device_response.documents.append(doc)
-
-        return device_response
+        return doc
 
     ############################################################################
     @staticmethod
