@@ -20,17 +20,17 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 
 from ...support.access_doc.mdl.request import DeviceRequest
 from ...support.access_doc.mdl.response import DeviceResponse
-from ...support.access_doc.aliro.access import AccessData
+from ...support.access_doc.aliro.revocation import RevocationData, RevocationChangeMode, RevocationEntry
 from ...support.access_doc.mdl.response.device_response_builder import DeviceResponseBuilder, ResponseElement
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class NFC_RDR_STEPUP_AD_KEY_ID(AliroReaderTestCase, UserPromptSupport):
+class NFC_RDR_NEG_STEPUP_RD_INVALID_ELEMENT_VERSION(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "NFC_RDR_STEPUP_AD_KEY_ID",
+        "public_id": "NFC_RDR_NEG_STEPUP_RD_INVALID_ELEMENT_VERSION",
         "version": "0.0.1",
-        "title": "NFC_RDR_STEPUP_AD_KEY_ID",
-        "description": """Verify parsing of Access Document with Key Identifier""",
+        "title": "NFC_RDR_NEG_STEPUP_RD_INVALID_ELEMENT_VERSION",
+        "description": """Verify rejection of Revocation Document if Element has invalid Version""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -58,29 +58,34 @@ class NFC_RDR_STEPUP_AD_KEY_ID(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step4: Handle EXCHANGE command/response")
         ]
 
-    def build_access_document(self, access_credential_pk: bytes) -> bytes:
+    def build_revocation_document(self, access_credential_pk: bytes) -> bytes:
         issuer_keypair, self.element_id = self.access_document_data()
 
-        access_element = AccessData()
-        access_element.version = 1
+        entry = RevocationEntry()
+        entry.id = bytes.fromhex("0001020304")
+
+        revocation_element = RevocationData()
+        revocation_element.version = 42  # Makes invalid
+        revocation_element.change_mode = RevocationChangeMode.OVERWRITE
+        revocation_element.entries.append(entry)
 
         x = DeviceResponseBuilder.build_doc(
-            'aliro-a',
-            'aliro-a',
-            [ResponseElement(data_element_id=self.element_id, value=access_element)],
+            'aliro-r',
+            'aliro-r',
+            [ResponseElement(data_element_id=self.element_id, value=revocation_element)],
             issuer_keypair.get_private_key().as_bytes(),
             access_credential_pk,
             valid_from=datetime.datetime.now(datetime.timezone.utc),
             valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
-        ).to_cbor()
+        ).to_cbor(validate=False)
 
-        logger.info(f"Generated Access Document: {x.hex()}")
+        logger.info(f"Generated Revocation Document: {x.hex()}")
         return x
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
         access_credential = self.reader_access_credential()
-        access_doc = self.build_access_document(
+        revocation_doc = self.build_revocation_document(
             access_credential.get_access_credential_public_key().as_bytes()
         )
 
@@ -89,7 +94,7 @@ class NFC_RDR_STEPUP_AD_KEY_ID(AliroReaderTestCase, UserPromptSupport):
             access_credentials=[access_credential],
             mailbox=0x00,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
-            access_document=access_doc,
+            revocation_document=revocation_doc,
             step_up_aid_required=True,
         )
 
@@ -180,7 +185,7 @@ class NFC_RDR_STEPUP_AD_KEY_ID(AliroReaderTestCase, UserPromptSupport):
         found_element = False
         for doc_type, elm_req in [y for x in device_request.doc_requests for y in
                                   x.items_request.namespaces.data.items()]:
-            if doc_type != "aliro-a":
+            if doc_type != "aliro-r":
                 continue
             if self.element_id in elm_req.keys():
                 found_element = True
@@ -210,7 +215,7 @@ class NFC_RDR_STEPUP_AD_KEY_ID(AliroReaderTestCase, UserPromptSupport):
             self.mark_step_failure(str(error))
             return
 
-        if cmds_exchange.reader_status.value.to_bytes(2, 'big')[0] != 0x01:
+        if cmds_exchange.reader_status.value.to_bytes(2, 'big')[0] != 0x00:
             self.mark_step_failure(
                 "Received incorrect EXCHANGE reader status: : 0x{:04x}".format(
                     cmds_exchange.reader_status.value
@@ -219,5 +224,5 @@ class NFC_RDR_STEPUP_AD_KEY_ID(AliroReaderTestCase, UserPromptSupport):
             return
 
     async def cleanup(self) -> None:
-        logger.info("NFC_RDR_STEPUP_AD_KEY_ID Cleanup")
+        logger.info("NFC_RDR_NEG_STEPUP_RD_INVALID_ELEMENT_VERSION Cleanup")
         await self.userdevice.transaction_termination()
