@@ -27,12 +27,12 @@ from ...support.access_doc.mdl.response.device_response_builder import DeviceRes
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase, UserPromptSupport):
+class NFC_RDR_NEG_STEPUP_AD_ISSUER_DOCTYPE_MISMATCH(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH",
+        "public_id": "NFC_RDR_NEG_STEPUP_AD_ISSUER_DOCTYPE_MISMATCH",
         "version": "0.0.1",
-        "title": "NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH",
-        "description": """Verify rejection of Access Document with mismatched certificate and issuerAuth signature times""",
+        "title": "NFC_RDR_NEG_STEPUP_AD_ISSUER_DOCTYPE_MISMATCH",
+        "description": """Verify rejection of Access Document with incorrect issuerAuth doctype""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -43,10 +43,6 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
     endpoint_ePrivK = bytes.fromhex(
         "70637ee9b40cee568567c69589276888edca7128bb13fb531f9c4f502d8cc65e"
     )  # from Test Vector
-
-    issuer_leaf_PubK = bytes.fromhex("04E1AD1E196D46C2508088594F7FB5342C85DD133145216B559498BBB148B32EEE0FFD2CAABD751"
-                                     "6A39F3855BC955948F71F72C5771797BAE8032E946F70F0D520")
-    issuer_leaf_PrivK = bytes.fromhex("0000297D2963C5741166C6D1CC3579EF45AB2E5798F92115AC81FE6BBDD7320E")
 
     @classmethod
     def pics(cls) -> set[str]:
@@ -63,51 +59,36 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
             TestStep("Step3: Handle EXCHANGE command/response")
         ]
 
-    def build_device_response(self, access_credential_pk: bytes) -> DeviceResponse:
+    def build_access_document(self, access_credential_pk: bytes) -> bytes:
         issuer_keypair, self.element_id = self.access_document_data()
 
         access_element = AccessData()
         access_element.version = 1
 
-        # Make Cert
-        leaf_keypair = KeyPair(self.issuer_leaf_PrivK, self.issuer_leaf_PubK)
-        x509 = Certificate.generate(
-            key_info_subject_public_key=leaf_keypair.get_public_key().as_bytes(),
-            issuer_keypair=issuer_keypair,
-            validity_not_before=datetime.datetime.now(datetime.timezone.utc).strftime("%y%m%d%H%M%SZ").encode("utf-8"),
-            validity_not_after=(
-                        datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
-                    ).strftime("%y%m%d%H%M%SZ").encode("utf-8"),
-        )
-
-        x = DeviceResponse()
-        y, m = DeviceResponseBuilder._build_doc(
+        x, m = DeviceResponseBuilder._build_doc(
             DocTypes.ALIRO_ACCESS,
             IssuerNamespaces.ALIRO_ACCESS,
             [ResponseElement(data_element_id=self.element_id, value=access_element)],
             access_credential_pk,
             valid_from=datetime.datetime.now(datetime.timezone.utc),
             valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
-            x509_cert=x509,
         )
-        m.validity_info.signed = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=14)  # Make invalid
+        m.doc_type = "bad-doctype"  # Make invalid
 
         DeviceResponseBuilder._sign_doc(
-            y,
-            leaf_keypair.get_private_key().as_bytes(),
-            mso=m,
-            use_keyid=False
+            x,
+            issuer_keypair.get_private_key().as_bytes(),
+            mso=m
         )
-        x.documents.append(y)
+        x = x.to_cbor(validate=False)
 
-        logger.info(f"Generated Device Response: {x.to_cbor(validate=False).hex()}")
+        logger.info(f"Generated Access Document: {x.hex()}")
         return x
-
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
         access_credential = self.reader_access_credential()
-        self.device_response = self.build_device_response(
+        access_doc = self.build_access_document(
             access_credential.get_access_credential_public_key().as_bytes()
         )
 
@@ -116,7 +97,7 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
             access_credentials=[access_credential],
             mailbox=0x00,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
-            access_document=self.device_response.to_cbor(validate=False),
+            access_document=access_doc,
         )
 
     @log_errors
@@ -231,5 +212,5 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
             return
 
     async def cleanup(self) -> None:
-        logger.info("NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH Cleanup")
+        logger.info("NFC_RDR_NEG_STEPUP_AD_ISSUER_DOCTYPE_MISMATCH Cleanup")
         await self.userdevice.transaction_termination()
