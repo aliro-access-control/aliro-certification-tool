@@ -5,6 +5,7 @@ from aliro_actuator.access_protocol.apdu import (
     TLV,
     S1,
     S2,
+    StatusBytes,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -191,9 +192,14 @@ class NFC_RDR_NEG_AUTH0_WRONG_VALUE(AliroReaderTestCase, UserPromptSupport):
                 ]
                 data_bytes = TLV(data_tlv)
                 if hasattr(cmds_auth0, "tlv_check"):
-                    command_status = cmds_auth0.tlv_check
+                    status = cmds_auth0.tlv_check
                 else:
-                    command_status = True
+                    status = True    
+                if status:
+                    command_status = StatusBytes.SUCCESS
+                else:
+                    command_status = StatusBytes.COMMAND_NOT_COMPLIANT
+                
                 auth0_response = self.userdevice.apdu.create_response(data_bytes.to_bytes(), command_status)
                 await self.userdevice.apdu.handle_chaining_send_response(
                     auth0_response, self.userdevice.transport_protocol
