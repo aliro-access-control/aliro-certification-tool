@@ -6,6 +6,12 @@ from aliro_actuator.access_protocol.defines import (
     TransportProtocol,
 )
 from aliro_actuator.access_protocol.user_device import UserDevice, RkeAction
+from aliro_actuator.transport_protocol.ble_message_format import (
+    Notification_ID,
+    OperationSourceInformation_Values,
+    ReaderStatusInformation_Values,
+    UnsolicitedReaderStatusReporting_Values,
+)
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
@@ -171,7 +177,7 @@ class BLERKE_RDR_SECURE(AliroReaderTestCase, UserPromptSupport):
             if status_changed.id == Notification_ID.READER_STATUS_CHANGED:
                 self.userdevice.handle_reader_status_changed_message(status_changed)
                 # If we receive Reader Status Changed then we end the test
-            if self.userdevice.reader_status_information != ReaderStatusInformation_Values.SECURED:
+            if status_changed.reader_status_information != ReaderStatusInformation_Values.SECURED:
                 self.mark_step_failure("Wrong reader status information")
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
