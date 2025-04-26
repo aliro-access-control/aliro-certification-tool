@@ -21,11 +21,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class BLERKE_RDR_NEG_FAILED_L2CAP(AliroReaderTestCase, UserPromptSupport):
+class BLEUWB_RDR_NEG_FAILED_L2CAP(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "BLERKE_RDR_NEG_FAILED_L2CAP",
+        "public_id": "BLEUWB_RDR_NEG_FAILED_L2CAP",
         "version": "0.0.1",
-        "title": "BLERKE_RDR_NEG_FAILED_L2CAP",
+        "title": "BLEUWB_RDR_NEG_FAILED_L2CAP",
         "description": """Verify conformance of Reader in BLE discovery.""",
     }
 
@@ -104,7 +104,7 @@ class BLERKE_RDR_NEG_FAILED_L2CAP(AliroReaderTestCase, UserPromptSupport):
                 (Select.PROPRIETARY_TAG, proprietary.to_bytes())
             ]
             proprietary_tlv = TLV(proprietary_list)
-            message = BleMessage.create_initiate_access_protocol(proprietary_tlv.to_bytes(), rke=True)
+            message = BleMessage.create_initiate_access_protocol(proprietary_tlv.to_bytes())
             await self.transport_protocol.send_message(message)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
@@ -126,7 +126,7 @@ class BLERKE_RDR_NEG_FAILED_L2CAP(AliroReaderTestCase, UserPromptSupport):
 
 
     async def cleanup(self) -> None:
-        logger.info("BLERKE_RDR_NEG_FAILED_L2CAP Cleanup")
+        logger.info("BLEUWB_RDR_NEG_FAILED_L2CAP Cleanup")
         try:
             await self.userdevice.transaction_termination()
         except NoDeviceConnectedError:
