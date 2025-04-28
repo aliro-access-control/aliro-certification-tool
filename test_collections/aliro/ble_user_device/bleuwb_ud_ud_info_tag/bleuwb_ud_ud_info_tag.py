@@ -88,9 +88,7 @@ class BLEUWB_UD_UD_INFO_TAG(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 1: Send Bluetooth LE advertisement
         try:
-            await self.reader.expedited_transaction_standard(
-                authentication_policy=AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
-            )
+            await self.reader.transaction_initiation()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -109,7 +107,7 @@ class BLEUWB_UD_UD_INFO_TAG(AliroUserDeviceTestCase, UserPromptSupport):
             return
         self.next_step()  
         
-        # Test step 3: Send Bluetooth LE advertisement
+        # Step3: Send Reader Status Access Protocol Completed Message ID carrying Reader Information Attribute ID
         try:
             await self.reader.reader_status_access_protocol_completed(
                 UnsolicitedReaderStatusReporting_Values.SEND_TO_EACH_CONNECTED,
