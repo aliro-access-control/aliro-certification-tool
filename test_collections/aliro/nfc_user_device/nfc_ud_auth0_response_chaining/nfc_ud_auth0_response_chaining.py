@@ -67,7 +67,7 @@ class NFC_UD_AUTH0_RESPONSE_CHAINING(AliroUserDeviceTestCase, UserPromptSupport)
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
         key = self.th_reader_keypair()
-        protocol_version = self.th
+        protocol_version = PROTOCOL_VERSION
 
         # Initialize Aliro NFC Reader
         self.reader = Reader(
