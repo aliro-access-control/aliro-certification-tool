@@ -3,6 +3,7 @@ from aliro_actuator.access_protocol.apdu import (
     AuthenticationPolicy,
     Transaction,
     ReaderStatus,
+    S2,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -55,8 +56,7 @@ class NFC_UD_NEG_AUTH0_UNSUPPORTED_PROTOCOL_VERSION(AliroUserDeviceTestCase, Use
             TestStep("Step2: Set to polling mode"),
             TestStep("Step3: Transaction initiation"), #include select command and response
             TestStep("Step4: Send/Receive AUTH0 command (with unsupported protocol version)/response"),
-            TestStep("Step5: Send/Receive AUTH1 command/response"),
-            TestStep("Step6: Send/Receive EXCHANGE command/response"),
+            TestStep("Step5: Send/Receive CONTROL FLOE"),
         ]
 
     async def setup(self) -> None:
@@ -144,19 +144,7 @@ class NFC_UD_NEG_AUTH0_UNSUPPORTED_PROTOCOL_VERSION(AliroUserDeviceTestCase, Use
 
         # Test step 5
         try:
-            await self.reader.handle_auth1(
-                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
-            )
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        self.next_step()
-        
-        # Test step 6
-        try:
-            await self.reader.handle_exchange(
-                False, reader_status=ReaderStatus.READER_STATE_UNSECURED
-            )
+            await self.reader.handle_control_flow(S2.NONE)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
