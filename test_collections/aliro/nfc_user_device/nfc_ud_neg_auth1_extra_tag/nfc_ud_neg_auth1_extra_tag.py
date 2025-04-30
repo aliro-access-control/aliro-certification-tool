@@ -149,18 +149,18 @@ class NFC_UD_NEG_AUTH1_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupport):
                 "AUTH1", command, self.reader.transport_protocol
             )
             response = self.reader.apdu.parse_response(response, INS.AUTH1, self.reader.session.encryption_expedited)
-        except InvalidStatusError as error:
-            logger.info(
-                "Received error status (as expected), status received: 0x{:04x}".format(
-                    error.status
-                )
-            )
-            pass
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
-        else:
-            self.mark_step_failure("No error status returned")
+        self.next_step()
+        
+        # Test step 6
+        try:
+            await self.reader.handle_exchange(
+                False, reader_status=ReaderStatus.READER_STATE_UNSECURED
+            )
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
             return
         self.next_step()
 
