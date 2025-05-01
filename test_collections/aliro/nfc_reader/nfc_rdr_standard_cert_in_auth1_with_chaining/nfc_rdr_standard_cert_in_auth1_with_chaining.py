@@ -57,7 +57,7 @@ class NFC_RDR_STANDARD_CERT_IN_AUTH1_WITH_CHAINING(AliroReaderTestCase, UserProm
         self.access_credential = self.reader_access_credential(add_issuer_public_key=True)
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,
-            access_credentials=[access_credential],
+            access_credentials=[self.access_credential],
             mailbox=0x20,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
         )
