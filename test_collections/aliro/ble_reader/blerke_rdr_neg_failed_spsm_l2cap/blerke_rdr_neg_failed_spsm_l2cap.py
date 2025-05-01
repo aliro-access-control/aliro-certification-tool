@@ -13,6 +13,7 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     UnsolicitedReaderStatusReporting_Values,
 )
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
+from aliro_actuator.transport_protocol import Mode
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
@@ -48,9 +49,7 @@ class BLERKE_RDR_NEG_FAILED_SPSM_L2CAP(AliroReaderTestCase, UserPromptSupport):
 
     def create_test_steps(self) -> None:
         self.test_steps = [
-            TestStep("Step1: Setup connection"),
-            TestStep("Step2: Send initiate access protocol"),
-            TestStep("Step3: Receive disconnect event"),
+            TestStep("Step1: Send wrong SPSM"),
         ]
 
     async def setup(self) -> None:
@@ -67,6 +66,7 @@ class BLERKE_RDR_NEG_FAILED_SPSM_L2CAP(AliroReaderTestCase, UserPromptSupport):
 
     @log_errors
     async def execute(self) -> None:
+        ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION = 0x00
         # Test step 1
         await self.send_prompt_request(
             OptionsSelectPromptRequest(
@@ -81,24 +81,32 @@ class BLERKE_RDR_NEG_FAILED_SPSM_L2CAP(AliroReaderTestCase, UserPromptSupport):
                     options={"OK": 1},
                 )
             )
-            Global.logger.info("Setting up connection")
+            logger.info("Setting up connection")
             reader_group_list = []
-            for access_credential in self.access_credentials:
+            for access_credential in self.userdevice.access_credentials:
                 reader_group_list.extend(access_credential.get_all_reader_id())
-            await self.transport_protocol.initialization(
+            await self.userdevice.transport_protocol.initialization(
                 Mode.USER_DEVICE,
-                group_resolving_key=self.group_resolving_key,
+                group_resolving_key=self.userdevice.group_resolving_key,
                 reader_group_identifier_list=reader_group_list,
-                timeout=self.timeout,
-                spsm=bytes.fromhex("00C0"),
             )
-            await self.transport_protocol.wait_for_connection()
-            Global.logger.info("Connection established")
-            self.mark_step_failure(error_str)
+            (
+                advertisement_version,
+                notification,
+                BLE_UWB_supported,
+                BLE_only_supported,
+            ) = await self.userdevice.transport_protocol.driver.wait_for_connection()
+            if advertisement_version != ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION:
+                await self.userdevice.transport_protocol.disconnect()
+                raise TransportProtocolError("Invalid BLE advertisement version")
+            self.ble_version = 0x0100
+            await self.userdevice.transport_protocol.handle_GATT_layer(self.ble_version)
+
+            await self.userdevice.transport_protocol.driver.setup_l2cap_connection_user(bytes.fromhex("0081"))
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            logger.info("Failed connection, as expected")
-            pass
+            logger.info("Establish L2CAP connection fails.")
+            return
         self.next_step()
 
     async def cleanup(self) -> None:

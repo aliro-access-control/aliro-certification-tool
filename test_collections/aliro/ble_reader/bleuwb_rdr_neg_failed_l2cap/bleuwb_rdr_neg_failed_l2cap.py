@@ -1,9 +1,10 @@
 from binascii import hexlify
 
-from aliro_actuator.access_protocol.apdu import INS
+from aliro_actuator.access_protocol.apdu import INS, TLV
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
+    Select,
 )
 from aliro_actuator.access_protocol.user_device import UserDevice, RkeAction
 from aliro_actuator.transport_protocol.ble_message_format import (
@@ -11,6 +12,7 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     OperationSourceInformation_Values,
     ReaderStatusInformation_Values,
     UnsolicitedReaderStatusReporting_Values,
+    BleMessage,
 )
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
@@ -90,6 +92,8 @@ class BLEUWB_RDR_NEG_FAILED_L2CAP(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 2
+        version = 0x0010
+        CSA_APPLICATION_TYPE = 0x0000
         try:
             etspv_bytes_imm = version.to_bytes(2, 'big')
             type = CSA_APPLICATION_TYPE
@@ -104,8 +108,8 @@ class BLEUWB_RDR_NEG_FAILED_L2CAP(AliroReaderTestCase, UserPromptSupport):
                 (Select.PROPRIETARY_TAG, proprietary.to_bytes())
             ]
             proprietary_tlv = TLV(proprietary_list)
-            message = BleMessage.create_initiate_access_protocol(proprietary_tlv.to_bytes())
-            await self.transport_protocol.send_message(message)
+            message = BleMessage.create_initiate_access_protocol(proprietary_tlv.to_bytes(), rke=False)
+            await self.userdevice.transport_protocol.send_message(message)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
