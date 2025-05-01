@@ -55,7 +55,8 @@ class BLERKE_RDR_SECURE(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step5: User Device sends AP_RS message: AUTH1 response"),
             TestStep("Step6: Reader sends AP_RQ message: EXCHANGE command"),
             TestStep("Step7: Device sends AP_RS message: EXCHANGE response"),
-            TestStep("Step8: Reader sends AP message: AP completed"),
+            TestStep("Step8: Device sends RKE request message"),
+            TestStep("Step9: Reader sends Reader Status Changed message"),
         ]
 
     async def setup(self) -> None:
