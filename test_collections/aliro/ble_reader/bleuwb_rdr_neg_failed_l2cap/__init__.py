@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .blerke_rdr_neg_failed_l2cap import BLERKE_RDR_NEG_FAILED_L2CAP
+from .bleuwb_rdr_neg_failed_l2cap import BLEUWB_RDR_NEG_FAILED_L2CAP
