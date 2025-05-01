@@ -60,7 +60,8 @@ class NFC_RDR_NEG_AUTH0_EXTRA_TAG(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step2: Set Reader Device Under Test in polling mode"),
             TestStep("Step3: Transaction initiation"),
             TestStep("Step4: Receive/Send AUTH0 command/response"),
-            TestStep("Step5: Receive/Send CONTROL FLOW command/response"),
+            TestStep("Step5: Receive/Send AUTH1 command/response"),
+            TestStep("Step6: Receive/Send EXCHANGE command/response"),
         ]
 
     async def setup(self) -> None:
@@ -215,23 +216,37 @@ class NFC_RDR_NEG_AUTH0_EXTRA_TAG(AliroReaderTestCase, UserPromptSupport):
             )
         self.next_step()
 
-        # Test step 5 Receive/Send CONTROL FLOW command/response
+        # Test step 5 Receive/Send Auth1 command/response
         try:
-            cmds_controlflow = await self.userdevice.wait_for_command()
+            cmds_auth1 = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:
             self.mark_step_failure(str(error))
             return
+        if cmds_auth1.expected_response != Auth1Response.CREDENTIAL_PUBLIC_KEY:
+            self.mark_step_failure(
+                "Access Credential key type request is not endpoint public key!"
+            )
+            return
         try:
-            await self.userdevice.handle_control_flow(cmds_controlflow)
+            await self.userdevice.handle_auth1(cmds_auth1)
         except AccessProtocolError as error:
             self.mark_step_failure(str(error))
             return
-        if cmds_controlflow.s1 != S1.FINISHED_WITH_FAILURE:
-            self.mark_step_failure(
-                "S1 value of CONTROL FLOW not '0x00 transaction finished with failure'"
-            )
-        if cmds_controlflow.s2 != S2.NONE:
-            self.mark_step_failure("S2 value of CONTROL FLOW not '0x00 no information'")
+        self.next_step()
+        
+        # Test Step 6 Receive/Send EXCHANGE command/response
+        try:
+            cmds_exchange = await self.userdevice.wait_for_command()
+        except InvalidCommandError as error:
+                self.mark_step_failure(str(error))
+                return
+
+        if cmds_exchange.ins == INS.EXCHANGE:
+            try:
+                await self.userdevice.handle_exchange(cmds_exchange)
+            except AccessProtocolError as error:
+                self.mark_step_failure(str(error))
+                return
         self.next_step()
 
     async def cleanup(self) -> None:
