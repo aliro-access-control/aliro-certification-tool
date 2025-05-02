@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .ud_ble_fsttxn_10 import UD_BLE_FSTTXN_10
+from .blerke_rdr_neg_failed_spsm_l2cap import BLERKE_RDR_NEG_FAILED_SPSM_L2CAP
