@@ -60,7 +60,7 @@ class BLEUWB_UD_RANGING_RESUME(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step6: User Device sends AP message: RSS-M4"),
             TestStep("Step7: Reader acquires UWB ranging result"),
             TestStep("Step8: Reader sends Ranging Session Suspend Request"),
-            TestStep("Step9: Reader sends Ranging Session Resume Request and User Device send Ranging Session Resume Response"),
+            TestStep("Step9: Reader sends Ranging Session Resume Request."),
         ]
 
     def print_uwb_configuration(self, uwb_config: dict) -> None:
@@ -206,7 +206,7 @@ class BLEUWB_UD_RANGING_RESUME(AliroUserDeviceTestCase, UserPromptSupport):
             await self.reader.wait_for_ble_message(
                 self.reader.send_ranging_session_resume_request()
             )
-            message = await self.reader.send_ranging_session_resume_response()
+            
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
