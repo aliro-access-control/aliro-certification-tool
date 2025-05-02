@@ -10,19 +10,12 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.transport_protocol.ble_message_format import (
     BleMessage,
-    BleAttribute,
-    ProtocolType,
-    UWB_RangingService_ID,
-    UWB_AttributeID,
     OperationSourceInformation_Values,
     ReaderStatusInformation_Values,
     UnsolicitedReaderStatusReporting_Values,
-    Notification_ID,
-    GeneralError_Values,
 )
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
-from aliro_actuator.access_protocol.encryption import EncryptionEngine
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -30,11 +23,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class BLEUWB_UD_NEG_M1_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserPromptSupport):
+class NEG_BLEUWB_RESUME_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "BLEUWB_UD_NEG_M1_MISMATCH_PARAMETER",
+        "public_id": "NEG_BLEUWB_RESUME_MISMATCH_PARAMETER",
         "version": "0.0.1",
-        "title": "BLEUWB_UD_NEG_M1_MISMATCH_PARAMETER",
+        "title": "NEG_BLEUWB_RESUME_MISMATCH_PARAMETER",
         "description": """Verify conformance of User Device UT in BLE discovery.""",
     }
 
@@ -62,8 +55,14 @@ class BLEUWB_UD_NEG_M1_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserPromptSup
             TestStep("Step0: Prerequisites"),
             TestStep("Step1: User Device sends AP message: Timesync"),
             TestStep("Step2: User Device sends AP message: Initiate Ranging"),
-            TestStep("Step3: Reader sends AP message: RSS-M1 without UWB_CONFIG_ID"),
-            TestStep("Step4: User Device sends event General error wrong parameters"),
+            TestStep("Step3: Reader sends AP message: RSS-M1"),
+            TestStep("Step4: User Device sends AP message: RSS-M2"),
+            TestStep("Step5: Reader sends AP message: RSS-M3"),
+            TestStep("Step6: User Device sends AP message: RSS-M4"),
+            TestStep("Step7: Reader acquires UWB ranging result"),
+            TestStep("Step8: Reader sends Ranging Session Suspend Request"),
+            TestStep("Step9: Reader sends Ranging Session Resume Request."),
+            TestStep("Step10: User Device sends event General error wrong parameters"),
         ]
 
     def print_uwb_configuration(self, uwb_config: dict) -> None:
@@ -72,54 +71,6 @@ class BLEUWB_UD_NEG_M1_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserPromptSup
         for key, value in uwb_config.items():
             logger.info(f"{key:<12}: {value}")
         logger.info("-" * 50)
-
-    def create_ranging_session_setup_m1(
-        self,
-        uwb_configuration_id: int | None = None,
-        pulse_shape_combination: int | None = None,
-        channel_bitmask: int | None = None,
-        uwb_session_id: int | None = None,
-        vendor_specific: int | None = None,
-        ble_encryption: EncryptionEngine | None = None,
-    ) -> BleMessage:
-        if uwb_configuration_id is not None: 
-            data = uwb_configuration_id.to_bytes(2, "big")
-            uwb_configuration_id_attr = BleAttribute(
-                UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER, data
-            )
-        if pulse_shape_combination is not None:
-            data = pulse_shape_combination.to_bytes(3, "big")
-            pulse_shape_combination_attr = BleAttribute(
-                UWB_AttributeID.PULSE_SHAPE_COMBO, data
-            )
-        if channel_bitmask is not None:
-            data = channel_bitmask.to_bytes(1, "big")
-            channel_bitmask_attr = BleAttribute(UWB_AttributeID.CHANNEL_BITMASK, data)
-        if uwb_session_id is not None:
-            data = uwb_session_id.to_bytes(4, "big")
-            uwb_session_id_attr = BleAttribute(UWB_AttributeID.UWB_SESSION_IDENTIFIER, data)
-
-        # vendor specific information
-        data = vendor_specific.to_bytes(3, "big")
-        vendor_specific_attr = BleAttribute(UWB_AttributeID.VENDOR_SPECIFIC, data)
-        payload = bytearray()
-        if uwb_configuration_id is not None:
-            payload.extend(uwb_configuration_id_attr.to_bytes())
-        if pulse_shape_combination is not None:
-            payload.extend(pulse_shape_combination_attr.to_bytes())
-        if channel_bitmask is not None:
-            payload.extend(channel_bitmask_attr.to_bytes())
-        if uwb_session_id is not None:
-            payload.extend(uwb_session_id_attr.to_bytes())
-        if vendor_specific is not None:
-            payload.extend(vendor_specific_attr.to_bytes())
-        message = BleMessage(
-            ProtocolType.UWB_RANGING_SERVICE,
-            UWB_RangingService_ID.RANGING_SESSION_SETUP_M1,
-            payload,
-        )
-        message._encrypt(ble_encryption)
-        return message
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
@@ -166,8 +117,8 @@ class BLEUWB_UD_NEG_M1_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserPromptSup
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
-
         self.next_step()
+
         # Test step 1: User Device sends AP message: Timesync
         try:
             message = await self.reader.wait_for_ble_message(
@@ -178,61 +129,111 @@ class BLEUWB_UD_NEG_M1_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserPromptSup
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
-
         self.next_step()
+
         # Test step 2: User Device sends AP message: Initiate Ranging
+        # Test step 3: Reader sends AP message: RSS-M1
         try:
             message = await self.reader.wait_for_ble_message(
                 self.reader.session.get_ble_encryption()
             )
-            message.parse_payload(self.reader.session.get_ble_encryption())
+            await self.reader.handle_initiate_ranging(message)
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+        self.next_step()
+
+        # Test step 4: User Device sends AP message: RSS-M2
+        # Test step 5: Reader sends AP message: RSS-M3
+        try:
+            message = await self.reader.wait_for_ble_message(
+                self.reader.session.get_ble_encryption()
+            )
+            await self.reader.handle_ranging_setup_m2(message)
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+        self.next_step()
+
+        # Test step 6: User Device sends AP message: RSS-M4
+        try:
+            message = await self.reader.wait_for_ble_message(
+                self.reader.session.get_ble_encryption()
+            )
+            await self.reader.handle_ranging_setup_m4(message)
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+
+        # Test step 7: Reader acquires UWB ranging result
+        try:
+            await self.reader.transport_protocol.start_ranging()
+            range = await self.reader.transport_protocol.get_ranging_data()
+            logger.info(f"Ranging value is: {range}")
+            await self.reader.transport_protocol.stop_ranging()
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+
+        # Print UWB configuration
+        try:
+            uwb_configuration = (
+                await self.reader.transport_protocol.get_uwb_configuration()
+            )
+            self.print_uwb_configuration(uwb_configuration)
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+
+        # Test step 8: Reader sends Ranging Session Suspend Request
+        try:
+            await self.reader.send_ranging_session_suspend_request()
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+
+        # Test step 9: Reader sends Ranging Session Resume Request and User Device send Ranging Session Resume Response
+        try:
+            logger.info("Sending ranging session resume request ble message")
+            uwb_session_id = self.reader.transport_protocol.get_uwb_session_id()
+            uwb_session_id += 1 # Wrong session ID
+
+            message = BleMessage.create_ranging_session_resume_request(
+                uwb_session_id,
+                self.reader.session.get_ble_encryption(),
+            )
+            await self.reader.transport_protocol.send_message(message)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
 
         self.next_step()
-        # Test step 3: Reader sends AP message: RSS-M1
+        # Step10: User Device sends event General error wrong parameters
+        # TODO: Check how to parse General Error Attribute ID NTF
         try:
-            logger.info("Sending ranging session setup M1 ble message")
-
-            # uwb_configuration_id = self.transport_protocol.get_uwb_config_id_support()
-            pulse_shape_combination = (
-                self.reader.transport_protocol.get_pulse_shape_combination_support()
-            )
-            channel_bitmask = self.reader.transport_protocol.get_channel_bitmask()
-            uwb_session_id = self.reader.transport_protocol.get_uwb_session_id()
-            vendor_specific = 0xFF
-
-            message = self.create_ranging_session_setup_m1(
-                # Don't pass UWB Config ID
-                pulse_shape_combination = pulse_shape_combination,
-                channel_bitmask = channel_bitmask,
-                uwb_session_id = uwb_session_id,
-                vendor_specific = vendor_specific,
-                ble_encryption = self.reader.session.get_ble_encryption(),
-            )
-            await self.reader.transport_protocol.send_message(message)
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-
-        self.next_step()
-        # Step4: User Device sends event General error wrong parameters
-        try:
-            message_event = await self.reader.wait_for_ble_message(
+            message = await self.reader.wait_for_ble_message(
                 self.reader.session.get_ble_encryption()
             )
-            message_event.parse_payload(self.reader.session.get_ble_encryption())
-            if message_event.id != Notification_ID.EVENT or message_event.reason_code != GeneralError_Values.WRONG_PARAMETERS:
-                self.mark_step_failure("Unexpected message received")
+            await self.reader.handle_ranging_setup_m2(message)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
 
     async def cleanup(self) -> None:
-        logger.info("BLEUWB_UD_RANGING_SUSPEND Cleanup")
+        logger.info("BLEUWB_UD_RANGING_RESUME Cleanup")
         try:
             await self.reader.transaction_termination()
         except NoDeviceConnectedError:
