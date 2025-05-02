@@ -84,7 +84,7 @@ class RevocationData(object):
     @change_mode.setter
     def change_mode(self, val : int | RevocationChangeMode) -> None:
         '''Set the Change Mode.'''
-        assert((val == RevocationChangeMode.OVERWRITE) or (val == RevocationChangeMode.Append))
+        assert((val == RevocationChangeMode.OVERWRITE) or (val == RevocationChangeMode.APPEND))
         self.__change_mode = val
 
     ############################################################################

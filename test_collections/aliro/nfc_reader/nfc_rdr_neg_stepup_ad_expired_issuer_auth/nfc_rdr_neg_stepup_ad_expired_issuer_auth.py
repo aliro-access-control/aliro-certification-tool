@@ -57,29 +57,29 @@ class NFC_RDR_NEG_STEPUP_AD_EXPIRED_ISSUER_AUTH(AliroReaderTestCase, UserPromptS
             TestStep("Step3: Handle EXCHANGE command/response")
         ]
 
-    def build_device_response(self, access_credential_pk: bytes) -> DeviceResponse:
+    def build_access_document(self, access_credential_pk: bytes) -> bytes:
         issuer_keypair, self.element_id = self.access_document_data()
 
         access_element = AccessData()
         access_element.version = 1
 
-        x = DeviceResponseBuilder.build(
+        x = DeviceResponseBuilder.build_doc(
+            'aliro-a',
+            'aliro-a',
             [ResponseElement(data_element_id=self.element_id, value=access_element)],
-            None,
             issuer_keypair.get_private_key().as_bytes(),
             access_credential_pk,
             valid_from=datetime.datetime.fromisoformat('2020-01-01 00:00:00.000+00:00'),
             valid_until=datetime.datetime.fromisoformat('2020-01-01 01:00:00.000+00:00'),  # Make invalid
-        )
+        ).to_cbor(validate=False)
 
-        logger.info(f"Generated Device Response: {x.to_cbor(validate=False).hex()}")
+        logger.info(f"Generated Access Document: {x.hex()}")
         return x
-
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
         access_credential = self.reader_access_credential()
-        self.device_response = self.build_device_response(
+        access_doc = self.build_access_document(
             access_credential.get_access_credential_public_key().as_bytes()
         )
 
@@ -88,7 +88,7 @@ class NFC_RDR_NEG_STEPUP_AD_EXPIRED_ISSUER_AUTH(AliroReaderTestCase, UserPromptS
             access_credentials=[access_credential],
             mailbox=0x00,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
-            access_document=self.device_response.to_cbor(validate=False),
+            access_document=access_doc,
         )
 
     @log_errors

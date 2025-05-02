@@ -57,7 +57,7 @@ class NFC_RDR_STEPUP_AD_ACCESS_RULE(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step3: Handle EXCHANGE command/response")
         ]
 
-    def build_device_response(self, access_credential_pk: bytes) -> DeviceResponse:
+    def build_access_document(self, access_credential_pk: bytes) -> bytes:
         issuer_keypair, self.element_id = self.access_document_data()
 
         access_element = AccessData()
@@ -66,23 +66,23 @@ class NFC_RDR_STEPUP_AD_ACCESS_RULE(AliroReaderTestCase, UserPromptSupport):
         access_rule.capabilities = AccessRuleCapabilitiesBits.ALL_CAPABILITIES  # We dont know what DUT will ask for, so enable everything
         access_element.access_rules.append(access_rule)
 
-        x = DeviceResponseBuilder.build(
+        x = DeviceResponseBuilder.build_doc(
+            'aliro-a',
+            'aliro-a',
             [ResponseElement(data_element_id=self.element_id, value=access_element)],
-            None,
             issuer_keypair.get_private_key().as_bytes(),
             access_credential_pk,
             valid_from=datetime.datetime.now(datetime.timezone.utc),
             valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
-        )
+        ).to_cbor()
 
-        logger.info(f"Generated Device Response: {x.to_cbor().hex()}")
+        logger.info(f"Generated Access Document: {x.hex()}")
         return x
-
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
         access_credential = self.reader_access_credential()
-        self.device_response = self.build_device_response(
+        access_doc = self.build_access_document(
             access_credential.get_access_credential_public_key().as_bytes()
         )
 
@@ -91,7 +91,7 @@ class NFC_RDR_STEPUP_AD_ACCESS_RULE(AliroReaderTestCase, UserPromptSupport):
             access_credentials=[access_credential],
             mailbox=0x00,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
-            access_document=self.device_response.to_cbor(),
+            access_document=access_doc,
         )
 
     @log_errors

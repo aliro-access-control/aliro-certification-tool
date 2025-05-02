@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .nfc_rdr_neg_stepup_ad_issuer_certificate_time_mismatch import NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH
+from .nfc_rdr_neg_stepup_rd_invalid_element_version import NFC_RDR_NEG_STEPUP_RD_INVALID_ELEMENT_VERSION

@@ -57,24 +57,15 @@ class NFC_RDR_NEG_STEPUP_AD_NO_DATA_ELEMENTS(AliroReaderTestCase, UserPromptSupp
             TestStep("Step3: Handle EXCHANGE command/response")
         ]
 
-    def build_device_response(self) -> bytes:
-        # User devices return a device response with no documents element if no data elements can be found
-        #  Hard-code this response, since it is all static contents
-        x = bytes.fromhex("A2613163312e30613300")
-        logger.info(f"Generated Device Response: {x.hex()}")
-        return x
-
     async def setup(self) -> None:
         logger.info("This is a test case setup")
         access_credential = self.reader_access_credential()
-        self.device_response = self.build_device_response()
 
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential],
             mailbox=0x00,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
-            access_document=self.device_response,
         )
 
     @log_errors
@@ -123,11 +114,14 @@ class NFC_RDR_NEG_STEPUP_AD_NO_DATA_ELEMENTS(AliroReaderTestCase, UserPromptSupp
             self.mark_step_failure(str(error))
             return
 
+        # Lie to the Reader and say we have an Access Document
+        self.userdevice.access_document = bytes.fromhex("01020304")
         try:
             await self.userdevice.handle_auth1(cmds_auth1)
         except AccessProtocolError as error:
             self.mark_step_failure(str(error))
             return
+        self.userdevice.access_document = None  # Then immediately take it away
         self.next_step()
 
         # Test step 2 - envelope
