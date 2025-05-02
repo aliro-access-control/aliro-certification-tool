@@ -429,6 +429,8 @@ class AliroUserDeviceTestCase(AliroTestCase):
     READER_SPSM = "th_reader_spsm"
     ACCESS_CREDENTIAL_PUBLIC_KEY_KEY = "th_access_credential_public_key"
     READER_ISSUER_PUBLIC_KEY_KEY = "th_reader_issuer_public_key"
+    CREDENTIAL_ISSUER_PUBLIC_KEY_KEY = "dut_credential_issuer_public_key"
+    ACCESS_ELEMENT_ID_KEY = "th_access_element_id"
 
     @classmethod
     def default_test_parameters(self) -> dict[str, Any]:
@@ -475,6 +477,9 @@ class AliroUserDeviceTestCase(AliroTestCase):
             self.READER_ISSUER_PUBLIC_KEY_KEY: "043928f322019d4757893bde6a0fe5e13e3e5"
             "37b9ca0f549c0bd2f40f79060252a0a4f291192157a95cb6eb202759428c00cd834998c5"
             "d0eab192ee8873c5d34ee",
+            self.CREDENTIAL_ISSUER_PUBLIC_KEY_KEY: "047BA31938492E3F5E97BC91806B5835B5D9E426609139006711E5FB7A670EE4E1"
+                                                   "2FC9F25396C013CC20166029D761A105DEA5E071E84A9E499920524CE2301137",
+            self.ACCESS_ELEMENT_ID_KEY: "floor1",
         }
 
     def th_reader_keypair(self) -> KeyPair:
@@ -654,3 +659,28 @@ class AliroUserDeviceTestCase(AliroTestCase):
         )
 
         return reader_public_key
+
+    def th_access_document_data(self) -> tuple[KeyPair, str]:
+        """Fetch info for validating an access document
+
+        Returns:
+            tuple:
+                PublicKey: credential issuer public key
+                str: access element id
+        """
+        logger.info(
+            f"Loading credential issuer public key from '{self.CREDENTIAL_ISSUER_PUBLIC_KEY_KEY}'"
+        )
+        issuer_public_key = self.public_key_from_config(
+            self.CREDENTIAL_ISSUER_PUBLIC_KEY_KEY
+        )
+
+        logger.info(
+            f"Loading Access Element ID from '{self.ACCESS_ELEMENT_ID_KEY}'"
+        )
+        element_id = self.string_from_config(self.ACCESS_ELEMENT_ID_KEY)
+        logger.info(
+            f"Using Access Element ID: {element_id}"
+        )
+
+        return issuer_public_key, element_id
