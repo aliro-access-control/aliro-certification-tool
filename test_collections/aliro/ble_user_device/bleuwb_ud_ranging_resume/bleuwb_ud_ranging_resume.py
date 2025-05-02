@@ -22,11 +22,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class BLEUWB_UD_RANGING_SUSPEND(AliroUserDeviceTestCase, UserPromptSupport):
+class BLEUWB_UD_RANGING_RESUME(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "BLEUWB_UD_RANGING_SUSPEND",
+        "public_id": "BLEUWB_UD_RANGING_RESUME",
         "version": "0.0.1",
-        "title": "BLEUWB_UD_RANGING_SUSPEND",
+        "title": "BLEUWB_UD_RANGING_RESUME",
         "description": """Verify conformance of User Device UT in BLE discovery.""",
     }
 
@@ -59,7 +59,8 @@ class BLEUWB_UD_RANGING_SUSPEND(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step5: Reader sends AP message: RSS-M3"),
             TestStep("Step6: User Device sends AP message: RSS-M4"),
             TestStep("Step7: Reader acquires UWB ranging result"),
-            TestStep("Step 8: Reader sends Ranging Session Suspend Request and DUT sends Ranging Session Suspend Response"),
+            TestStep("Step8: Reader sends Ranging Session Suspend Request"),
+            TestStep("Step9: Reader sends Ranging Session Resume Request and User Device send Ranging Session Resume Response"),
         ]
 
     def print_uwb_configuration(self, uwb_config: dict) -> None:
@@ -191,10 +192,21 @@ class BLEUWB_UD_RANGING_SUSPEND(AliroUserDeviceTestCase, UserPromptSupport):
             return
         self.next_step()
 
-        # Test step 8: Reader sends Ranging Session Suspend Request and DUT sends Ranging Session Suspend Response
+        # Test step 8: Reader sends Ranging Session Suspend Request
         try:
             await self.reader.send_ranging_session_suspend_request()
-            message = await self.reader.send_ranging_session_suspend_response()
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+
+        # Test step 9: Reader sends Ranging Session Resume Request and User Device send Ranging Session Resume Response
+        try:
+            await self.reader.wait_for_ble_message(
+                self.reader.send_ranging_session_resume_request()
+            )
+            message = await self.reader.send_ranging_session_resume_response()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -202,7 +214,7 @@ class BLEUWB_UD_RANGING_SUSPEND(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("BLEUWB_UD_RANGING_SUSPEND Cleanup")
+        logger.info("BLEUWB_UD_RANGING_RESUME Cleanup")
         try:
             await self.reader.transaction_termination()
         except NoDeviceConnectedError:
