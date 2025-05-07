@@ -10,6 +10,7 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     Notification_ID,
     UWB_RangingService_ID,
 )
+from aliro_actuator.access_protocol.errors import  UnexpectedBLEMessageError
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
@@ -199,6 +200,7 @@ class BLEUWB_RDR_RANGING_RESUME(AliroReaderTestCase, UserPromptSupport):
             self.mark_step_failure(error_str)
             return
         self.next_step()
+
         
         # Test step 9: UserDevice sends Ranging Message ID carrying Initiate Ranging Session Resume Attribute ID after 1 second
         time.sleep(1)
@@ -209,8 +211,20 @@ class BLEUWB_RDR_RANGING_RESUME(AliroReaderTestCase, UserPromptSupport):
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
-        self.next_step()
 
+        #check message contains correct header id and attribute for resume request
+        message = await self.userdevice.wait_for_ble_message(
+                self.userdevice.session.get_ble_encryption()
+            )
+        if message.header != ProtocolType.UWB_RANGING_SERVICE or message.id != UWB_RangingService_ID.RANGING_SESSION_SUSPEND_REQUEST:
+            raise UnexpectedBLEMessageError(
+                "Received unexpected ble message while waiting for "
+                "AP command message",
+                message.header,
+                message.id,
+            )
+        self.next_step()
+        
         # Test step 10: UserDevice Re-sends same Ranging Message ID carrying Initiate Ranging Session Resume Attribute ID
         try:
             await self.userdevice.send_ranging_message_resume()
@@ -219,8 +233,19 @@ class BLEUWB_RDR_RANGING_RESUME(AliroReaderTestCase, UserPromptSupport):
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
-        # TODO: message contains correct header id and attribute for resume request
-        
+
+        #check message contains correct header id and attribute for resume request
+        message = await self.userdevice.wait_for_ble_message(
+                self.userdevice.session.get_ble_encryption()
+            )
+        if message.header != ProtocolType.UWB_RANGING_SERVICE or message.id != UWB_RangingService_ID.RANGING_SESSION_SUSPEND_REQUEST:
+            raise UnexpectedBLEMessageError(
+                "Received unexpected ble message while waiting for "
+                "AP command message",
+                message.header,
+                message.id,
+            )
+        self.next_step()
 
         # Test step 11: UserDevice send Ranging Session Resume Response 
         try:
