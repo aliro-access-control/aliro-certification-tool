@@ -99,9 +99,9 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revoke_docs = []
 
         entry1 = RevocationEntry()
-        entry1.id = hashlib.sha256(self.access_credential1_PuBK).digest()
+        entry1.public_key_hash = hashlib.sha256(self.access_credential1_PuBK).digest()
         entry2 = RevocationEntry()
-        entry2.id = hashlib.sha256(self.access_credential2_PuBK).digest()
+        entry2.public_key_hash = hashlib.sha256(self.access_credential2_PuBK).digest()
 
         # Iteration 1: Overwrite Public Key 1
         revocation_element = RevocationData()
