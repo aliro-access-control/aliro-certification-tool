@@ -20,7 +20,7 @@ from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
-
+import time
 
 class BLEUWB_UD_RANGING_RESUME(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
@@ -192,20 +192,20 @@ class BLEUWB_UD_RANGING_RESUME(AliroUserDeviceTestCase, UserPromptSupport):
             return
         self.next_step()
 
-        # Test step 8: Reader sends Ranging Session Suspend Request
+        # Test step 8: Reader sends Ranging Message ID carrying Ranging Session Suspended Attribute ID
         try:
-            await self.reader.send_ranging_session_suspend_request()
+            await self.reader.send_ranging_message_suspended()
+            message = await self.reader.wait_for_ble_message()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
         self.next_step()
 
-        # Test step 9: Reader sends Ranging Session Resume Request and User Device send Ranging Session Resume Response
+        # Test step 9: Reader sends Ranging Session Resume Request
+        time.sleep(1)
         try:
-            await self.reader.wait_for_ble_message(
-                self.reader.send_ranging_session_resume_request()
-            )
+            await self.reader.send_ranging_session_resume_request()
             
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
