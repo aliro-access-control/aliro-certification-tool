@@ -155,7 +155,7 @@ class DeviceResponseBuilder(object):
             time_verification_required: bool = False,
             use_keyId: bool = True
     ) -> Document | None:
-        doc, _ = DeviceResponseBuilder._build_doc(
+        doc, _ = DeviceResponseBuilder.build_doc_unsigned(
             namespace,
             doc_type,
             data_elements,
@@ -167,7 +167,7 @@ class DeviceResponseBuilder(object):
             time_verification_required)
 
         if doc is not None:
-            DeviceResponseBuilder._sign_doc(
+            DeviceResponseBuilder.sign_doc(
                 doc,
                 issuer_private_key,
                 use_keyid=use_keyId
@@ -176,7 +176,7 @@ class DeviceResponseBuilder(object):
 
     ############################################################################
     @staticmethod
-    def _build_doc(
+    def build_doc_unsigned(
         namespace : str,
         doc_type : str,
         data_elements : list[ResponseElement],
@@ -249,7 +249,7 @@ class DeviceResponseBuilder(object):
         return doc, mso
 
     @staticmethod
-    def _sign_doc(
+    def sign_doc(
         doc: Document,
         issuer_private_key: bytes | bytearray,
         mso: MobileSecurityObject | None = None,

@@ -65,7 +65,7 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_DOCTYPE_MISMATCH(AliroReaderTestCase, UserPro
         access_element = AccessData()
         access_element.version = 1
 
-        x, m = DeviceResponseBuilder._build_doc(
+        x, m = DeviceResponseBuilder.build_doc_unsigned(
             DocTypes.ALIRO_ACCESS,
             IssuerNamespaces.ALIRO_ACCESS,
             [ResponseElement(data_element_id=self.element_id, value=access_element)],
@@ -75,7 +75,7 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_DOCTYPE_MISMATCH(AliroReaderTestCase, UserPro
         )
         m.doc_type = "bad-doctype"  # Make invalid
 
-        DeviceResponseBuilder._sign_doc(
+        DeviceResponseBuilder.sign_doc(
             x,
             issuer_keypair.get_private_key().as_bytes(),
             mso=m

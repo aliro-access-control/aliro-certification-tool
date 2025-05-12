@@ -18,6 +18,7 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
+from ...support.access_doc.mdl.common import IssuerNamespaces, DocTypes
 from ...support.access_doc.mdl.request import DeviceRequest
 from ...support.access_doc.mdl.response import DeviceResponse
 from ...support.access_doc.aliro.access import AccessData, AccessRule, Schedule,\
@@ -79,8 +80,8 @@ class NFC_RDR_NEG_STEPUP_AD_VALID_SCHEDULE_DENY_SCHEDULEID(AliroReaderTestCase, 
         access_element.schedules.append(schedule)
 
         x = DeviceResponseBuilder.build_doc(
-            'aliro-a',
-            'aliro-a',
+            DocTypes.ALIRO_ACCESS,
+            IssuerNamespaces.ALIRO_ACCESS,
             [ResponseElement(data_element_id=self.element_id, value=access_element)],
             issuer_keypair.get_private_key().as_bytes(),
             access_credential_pk,

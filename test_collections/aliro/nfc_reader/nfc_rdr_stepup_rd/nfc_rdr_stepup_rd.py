@@ -20,6 +20,7 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
+from ...support.access_doc.mdl.common import IssuerNamespaces, DocTypes
 from ...support.access_doc.mdl.request import DeviceRequest
 from ...support.access_doc.mdl.response import DeviceResponse
 from ...support.access_doc.aliro.revocation import RevocationData, RevocationChangeMode, RevocationEntry
@@ -111,8 +112,8 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revoke_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    'aliro-r',
-                    'aliro-r',
+                    DocTypes.ALIRO_REVOCATION,
+                    IssuerNamespaces.ALIRO_REVOCATION,
                     [ResponseElement(data_element_id=self.element_id, value=revocation_element)],
                     issuer_keypair.get_private_key().as_bytes(),
                     access_credential_pk,
@@ -133,8 +134,8 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revoke_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    'aliro-r',
-                    'aliro-r',
+                    DocTypes.ALIRO_REVOCATION,
+                    IssuerNamespaces.ALIRO_REVOCATION,
                     [ResponseElement(data_element_id=self.element_id, value=revocation_element)],
                     issuer_keypair.get_private_key().as_bytes(),
                     access_credential_pk,
@@ -155,8 +156,8 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revoke_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    'aliro-r',
-                    'aliro-r',
+                    DocTypes.ALIRO_REVOCATION,
+                    IssuerNamespaces.ALIRO_REVOCATION,
                     [ResponseElement(data_element_id=self.element_id, value=revocation_element)],
                     issuer_keypair.get_private_key().as_bytes(),
                     access_credential_pk,
@@ -179,8 +180,8 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revoke_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    'aliro-r',
-                    'aliro-r',
+                    DocTypes.ALIRO_REVOCATION,
+                    IssuerNamespaces.ALIRO_REVOCATION,
                     [ResponseElement(data_element_id=self.element_id, value=revocation_element)],
                     issuer_keypair.get_private_key().as_bytes(),
                     access_credential_pk,
@@ -201,8 +202,8 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revoke_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    'aliro-r',
-                    'aliro-r',
+                    DocTypes.ALIRO_REVOCATION,
+                    IssuerNamespaces.ALIRO_REVOCATION,
                     [ResponseElement(data_element_id=self.element_id, value=revocation_element)],
                     issuer_keypair.get_private_key().as_bytes(),
                     access_credential_pk,
@@ -222,8 +223,8 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revoke_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    'aliro-r',
-                    'aliro-r',
+                    DocTypes.ALIRO_REVOCATION,
+                    IssuerNamespaces.ALIRO_REVOCATION,
                     [ResponseElement(data_element_id=self.element_id, value=revocation_element)],
                     issuer_keypair.get_private_key().as_bytes(),
                     access_credential_pk,
