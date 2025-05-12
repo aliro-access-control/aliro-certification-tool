@@ -151,7 +151,7 @@ class BLEUWB_RDR_CONTROL_FLOW_RDR_INFO_TAG(AliroReaderTestCase, UserPromptSuppor
                             case INS.SELECT:
                                 await self.userdevice.handle_select(message)
                             case INS.AUTH0:
-                                await self.userdevice.handle_auth0_with_wrong_tag(message)
+                                await self.userdevice.handle_auth0_with_wrong_tag_value(message)
                             case INS.AUTH1:
                                 await self.userdevice.handle_auth1(message)
                             case INS.LOAD_CERT:
@@ -164,6 +164,7 @@ class BLEUWB_RDR_CONTROL_FLOW_RDR_INFO_TAG(AliroReaderTestCase, UserPromptSuppor
                                 raise NotImplementedError(
                                     "command: {} not implemented".format(message.ins)
                                 )
+                        return
                 except AccessProtocolError as error:
                     Global.logger.error(
                         "restarting session because of error: {}".format(repr(error))
