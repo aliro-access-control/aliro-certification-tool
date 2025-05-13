@@ -1,35 +1,37 @@
+from binascii import hexlify
+
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     AuthenticationPolicy,
-    Transaction,
     ReaderStatus,
+    Transaction,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
-    Auth0,
-    PROTOCOL_VERSION,
     TransportProtocol,
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
+    InvalidStatusError,
 )
 from aliro_actuator.access_protocol.reader import Reader
-from aliro_actuator.trust_framework.key import KeyPair
+from aliro_actuator.trust_framework.certificate import Certificate
+from aliro_actuator.trust_framework.key import KeyPair, PublicKey
+from aliro_actuator.trust_framework.key_slot import get_key_slot
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
-import os
 
-class NFC_UD_AUTH0_RESPONSE_CHAINING(AliroUserDeviceTestCase, UserPromptSupport):
+class NFC_UD_STANDARD_CERT_IN_AUTH1_WITH_CHAINING(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "NFC_UD_AUTH0_RESPONSE_CHAINING",
+        "public_id": "NFC_UD_STANDARD_CERT_IN_AUTH1_WITH_CHAINING",
         "version": "0.0.1",
-        "title": "NFC_UD_AUTH0_RESPONSE_CHAINING",
-        "description": """Verify conformance of User Device UT in AUTH0 command.""",
+        "title": "NFC_UD_STANDARD_CERT_IN_AUTH1_WITH_CHAINING",
+        "description": """Verify conformance of User Device UT in AUTH1 command.""",
     }
 
     reader_ePuBK = bytes.fromhex(
@@ -54,36 +56,51 @@ class NFC_UD_AUTH0_RESPONSE_CHAINING(AliroUserDeviceTestCase, UserPromptSupport)
         self.test_steps = [
             TestStep("Step1: Initialization"),
             TestStep("Step2: Set to polling mode"),
-            TestStep("Step3: Set the User Device UT"),
-            TestStep("Step4: Send/Receive Select command/response"),
-            TestStep("Step5: Send/Receive AUTH0 command/response"),
-            TestStep("Step6: Send/Receive AUTH1 command/response"),
-            TestStep("Step7: Send/Receive EXCHANGE command/response"),
+            TestStep("Step3: Transaction initiation"),
+            TestStep("Step4: Send/Receive AUTH0 command/response"),
+            TestStep("Step5: Send/Receive AUTH1 command/response"),
+            TestStep("Step6: Send/Receive EXCHANGE command/response"),
         ]
 
     async def setup(self) -> None:
-        logger.info("NFC_UD_AUTH0_RESPONSE_CHAINING setup")
-        # load parameters from project config
-        group_id = self.th_group_identifier()
-        sub_group_id = self.th_sub_group_identifier()
+        logger.info("NFC_UD_STANDARD_CERT_IN_AUTH1_WITH_CHAINING setup")
+        self.group_id = self.th_group_identifier()
         key = self.th_reader_keypair()
-        protocol_version = PROTOCOL_VERSION
+        cert = self.th_reader_certificate_chaining()
+        self.reader_issuer_public_key = self.th_reader_issuer_public_key()
+        self.endpoint_key = self.th_access_credential_public_key()
 
         # Initialize Aliro NFC Reader
         self.reader = Reader(
             transport_protocol=TransportProtocol.NFC,
-            reader_group_identifier=group_id,
-            reader_group_sub_identifier=sub_group_id,
+            reader_group_identifier=self.group_id,
             reader_key=key,
+            reader_cert=cert,
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
-            vendor_extension=os.urandom(30),
+            reader_system_issuer_ca=self.reader_issuer_public_key,
+            key_slot_list=[self.endpoint_key],
         )
 
     @log_errors
     async def execute(self) -> None:
         # Test step 1
         # Done in setup
+        prompt = "Add reader_group_identifier: {}\n".format(hexlify(self.group_id))
+        prompt += "with reader_group_identifier_key: \n{}\n".format(
+            hexlify(self.reader_issuer_public_key.as_bytes())
+        )
+        prompt += "to the Access Credential of the user device\n"
+        prompt += "Using Access Credential public key:\n"
+        prompt += "{}\n".format(hexlify(self.endpoint_key.as_bytes()))
+        prompt += "with keyslot: {}\n".format(hexlify(get_key_slot(self.endpoint_key)))
+        prompt += (
+            "(Access Credential public key can be set with the {} "
+            "test parameter)\n".format(self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY)
+        )
+        await self.send_prompt_request(
+            OptionsSelectPromptRequest(prompt=prompt, options={"OK": 1})
+        )
         self.next_step()
 
         # Test step 2
@@ -96,63 +113,37 @@ class NFC_UD_AUTH0_RESPONSE_CHAINING(AliroUserDeviceTestCase, UserPromptSupport)
         self.next_step()
 
         # Test step 3
-        await self.reader.setup_connection()  # up to RATS command/ ATS response
-        self.reader.start_new_session()
+        try:
+            await self.reader.transaction_initiation()  # including select
+        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
         self.next_step()
 
         # Test step 4
         try:
-            await self.reader.handle_select(aid=EXPEDITED_PHASE_AID)
+            await self.reader.handle_auth0(
+                transaction_type=Transaction.STANDARD,
+                authentication_policy=AuthenticationPolicy.USER_DEVICE,
+            )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
         self.next_step()
 
         # Test step 5
-        data_tlv: list[tuple[int, bytes | list]] = [
-            (Auth0.COMMAND_TAG, Transaction.STANDARD.to_bytes(1, "big")),
-            (Auth0.AUTHENTICATION_POLICY_TAG, AuthenticationPolicy.USER_DEVICE.to_bytes(1, "big")),
-            (Auth0.ETPV_TAG, PROTOCOL_VERSION.to_bytes(2, "big")),
-            (Auth0.READER_EPUBK_TAG, self.reader_epubk),
-            (Auth0.TRANSACTION_ID_TAG, self.transaction_identifier),
-            (Auth0.READER_IDENTIFIER_TAG, self.reader.reader_identifier),
-            (Auth0.VENDOR_SPECIFIC_TAG, self.reader.vendor_extension),
-        ]
-        data = TLV(data_tlv)
-
-        command  = self.reader.apdu.create_command(
-            cla=0x80,
-            ins=INS.AUTH0,
-            p1=0x00,
-            p2=0x00,
-            data=bytes(data.to_bytes()),
-            le=0x3C, # Le set to 60
-        )
         try:
-            response = await self.reader.apdu.handle_chaining_send_command(
-                "AUTH0", command, self.reader.transport_protocol
+            await self.reader.handle_auth1(
+                expected_response=Auth1Response.KEY_SLOT, certificate=True
             )
-            response = self.reader.apdu.parse_response(response, INS.AUTH0)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
-        
-        if self.reader.chaining_response != True:
-            self.mark_step_failure("Response is not chained.")
-            return
+        if self.reader.command_chaining == False:
+            self.mark_step_failure("Auth1 was used without chaining!")
         self.next_step()
         
         # Test step 6
-        try:
-            await self.reader.handle_auth1(
-                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
-            )
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        self.next_step()
-        
-        # Test step 7
         try:
             await self.reader.handle_exchange(
                 False, reader_status=ReaderStatus.READER_STATE_UNSECURED
@@ -163,5 +154,5 @@ class NFC_UD_AUTH0_RESPONSE_CHAINING(AliroUserDeviceTestCase, UserPromptSupport)
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("NFC_UD_AUTH0_RESPONSE_CHAINING Cleanup")
+        logger.info("NFC_UD_STANDARD_CERT_IN_AUTH1_WITH_CHAINING Cleanup")
         await self.reader.transaction_termination()
