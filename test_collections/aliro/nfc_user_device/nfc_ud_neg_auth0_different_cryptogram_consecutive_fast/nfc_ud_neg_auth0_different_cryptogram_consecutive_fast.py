@@ -21,11 +21,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class UD_NFC_AUTH0_21(AliroUserDeviceTestCase, UserPromptSupport):
+class Test ID	NFC_UD_NEG_AUTH0_DIFFERENT_CRYPTOGRAM_CONSECUTIVE_FAST(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "UD-NFC-AUTH0-2.1",
+        "public_id": "NFC_UD_NEG_AUTH0_DIFFERENT_CRYPTOGRAM_CONSECUTIVE_FAST",
         "version": "0.0.1",
-        "title": "UD-NFC-AUTH0-2.1",
+        "title": "NFC_UD_NEG_AUTH0_DIFFERENT_CRYPTOGRAM_CONSECUTIVE_FAST",
         "description": """Verify conformance of User Device UT in AUTH0 command.""",
     }
 
@@ -220,5 +220,5 @@ class UD_NFC_AUTH0_21(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("UD_NFC_AUTH0_21 Cleanup")
+        logger.info("NFC_UD_NEG_AUTH0_DIFFERENT_CRYPTOGRAM_CONSECUTIVE_FAST Cleanup")
         await self.reader.transaction_termination()

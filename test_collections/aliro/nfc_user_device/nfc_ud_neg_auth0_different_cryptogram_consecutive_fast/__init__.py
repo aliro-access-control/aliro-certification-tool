@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .ud_nfc_auth0_21 import UD_NFC_AUTH0_21
+from .nfc_ud_neg_auth0_different_cryptogram_consecutive_fast import NFC_UD_NEG_AUTH0_DIFFERENT_CRYPTOGRAM_CONSECUTIVE_FAST
