@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .nfc_ud_neg_auth1_extra_tag import NFC_UD_NEG_AUTH1_EXTRA_TAG
+from .nfc_ud_neg_auth1_chaining_not_completed import NFC_UD_NEG_AUTH1_CHAINING_NOT_COMPLETED
