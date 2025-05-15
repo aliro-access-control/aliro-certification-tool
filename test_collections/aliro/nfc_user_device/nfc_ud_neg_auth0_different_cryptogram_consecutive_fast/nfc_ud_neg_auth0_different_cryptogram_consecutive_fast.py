@@ -21,7 +21,7 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class Test ID	NFC_UD_NEG_AUTH0_DIFFERENT_CRYPTOGRAM_CONSECUTIVE_FAST(AliroUserDeviceTestCase, UserPromptSupport):
+class NFC_UD_NEG_AUTH0_DIFFERENT_CRYPTOGRAM_CONSECUTIVE_FAST(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
         "public_id": "NFC_UD_NEG_AUTH0_DIFFERENT_CRYPTOGRAM_CONSECUTIVE_FAST",
         "version": "0.0.1",
