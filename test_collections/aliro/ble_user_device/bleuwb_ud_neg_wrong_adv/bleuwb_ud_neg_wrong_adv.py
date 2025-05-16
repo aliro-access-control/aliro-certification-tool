@@ -11,11 +11,13 @@ from aliro_actuator.hw_driver.murata_driver import (
     ReaderMurataDriver,
     UserDeviceMurataDriver,
 )
+from aliro_actuator.hw_driver.murata_driver.errors import (
+    NoResponseError,
+)
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
-from aliro_actuator import Global
-from aliro_actuator.transport_protocol import ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION
+from aliro_actuator.transport_protocol import ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION, Mode
 from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
 from aliro_actuator.hw_driver.murata_driver.fsci import (
     Message,
@@ -25,16 +27,14 @@ from aliro_actuator.hw_driver.murata_driver.base_driver import MurataBaseDriver
 import ucitool.base_uci.helpers.uci_helper as uci
 from aliro_actuator.hw_driver.murata_driver.encryption import dynamic_tag_generation
 from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
-import os
 
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
-
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 SUPPORTED_VERSIONS = [0x0100]
-DEFAULT_PORT = os.getenv('TH_MURATA_COM', '/dev/ttyUSB0')
+DEFAULT_PORT = "/dev/ttyUSB0"
 DEFAULT_BAUDRATE = "230400"
 ALIRO_SERVICE_UUID = bytes.fromhex("FFF2")
 
@@ -68,6 +68,7 @@ class BLEUWB_UD_NEG_WRONG_ADV(AliroUserDeviceTestCase, UserPromptSupport, Murata
     def create_test_steps(self) -> None:
         self.test_steps = [
             TestStep("Step1: Send Bluetooth LE advertisement by setting 6th and 7th bits of adv_ind payload to 0"),    
+            TestStep("Step2: Waiting for 30sec"),    
         ]
 
     async def set_advertising_data_with_modified_bits(
@@ -83,7 +84,7 @@ class BLEUWB_UD_NEG_WRONG_ADV(AliroUserDeviceTestCase, UserPromptSupport, Murata
         BLE_UWB_supported: bool = True,
         BLE_only_supported: bool = True,
     ) -> None:
-        Global.logger.debug("Setting advertising data")
+        logger.debug("Setting advertising data")
 
         byte_7 = advertisement_version & 0x07
         byte_7 |= (notification & 0x3) << 3
@@ -118,12 +119,12 @@ class BLEUWB_UD_NEG_WRONG_ADV(AliroUserDeviceTestCase, UserPromptSupport, Murata
         # scan response data
 
         message = Message(OpGroup.GAP, OpCodeGAP.SET_ADVERTISING_DATA, len(data), data)
-        self.write(message)
-        await self.wait_for_confirm(OpGroup.GAP)
-        await self.wait_for_message(
+        self.reader.transport_protocol.driver.write(message)
+        await self.reader.transport_protocol.driver.wait_for_confirm(OpGroup.GAP)
+        await self.reader.transport_protocol.driver.wait_for_message(
             OpGroup.GAP, OpCodeGAP.GENERIC_EVENT_ADVERTISING_DATA_SETUP_COMPLETE
         )
-        Global.logger.debug("Advertising data setup complete")
+        logger.debug("Advertising data setup complete")
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
@@ -152,36 +153,43 @@ class BLEUWB_UD_NEG_WRONG_ADV(AliroUserDeviceTestCase, UserPromptSupport, Murata
         )
         await self.send_prompt_request(
             OptionsSelectPromptRequest(
-                prompt="Start user device scanning", options={"OK": 1}
+                prompt="Start user device scanning before starting the test!", options={"OK": 1}
             )
         )
 
         # Test step 1: Send Bluetooth LE advertisement by setting 6th and 7th bits of adv_ind payload to 0
         try:
-            Global.logger.info("Setting up connection")
-            driver: ReaderMurataDriver | UserDeviceMurataDriver = (
-                ReaderMurataDriver(DEFAULT_PORT, DEFAULT_BAUDRATE)
-            )
-            supported_versions = SUPPORTED_VERSIONS
-            await driver.uci_initialize(
-                session_id=1,
+            logger.info("Setting up connection")
+
+            self.reader.transport_protocol.mode = Mode.READER
+            self.reader.transport_protocol.group_resolving_key = self.reader.group_resolving_key
+            self.reader.transport_protocol.spsm = self.reader.spsm
+
+            self.reader.transport_protocol.driver = ReaderMurataDriver(DEFAULT_PORT, DEFAULT_BAUDRATE)
+            self.reader.transport_protocol.supported_versions = SUPPORTED_VERSIONS
+            
+            await self.reader.transport_protocol.driver.uci_initialize(
+                #session_id=1,
                 dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
                 dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
             )
-            await driver.setup_gatt_database(
-                self.reader.spsm,
-                supported_versions,
+
+            await self.reader.transport_protocol.driver.setup_gatt_database(
+                self.reader.transport_protocol.spsm,
+                self.reader.transport_protocol.supported_versions,
                 time_sync_0 = True,
                 time_sync_1 = True,
                 LE_coded_phy = True,
+                timeout=self.reader.timeout,
             )
 
-            Global.logger.info("setup ble connection")
-            advertising_address = await driver.read_public_device_address()
+            logger.info("setup ble connection")
+            expiry_timestamp = bytes.fromhex("7a4b8500")
+            advertising_address = await self.reader.transport_protocol.driver.read_public_device_address()
             dynamic_tag = dynamic_tag_generation(
-                self.reader.group_resolving_key, advertising_address, expiry_timestamp = bytes.fromhex("7a4b8500")
+                self.reader.transport_protocol.group_resolving_key, expiry_timestamp, advertising_address,
             )
-            await driver.set_advertising_parameters()
+            await self.reader.transport_protocol.driver.set_advertising_parameters()
             await self.set_advertising_data_with_modified_bits(
                 ALIRO_SERVICE_UUID,
                 notification = 0x00,
@@ -194,15 +202,29 @@ class BLEUWB_UD_NEG_WRONG_ADV(AliroUserDeviceTestCase, UserPromptSupport, Murata
                 BLE_UWB_supported = True,
                 BLE_only_supported = False,
             )
-            await driver.set_tx_power_level(0, 0)
-            await driver.start_advertising()
+            await self.reader.transport_protocol.driver.set_tx_power_level(0, 0)
+            logger.debug("Initialize l2cap")
+            await self.reader.transport_protocol.driver.register_le_cb_callback()
+            await self.reader.transport_protocol.driver.register_le_psm(self.reader.transport_protocol.spsm)
+            self.next_step()
             
+            await self.reader.transport_protocol.driver.start_advertising()
+            self.reader.transport_protocol.driver.enable_timeout = True
+            self.reader.transport_protocol.driver.timeout = 30
+            await self.reader.transport_protocol.wait_for_connection()
+            # Test failure
+            logger.error("Received connection event within 30sec")
+            self.mark_step_failure("Received connection event within 30sec")
+            return
+        except NoResponseError as error:
+            # Expected scenario
+            # In case of timeout, MurataDriver will raise NoResponseError
+            pass
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
-        self.next_step() 
-        
+
     async def cleanup(self) -> None:
         logger.info("BLEUWB_UD_NEG_WRONG_ADV Cleanup")
         try:
