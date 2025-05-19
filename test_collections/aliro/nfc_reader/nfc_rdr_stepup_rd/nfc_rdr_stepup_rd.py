@@ -302,7 +302,6 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
             )
         )
 
-    @log_errors
     async def test_credential(self, access_cred: UserDevice, result: int) -> bool:
         try:
             await access_cred.transaction_initiation()  # including select
