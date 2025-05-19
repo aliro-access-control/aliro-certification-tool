@@ -475,3 +475,5 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
     async def cleanup(self) -> None:
         logger.info("NFC_RDR_STEPUP_RD Cleanup")
         await self.userdevice.transaction_termination()
+        await self.access_cred1.transaction_termination()
+        await self.access_cred2.transaction_termination()
