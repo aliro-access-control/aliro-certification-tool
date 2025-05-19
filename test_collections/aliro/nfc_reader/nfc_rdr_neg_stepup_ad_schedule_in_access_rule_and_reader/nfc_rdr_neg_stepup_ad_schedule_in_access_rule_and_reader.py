@@ -33,7 +33,7 @@ class NFC_RDR_NEG_STEPUP_AD_SCHEDULE_IN_ACCESS_RULE_AND_READER(AliroReaderTestCa
         "public_id": "NFC_RDR_NEG_STEPUP_AD_SCHEDULE_IN_ACCESS_RULE_AND_READER",
         "version": "0.0.1",
         "title": "NFC_RDR_NEG_STEPUP_AD_SCHEDULE_IN_ACCESS_RULE_AND_READER",
-        "description": """Verify rejection of Access Document requiring schedules if reader does not support them""",
+        "description": """Verify rejection of Access Document with schedules if reader does not support them""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
