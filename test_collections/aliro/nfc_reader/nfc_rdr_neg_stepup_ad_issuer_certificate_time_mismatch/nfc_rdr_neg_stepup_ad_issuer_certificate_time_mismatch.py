@@ -44,10 +44,6 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
         "70637ee9b40cee568567c69589276888edca7128bb13fb531f9c4f502d8cc65e"
     )  # from Test Vector
 
-    issuer_leaf_PubK = bytes.fromhex("04E1AD1E196D46C2508088594F7FB5342C85DD133145216B559498BBB148B32EEE0FFD2CAABD751"
-                                     "6A39F3855BC955948F71F72C5771797BAE8032E946F70F0D520")
-    issuer_leaf_PrivK = bytes.fromhex("0000297D2963C5741166C6D1CC3579EF45AB2E5798F92115AC81FE6BBDD7320E")
-
     @classmethod
     def pics(cls) -> set[str]:
         return set(
@@ -64,16 +60,15 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
         ]
 
     def build_access_document(self, access_credential_pk: bytes) -> bytes:
-        issuer_keypair, self.element_id = self.access_document_data()
+        issuer_keypair, issuer_ca_keypair, self.element_id = self.access_document_data()
 
         access_element = AccessData()
         access_element.version = 1
 
         # Make Cert
-        leaf_keypair = KeyPair(self.issuer_leaf_PrivK, self.issuer_leaf_PubK)
         x509 = Certificate.generate(
-            key_info_subject_public_key=leaf_keypair.get_public_key().as_bytes(),
-            issuer_keypair=issuer_keypair,
+            key_info_subject_public_key=issuer_keypair.get_public_key().as_bytes(),
+            issuer_keypair=issuer_ca_keypair,
             validity_not_before=datetime.datetime.now(datetime.timezone.utc).strftime("%y%m%d%H%M%SZ").encode("utf-8"),
             validity_not_after=(
                         datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
@@ -93,7 +88,7 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
 
         DeviceResponseBuilder.sign_doc(
             x,
-            leaf_keypair.get_private_key().as_bytes(),
+            issuer_keypair.get_private_key().as_bytes(),
             mso=m,
             use_keyid=False
         )

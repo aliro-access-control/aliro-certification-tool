@@ -60,7 +60,7 @@ class NFC_RDR_NEG_STEPUP_RD_INVALID_ELEMENT_VERSION(AliroReaderTestCase, UserPro
         ]
 
     def build_revocation_document(self, access_credential_pk: bytes) -> bytes:
-        issuer_keypair, self.element_id = self.access_document_data()
+        issuer_keypair, _, self.element_id = self.access_document_data()
 
         entry = RevocationEntry()
         entry.id = bytes.fromhex("0001020304")

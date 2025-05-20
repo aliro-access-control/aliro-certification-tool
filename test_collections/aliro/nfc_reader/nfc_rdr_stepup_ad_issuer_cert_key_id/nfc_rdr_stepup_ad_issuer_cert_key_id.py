@@ -60,16 +60,15 @@ class NFC_RDR_STEPUP_AD_ISSUER_CERT_KEY_ID(AliroReaderTestCase, UserPromptSuppor
         ]
 
     def build_access_document(self, access_credential_pk: bytes) -> bytes:
-        issuer_keypair, self.element_id = self.access_document_data()
+        issuer_keypair, issuer_ca_keypair, self.element_id = self.access_document_data()
 
         access_element = AccessData()
         access_element.version = 1
 
         # Make Cert
-        #  In order for the certificate AND key identifier to be valid for the same public key, this cert must be self-signed
         x509 = Certificate.generate(
             key_info_subject_public_key=issuer_keypair.get_public_key().as_bytes(),
-            issuer_keypair=issuer_keypair,
+            issuer_keypair=issuer_ca_keypair,
         )
 
         x = DeviceResponseBuilder.build_doc(

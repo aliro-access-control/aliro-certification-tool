@@ -94,7 +94,7 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         ]
 
     def build_revocation_documents(self, access_credential_pk: bytes) -> list[tuple[bytes, int, int]]:
-        issuer_keypair, self.element_id = self.access_document_data()
+        issuer_keypair, _, self.element_id = self.access_document_data()
 
         revoke_docs = []
 
