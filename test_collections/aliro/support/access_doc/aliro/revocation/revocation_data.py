@@ -154,7 +154,8 @@ class RevocationData(object):
         revocation_data_dict[RevocationData.CHANGE_MODE_LABEL] = int(self.change_mode)
 
         # Encode the Entries.
-        if (self.entries is not None) and (len(self.entries) > 0):
+        if (self.entries is not None) and \
+                (len(self.entries) > 0 or len(self.entries_to_remove) == 0):
             entries_list = []
             for entry in self.entries:
                 entries_list.append(entry.to_dict(validate))
