@@ -220,6 +220,8 @@ class AliroReaderTestCase(AliroTestCase):
     READER_ISSUER_PUBLIC_KEY_KEY = "dut_reader_issuer_public_key"
     CREDENTIAL_ISSUER_PRIVATE_KEY_KEY = "th_credential_issuer_private_key"
     CREDENTIAL_ISSUER_PUBLIC_KEY_KEY = "th_credential_issuer_public_key"
+    CREDENTIAL_ISSUER_CA_PRIVATE_KEY_KEY = "th_credential_issuer_ca_private_key"
+    CREDENTIAL_ISSUER_CA_PUBLIC_KEY_KEY = "th_credential_issuer_ca_public_key"
     ACCESS_ELEMENT_ID_KEY = "dut_access_element_id"
 
     @classmethod
@@ -249,6 +251,9 @@ class AliroReaderTestCase(AliroTestCase):
                                                "d0eab192ee8873c5d34ee",
             self.CREDENTIAL_ISSUER_PRIVATE_KEY_KEY: "004111DBF98EC0FAE70D37218E1BE8B752D5016F2912A5A226F48EBB2D515058",
             self.CREDENTIAL_ISSUER_PUBLIC_KEY_KEY: "047BA31938492E3F5E97BC91806B5835B5D9E426609139006711E5FB7A670EE4E1"
+                                                   "2FC9F25396C013CC20166029D761A105DEA5E071E84A9E499920524CE2301137",
+            self.CREDENTIAL_ISSUER_CA_PRIVATE_KEY_KEY: "004111DBF98EC0FAE70D37218E1BE8B752D5016F2912A5A226F48EBB2D515058",
+            self.CREDENTIAL_ISSUER_CA_PUBLIC_KEY_KEY: "047BA31938492E3F5E97BC91806B5835B5D9E426609139006711E5FB7A670EE4E1"
                                                    "2FC9F25396C013CC20166029D761A105DEA5E071E84A9E499920524CE2301137",
             self.ACCESS_ELEMENT_ID_KEY: "floor1",
         }
@@ -361,14 +366,16 @@ class AliroReaderTestCase(AliroTestCase):
         )
         return group_resolving_key
 
-    def access_document_data(self) -> tuple[KeyPair, str]:
+    def access_document_data(self) -> tuple[KeyPair, KeyPair, str]:
         """Fetch info for building or validating an access document
 
         Returns:
             tuple:
                 KeyPair: credential issuer keypair
+                KeyPair: credential issuer CA keypair
                 str: access element id
         """
+        # Issuer
         logger.info(
             f"Loading credential issuer public key from '{self.CREDENTIAL_ISSUER_PUBLIC_KEY_KEY}'"
         )
@@ -392,6 +399,30 @@ class AliroReaderTestCase(AliroTestCase):
             issuer_private_key, issuer_public_key
         )
 
+        # Issuer CA
+        logger.info(
+            f"Loading credential issuer ca public key from '{self.CREDENTIAL_ISSUER_CA_PUBLIC_KEY_KEY}'"
+        )
+        issuer_ca_public_key = self.public_key_from_config(
+            self.CREDENTIAL_ISSUER_CA_PUBLIC_KEY_KEY
+        )
+        logger.info(
+            f"Loading credential issuer ca private key from '{self.CREDENTIAL_ISSUER_CA_PRIVATE_KEY_KEY}'"
+        )
+        issuer_ca_private_key = self.private_key_from_config(
+            self.CREDENTIAL_ISSUER_CA_PRIVATE_KEY_KEY,
+            public_key=issuer_ca_public_key,
+        )
+        logger.info(
+            f"TH Using Credential Issuer CA Private Key(hex): \n{issuer_ca_private_key.as_bytes().hex()}"
+        )
+        logger.info(
+            f"TH Using Credential Issuer CA Private Key(pem): \n{issuer_ca_private_key.as_pem()}"
+        )
+        issuer_ca_key_pair = KeyPair(
+            issuer_ca_private_key, issuer_ca_public_key
+        )
+
         logger.info(
             f"Loading Access Element ID from '{self.ACCESS_ELEMENT_ID_KEY}'"
         )
@@ -400,7 +431,7 @@ class AliroReaderTestCase(AliroTestCase):
             f"Using Access Element ID: {element_id}"
         )
 
-        return issuer_key_pair, element_id
+        return issuer_key_pair, issuer_ca_key_pair, element_id
 
 
 class AliroUserDeviceTestCase(AliroTestCase):
