@@ -55,8 +55,9 @@ class BLERKE_RDR_SECURE(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step5: User Device sends AP_RS message: AUTH1 response"),
             TestStep("Step6: Reader sends AP_RQ message: EXCHANGE command"),
             TestStep("Step7: Device sends AP_RS message: EXCHANGE response"),
-            TestStep("Step8: Device sends RKE request message"),
-            TestStep("Step9: Reader sends Reader Status Changed message"),
+            TestStep("Step8: Reader sends AP message: AP completed"),
+            TestStep("Step9: Device sends RKE request message"),
+            TestStep("Step10: Reader sends Reader Status Changed message"),
         ]
 
     async def setup(self) -> None:
@@ -165,7 +166,11 @@ class BLERKE_RDR_SECURE(AliroReaderTestCase, UserPromptSupport):
         
         # Test step 8
         try:
-            await self.userdevice.send_rke_request(RkeAction.SECURE)
+            message_ap_completed = await self.userdevice.wait_for_ble_message()
+
+            self.userdevice.handle_reader_status_access_protocol_completed_message(
+                message_ap_completed
+            )
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -173,6 +178,15 @@ class BLERKE_RDR_SECURE(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
         
         # Test step 9
+        try:
+            await self.userdevice.send_rke_request(RkeAction.SECURE)
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        self.next_step()
+        
+        # Test step 10
         try:
             status_changed = await self.userdevice.wait_for_ble_message()
             if status_changed.id == Notification_ID.READER_STATUS_CHANGED:
