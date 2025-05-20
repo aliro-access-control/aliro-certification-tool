@@ -13,26 +13,25 @@ from aliro_actuator.access_protocol.errors import (
     InvalidCommandError,
 )
 from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
-from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
+from ...support.access_doc.mdl.common import IssuerNamespaces, DocTypes
 from ...support.access_doc.mdl.request import DeviceRequest
 from ...support.access_doc.mdl.response import DeviceResponse
-from ...support.access_doc.mdl.common import DocTypes, IssuerNamespaces
-from ...support.access_doc.aliro.access import AccessData
+from ...support.access_doc.aliro.revocation import RevocationData, RevocationChangeMode, RevocationEntry
 from ...support.access_doc.mdl.response.device_response_builder import DeviceResponseBuilder, ResponseElement
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase, UserPromptSupport):
+class NFC_RDR_NEG_STEPUP_RD_INVALID_ELEMENT_VERSION(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH",
+        "public_id": "NFC_RDR_NEG_STEPUP_RD_INVALID_ELEMENT_VERSION",
         "version": "0.0.1",
-        "title": "NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH",
-        "description": """Verify rejection of Access Document with mismatched certificate and issuerAuth signature times""",
+        "title": "NFC_RDR_NEG_STEPUP_RD_INVALID_ELEMENT_VERSION",
+        "description": """Verify rejection of Revocation Document if Element has invalid Version""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -43,10 +42,6 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
     endpoint_ePrivK = bytes.fromhex(
         "70637ee9b40cee568567c69589276888edca7128bb13fb531f9c4f502d8cc65e"
     )  # from Test Vector
-
-    issuer_leaf_PubK = bytes.fromhex("04E1AD1E196D46C2508088594F7FB5342C85DD133145216B559498BBB148B32EEE0FFD2CAABD751"
-                                     "6A39F3855BC955948F71F72C5771797BAE8032E946F70F0D520")
-    issuer_leaf_PrivK = bytes.fromhex("0000297D2963C5741166C6D1CC3579EF45AB2E5798F92115AC81FE6BBDD7320E")
 
     @classmethod
     def pics(cls) -> set[str]:
@@ -59,55 +54,39 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
     def create_test_steps(self) -> None:
         self.test_steps = [
             TestStep("Step1: Perform Expedited Standard transaction"),
-            TestStep("Step2: Handle ENVELOPE command/response"),
-            TestStep("Step3: Handle EXCHANGE command/response")
+            TestStep("Step2: Handle Step-up SELECT"),
+            TestStep("Step3: Handle ENVELOPE command/response"),
+            TestStep("Step4: Handle EXCHANGE command/response")
         ]
 
-    def build_device_response(self, access_credential_pk: bytes) -> DeviceResponse:
+    def build_revocation_document(self, access_credential_pk: bytes) -> bytes:
         issuer_keypair, self.element_id = self.access_document_data()
 
-        access_element = AccessData()
-        access_element.version = 1
+        entry = RevocationEntry()
+        entry.id = bytes.fromhex("0001020304")
 
-        # Make Cert
-        leaf_keypair = KeyPair(self.issuer_leaf_PrivK, self.issuer_leaf_PubK)
-        x509 = Certificate.generate(
-            key_info_subject_public_key=leaf_keypair.get_public_key().as_bytes(),
-            issuer_keypair=issuer_keypair,
-            validity_not_before=datetime.datetime.now(datetime.timezone.utc).strftime("%y%m%d%H%M%SZ").encode("utf-8"),
-            validity_not_after=(
-                        datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
-                    ).strftime("%y%m%d%H%M%SZ").encode("utf-8"),
-        )
+        revocation_element = RevocationData()
+        revocation_element.version = 42  # Makes invalid
+        revocation_element.change_mode = RevocationChangeMode.OVERWRITE
+        revocation_element.entries.append(entry)
 
-        x = DeviceResponse()
-        y, m = DeviceResponseBuilder._build_doc(
-            DocTypes.ALIRO_ACCESS,
-            IssuerNamespaces.ALIRO_ACCESS,
-            [ResponseElement(data_element_id=self.element_id, value=access_element)],
+        x = DeviceResponseBuilder.build_doc(
+            DocTypes.ALIRO_REVOCATION,
+            IssuerNamespaces.ALIRO_REVOCATION,
+            [ResponseElement(data_element_id=self.element_id, value=revocation_element)],
+            issuer_keypair.get_private_key().as_bytes(),
             access_credential_pk,
             valid_from=datetime.datetime.now(datetime.timezone.utc),
-            valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
-            x509_cert=x509,
-        )
-        m.validity_info.signed = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=14)  # Make invalid
+            valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
+        ).to_cbor(validate=False)
 
-        DeviceResponseBuilder._sign_doc(
-            y,
-            leaf_keypair.get_private_key().as_bytes(),
-            mso=m,
-            use_keyid=False
-        )
-        x.documents.append(y)
-
-        logger.info(f"Generated Device Response: {x.to_cbor(validate=False).hex()}")
+        logger.info(f"Generated Revocation Document: {x.hex()}")
         return x
-
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
         access_credential = self.reader_access_credential()
-        self.device_response = self.build_device_response(
+        revocation_doc = self.build_revocation_document(
             access_credential.get_access_credential_public_key().as_bytes()
         )
 
@@ -116,7 +95,8 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
             access_credentials=[access_credential],
             mailbox=0x00,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
-            access_document=self.device_response.to_cbor(validate=False),
+            revocation_document=revocation_doc,
+            step_up_aid_required=True,
         )
 
     @log_errors
@@ -172,7 +152,21 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
             return
         self.next_step()
 
-        # Test step 2 - envelope
+        # Test step 2 - select
+        try:
+            cmds_select = await self.userdevice.wait_for_command()
+        except InvalidCommandError as error:
+            self.mark_step_failure(str(error))
+            return
+
+        try:
+            await self.userdevice.handle_select(cmds_select)
+        except AccessProtocolError as error:
+            self.mark_step_failure(str(error))
+            return
+        self.next_step()
+
+        # Test step 3 - envelope
         try:
             cmds_envelope = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:
@@ -192,7 +186,7 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
         found_element = False
         for doc_type, elm_req in [y for x in device_request.doc_requests for y in
                                   x.items_request.namespaces.data.items()]:
-            if doc_type != "aliro-a":
+            if doc_type != "aliro-r":
                 continue
             if self.element_id in elm_req.keys():
                 found_element = True
@@ -209,7 +203,7 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
 
         self.next_step()
 
-        # Test step 3 - exchange
+        # Test step 4 - exchange
         try:
             cmds_exchange = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:
@@ -231,5 +225,5 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
             return
 
     async def cleanup(self) -> None:
-        logger.info("NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH Cleanup")
+        logger.info("NFC_RDR_NEG_STEPUP_RD_INVALID_ELEMENT_VERSION Cleanup")
         await self.userdevice.transaction_termination()

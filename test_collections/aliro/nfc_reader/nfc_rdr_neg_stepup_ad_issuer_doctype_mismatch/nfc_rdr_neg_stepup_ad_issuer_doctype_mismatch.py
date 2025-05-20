@@ -13,25 +13,26 @@ from aliro_actuator.access_protocol.errors import (
     InvalidCommandError,
 )
 from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
+from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
-from ...support.access_doc.mdl.common import IssuerNamespaces, DocTypes
 from ...support.access_doc.mdl.request import DeviceRequest
 from ...support.access_doc.mdl.response import DeviceResponse
+from ...support.access_doc.mdl.common import DocTypes, IssuerNamespaces
 from ...support.access_doc.aliro.access import AccessData
 from ...support.access_doc.mdl.response.device_response_builder import DeviceResponseBuilder, ResponseElement
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
-class NFC_RDR_NEG_STEPUP_AD_INVALID_SIGNATURE_ISSUER_AUTH(AliroReaderTestCase, UserPromptSupport):
+class NFC_RDR_NEG_STEPUP_AD_ISSUER_DOCTYPE_MISMATCH(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "NFC_RDR_NEG_STEPUP_AD_INVALID_SIGNATURE_ISSUER_AUTH",
+        "public_id": "NFC_RDR_NEG_STEPUP_AD_ISSUER_DOCTYPE_MISMATCH",
         "version": "0.0.1",
-        "title": "NFC_RDR_NEG_STEPUP_AD_INVALID_SIGNATURE_ISSUER_AUTH",
-        "description": """Verify rejection of Access Document with invalid IssuerAuth signature""",
+        "title": "NFC_RDR_NEG_STEPUP_AD_ISSUER_DOCTYPE_MISMATCH",
+        "description": """Verify rejection of Access Document with incorrect issuerAuth doctype""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -64,20 +65,21 @@ class NFC_RDR_NEG_STEPUP_AD_INVALID_SIGNATURE_ISSUER_AUTH(AliroReaderTestCase, U
         access_element = AccessData()
         access_element.version = 1
 
-        x = DeviceResponseBuilder.build_doc(
+        x, m = DeviceResponseBuilder.build_doc_unsigned(
             DocTypes.ALIRO_ACCESS,
             IssuerNamespaces.ALIRO_ACCESS,
             [ResponseElement(data_element_id=self.element_id, value=access_element)],
-            issuer_keypair.get_private_key().as_bytes(),
             access_credential_pk,
             valid_from=datetime.datetime.now(datetime.timezone.utc),
-            valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
+            valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
         )
+        m.doc_type = "bad-doctype"  # Make invalid
 
-        x.issuer_signed.issuer_auth.signature = bytes.fromhex(
-            "000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F"
-            "202122232425262728292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F"
-        )  # Make invalid
+        DeviceResponseBuilder.sign_doc(
+            x,
+            issuer_keypair.get_private_key().as_bytes(),
+            mso=m
+        )
         x = x.to_cbor(validate=False)
 
         logger.info(f"Generated Access Document: {x.hex()}")
@@ -210,5 +212,5 @@ class NFC_RDR_NEG_STEPUP_AD_INVALID_SIGNATURE_ISSUER_AUTH(AliroReaderTestCase, U
             return
 
     async def cleanup(self) -> None:
-        logger.info("NFC_RDR_NEG_STEPUP_AD_INVALID_SIGNATURE_ISSUER_AUTH Cleanup")
+        logger.info("NFC_RDR_NEG_STEPUP_AD_ISSUER_DOCTYPE_MISMATCH Cleanup")
         await self.userdevice.transaction_termination()

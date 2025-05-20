@@ -19,6 +19,7 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
+from ...support.access_doc.mdl.common import IssuerNamespaces, DocTypes
 from ...support.access_doc.mdl.request import DeviceRequest
 from ...support.access_doc.mdl.response import DeviceResponse
 from ...support.access_doc.aliro.access import AccessData
@@ -58,7 +59,7 @@ class NFC_RDR_STEPUP_AD_ISSUER_CERT_KEY_ID(AliroReaderTestCase, UserPromptSuppor
             TestStep("Step3: Handle EXCHANGE command/response")
         ]
 
-    def build_device_response(self, access_credential_pk: bytes) -> DeviceResponse:
+    def build_access_document(self, access_credential_pk: bytes) -> bytes:
         issuer_keypair, self.element_id = self.access_document_data()
 
         access_element = AccessData()
@@ -71,25 +72,25 @@ class NFC_RDR_STEPUP_AD_ISSUER_CERT_KEY_ID(AliroReaderTestCase, UserPromptSuppor
             issuer_keypair=issuer_keypair,
         )
 
-        x = DeviceResponseBuilder.build(
+        x = DeviceResponseBuilder.build_doc(
+            DocTypes.ALIRO_ACCESS,
+            IssuerNamespaces.ALIRO_ACCESS,
             [ResponseElement(data_element_id=self.element_id, value=access_element)],
-            None,
             issuer_keypair.get_private_key().as_bytes(),
             access_credential_pk,
             valid_from=datetime.datetime.now(datetime.timezone.utc),
             valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
             x509_cert=x509,
             use_keyId=True,
-        )
+        ).to_cbor()
 
-        logger.info(f"Generated Device Response: {x.to_cbor().hex()}")
+        logger.info(f"Generated Access Document: {x.hex()}")
         return x
-
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
         access_credential = self.reader_access_credential()
-        self.device_response = self.build_device_response(
+        access_doc = self.build_access_document(
             access_credential.get_access_credential_public_key().as_bytes()
         )
 
@@ -98,7 +99,7 @@ class NFC_RDR_STEPUP_AD_ISSUER_CERT_KEY_ID(AliroReaderTestCase, UserPromptSuppor
             access_credentials=[access_credential],
             mailbox=0x00,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
-            access_document=self.device_response.to_cbor(),
+            access_document=access_doc,
         )
 
     @log_errors

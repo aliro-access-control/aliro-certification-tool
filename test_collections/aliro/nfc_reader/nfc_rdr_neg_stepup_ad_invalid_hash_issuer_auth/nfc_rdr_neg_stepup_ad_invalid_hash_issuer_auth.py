@@ -59,14 +59,13 @@ class NFC_RDR_NEG_STEPUP_AD_INVALID_HASH_ISSUER_AUTH(AliroReaderTestCase, UserPr
             TestStep("Step3: Handle EXCHANGE command/response")
         ]
 
-    def build_device_response(self, access_credential_pk: bytes) -> DeviceResponse:
+    def build_access_document(self, access_credential_pk: bytes) -> bytes:
         issuer_keypair, self.element_id = self.access_document_data()
 
         access_element = AccessData()
         access_element.version = 1
 
-        x = DeviceResponse()
-        y, m = DeviceResponseBuilder._build_doc(
+        x, m = DeviceResponseBuilder.build_doc_unsigned(
             DocTypes.ALIRO_ACCESS,
             IssuerNamespaces.ALIRO_ACCESS,
             [ResponseElement(data_element_id=self.element_id, value=access_element)],
@@ -76,21 +75,20 @@ class NFC_RDR_NEG_STEPUP_AD_INVALID_HASH_ISSUER_AUTH(AliroReaderTestCase, UserPr
         )
         m.value_digests.data["aliro-a"][1] = bytes.fromhex("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F") # Make invalid
 
-        DeviceResponseBuilder._sign_doc(
-            y,
+        DeviceResponseBuilder.sign_doc(
+            x,
             issuer_keypair.get_private_key().as_bytes(),
             mso=m
         )
-        x.documents.append(y)
+        x = x.to_cbor(validate=False)
 
-        logger.info(f"Generated Device Response: {x.to_cbor(validate=False).hex()}")
+        logger.info(f"Generated Access Document: {x.hex()}")
         return x
-
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
         access_credential = self.reader_access_credential()
-        self.device_response = self.build_device_response(
+        access_doc = self.build_access_document(
             access_credential.get_access_credential_public_key().as_bytes()
         )
 
@@ -99,7 +97,7 @@ class NFC_RDR_NEG_STEPUP_AD_INVALID_HASH_ISSUER_AUTH(AliroReaderTestCase, UserPr
             access_credentials=[access_credential],
             mailbox=0x00,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
-            access_document=self.device_response.to_cbor(validate=False),
+            access_document=access_doc,
         )
 
     @log_errors
