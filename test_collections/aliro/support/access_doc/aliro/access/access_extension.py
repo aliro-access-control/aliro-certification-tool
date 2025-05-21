@@ -40,13 +40,13 @@ class AccessExtension(object):
     @property
     def is_critical(self) -> bool:
         '''Get the Criticality.'''
-        return ((self.__criticality & CriticalityBits.CRITICAL) != 0)
+        return self.__criticality & CriticalityBits.CRITICAL == 0
 
     @is_critical.setter
     def is_critical(self, val : bool) -> None:
         '''Set the Criticality.'''
         assert(isinstance(val, bool))
-        if (val):
+        if not val:
             self.__criticality |= CriticalityBits.CRITICAL
         else:
             self.__criticality &= ~(int(CriticalityBits.CRITICAL))
