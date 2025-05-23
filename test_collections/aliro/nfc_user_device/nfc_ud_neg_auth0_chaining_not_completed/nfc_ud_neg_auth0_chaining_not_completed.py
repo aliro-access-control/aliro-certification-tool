@@ -27,11 +27,11 @@ from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 import os
 
-class NEG_AUTH0_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, UserPromptSupport):
+class NFC_UD_NEG_AUTH0_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "NEG_AUTH0_CHAINING_NOT_COMPLETED",
+        "public_id": "NFC_UD_NEG_AUTH0_CHAINING_NOT_COMPLETED",
         "version": "0.0.1",
-        "title": "NEG_AUTH0_CHAINING_NOT_COMPLETED",
+        "title": "NFC_UD_NEG_AUTH0_CHAINING_NOT_COMPLETED",
         "description": """Verify conformance of User Device UT in AUTH0 command.""",
     }
 
@@ -65,7 +65,7 @@ class NEG_AUTH0_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, UserPromptSuppor
         ]
 
     async def setup(self) -> None:
-        logger.info("NFC_UD_AUTH0_RESPONSE_CHAINING setup")
+        logger.info("NFC_UD_NEG_AUTH0_CHAINING_NOT_COMPLETED setup")
         # load parameters from project config
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
@@ -162,5 +162,5 @@ class NEG_AUTH0_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, UserPromptSuppor
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("NEG_AUTH0_CHAINING_NOT_COMPLETED Cleanup")
+        logger.info("NFC_UD_NEG_AUTH0_CHAINING_NOT_COMPLETED Cleanup")
         await self.reader.transaction_termination()

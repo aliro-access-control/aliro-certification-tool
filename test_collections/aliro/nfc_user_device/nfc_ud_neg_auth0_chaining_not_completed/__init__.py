@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .neg_auth0_chaining_not_completed import NEG_AUTH0_CHAINING_NOT_COMPLETED
+from .nfc_ud_neg_auth0_chaining_not_completed import NFC_UD_NEG_AUTH0_CHAINING_NOT_COMPLETED
