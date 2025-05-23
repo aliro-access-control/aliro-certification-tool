@@ -7,6 +7,7 @@ from aliro_actuator.access_protocol.apdu import (
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
+    STEPUP_PHASE_AID,
     Auth1,
     TransportProtocol,
 )
@@ -157,7 +158,7 @@ class NFC_UD_NEG_AUTH1_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, UserPromp
         
         # Test step 6
         try:
-            await self.handle_select(STEPUP_PHASE_AID)
+            await self.reader.handle_select(STEPUP_PHASE_AID)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
