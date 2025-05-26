@@ -151,8 +151,18 @@ class NFC_UD_NEG_AUTH1_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, UserPromp
                 "AUTH1", command, self.reader.transport_protocol, skip_command=1,
             )
             response = self.reader.apdu.parse_response(response, INS.AUTH1, self.reader.session.encryption_expedited)
+        except InvalidStatusError as error:
+            logger.info(
+                "Received error status (as expected), status received: 0x{:04x}".format(
+                    error.status
+                )
+            )
+            pass
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
+            return
+        else:
+            self.mark_step_failure("No error status returned")
             return
         self.next_step()
         
