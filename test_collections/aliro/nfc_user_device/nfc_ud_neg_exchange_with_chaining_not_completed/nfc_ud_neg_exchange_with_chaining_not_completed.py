@@ -1,3 +1,5 @@
+from binascii import hexlify
+
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     AuthenticationPolicy,
@@ -12,7 +14,10 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
+    InvalidStatusError,
 )
+from aliro_actuator.access_protocol.encryption import VerificationError
+from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
@@ -57,7 +62,6 @@ class NFC_UD_NEG_EXCHANGE_WITH_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, U
             TestStep("Step5: Send/Receive AUTH1 command/response"),
             TestStep("Step6: Send/Receive EXCHANGE incomplete chaining command/response"),
             TestStep("Step7: Send/Receive EXCHANGE command/response"),
-            TestStep("Step7: Send/Receive EXCHANGE  transaction failure command/response"),
         ]
 
     async def setup(self) -> None:
@@ -128,12 +132,8 @@ class NFC_UD_NEG_EXCHANGE_WITH_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, U
         # Test step 6
         logger.info("Start handling EXCHANGE")
         try:
-            # command = self.reader.apdu.create_exchange_command(
-            #     encryption=self.reader.session.encryption_expedited,
-            # )
+            encryption=self.reader.session.encryption_expedited
             logger.info("Creating EXCHANGE command")
-            if encryption is None:
-                raise EncryptionMissingError
 
             logger.debug("Creating TLV")
             payload_list: list[tuple[int, bytes | list]] = []
@@ -151,14 +151,14 @@ class NFC_UD_NEG_EXCHANGE_WITH_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, U
             )
             payload = encrypted_payload + tag
 
-            return self.create_command(
+            command = self.reader.apdu.create_command(
                 cla=0x80,
                 ins=INS.EXCHANGE,
                 p1=0x00,
                 p2=0x00,
                 data=payload,
                 le=0x00,
-                max_data_len=30,
+                max_data_len=5,
             )
 
             response = await self.reader.apdu.handle_chaining_send_command(
@@ -167,12 +167,12 @@ class NFC_UD_NEG_EXCHANGE_WITH_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, U
             logger.info("Received response")
             response = self.reader.apdu.parse_response(response, INS.EXCHANGE, encryption)
         except InvalidStatusError as error:
-            logger.error(
-                "Response status does not indicate success, "
-                "status: 0x{:04x}".format(error.status)
+            logger.info(
+                "Received error status (as expected), status received: 0x{:04x}".format(
+                    error.status
+                )
             )
-            await self.reader.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
-            raise error
+            pass
         except InvalidResponseError as error:
             logger.error("EXCHANGE response format invalid")
             await self.reader.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
@@ -181,23 +181,7 @@ class NFC_UD_NEG_EXCHANGE_WITH_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, U
             logger.error("EXCHANGE response decryption failed")
             await self.reader.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
             raise error
-
-        logger.info("Handling EXCHANGE response")
-        if len(response.status_code) != 4:
-            await self.reader.failure_process(ReaderStatus.STATUS_WORD_ERROR)
-            raise AccessProtocolError(
-                "EXCHANGE payload status has invalid length: {!r}".format(
-                    response.status_code
-                )
-            )
-        if response.status_code != bytes.fromhex("00020000"):
-            await self.reader.failure_process(ReaderStatus.STATUS_WORD_ERROR)
-            raise AccessProtocolError(
-                "EXCHANGE returned error status at end of payload: {!r}".format(
-                    response.status_code
-                )
-            )
-        logger.info("Handling EXCHANGE response done")
+        self.next_step()
 
         # Test step 7
         try:
