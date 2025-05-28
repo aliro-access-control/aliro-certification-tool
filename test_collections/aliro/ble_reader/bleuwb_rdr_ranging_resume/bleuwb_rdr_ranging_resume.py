@@ -64,9 +64,7 @@ class BLEUWB_RDR_RANGING_RESUME(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step7: Reader acquires UWB ranging result"),
             TestStep("Step8: UserDevice sends Ranging Message ID carrying Ranging Session Suspended Attribute ID"),
             TestStep("Step9: UserDevice sends Ranging Message ID carrying Initiate Ranging Session Resume Attribute ID after 1 second"),
-            TestStep("Step10: UserDevice Re-sends same Ranging Message ID carrying Initiate Ranging Session Resume Attribute ID"),
-            TestStep("Step11: UserDevice send Ranging Session Resume Response"),
-            
+            TestStep("Step10: UserDevice send Ranging Session Resume Response"),
         ]
 
     def print_uwb_configuration(self, uwb_config: dict) -> None:
@@ -195,10 +193,8 @@ class BLEUWB_RDR_RANGING_RESUME(AliroReaderTestCase, UserPromptSupport):
         # Test step 8: UserDevice sends Ranging Message ID carrying Ranging Session Suspended Attribute ID
         try:
             await self.userdevice.send_ranging_message_suspended()
-            message = await self.userdevice.wait_for_ble_message()
-            message = await self.userdevice.wait_for_ble_message()
-            await self.userdevice.send_ranging_session_suspend_response()
-            message = await self.userdevice.wait_for_ble_message()
+            message = await self.userdevice.wait_for_ble_message() # suspend request
+            message = await self.userdevice.wait_for_ble_message() # Reader status changed message
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -226,27 +222,7 @@ class BLEUWB_RDR_RANGING_RESUME(AliroReaderTestCase, UserPromptSupport):
             )
         self.next_step()
 
-        # Test step 10: UserDevice Re-sends same Ranging Message ID carrying Initiate Ranging Session Resume Attribute ID
-        try:
-            await self.userdevice.send_ranging_message_resume()
-            message = await self.userdevice.wait_for_ble_message()
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-
-        #check message contains correct header id and attribute for resume request
-        if message.header != ProtocolType.UWB_RANGING_SERVICE or message.id != UWB_RangingService_ID.RANGING_SESSION_RESUME_REQUEST:
-            #message.parse_payload(self.userdevice.session.get_ble_encryption())
-            raise UnexpectedBLEMessageError(
-                "Received unexpected ble message while waiting for "
-                "AP command message",
-                message.header,
-                message.id,
-            )
-        self.next_step()
-
-        # Test step 11: UserDevice send Ranging Session Resume Response 
+        # Test step 10: UserDevice send Ranging Session Resume Response 
         try:
             await self.userdevice.send_ranging_session_resume_response()
         except Exception as error:
