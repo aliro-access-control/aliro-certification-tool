@@ -275,6 +275,10 @@ class AccessData(object):
         # Get the optional Reader Rule IDs from the given dictionary.
         reader_rule_ids = access_data_dict.get(AccessData.READER_RULE_IDS_LABEL)
 
+        access_extension_dict = access_data_dict.get(AccessData.ACCESS_EXTENSIONS_LABEL)
+
+        non_access_extension_dict = access_data_dict.get(AccessData.NON_ACCESS_EXTENSIONS_LABEL)
+
         # Decode the required Version.
         if (version is None) or (not isinstance(version, int)) or (version < 0):
             return False
@@ -320,6 +324,34 @@ class AccessData(object):
                 if (not isinstance(reader_rule_id, int)):
                     return False
                 self.__reader_rule_ids.append(reader_rule_id)
+
+        if access_extension_dict is not None:
+            if not isinstance(access_extension_dict, dict):
+                return False
+            for vendor_registered_id, elements in access_extension_dict:
+                if not isinstance(vendor_registered_id, str):
+                    return False
+                for element in elements:
+                    if not isinstance(element, list):
+                        return False
+                    ext = AccessExtension()
+                    if not ext.from_list(element):
+                        return False
+                    self.__access_extensions[vendor_registered_id].append(ext)
+
+        if non_access_extension_dict is not None:
+            if not isinstance(non_access_extension_dict, dict):
+                return False
+            for vendor_registered_id, elements in non_access_extension_dict:
+                if not isinstance(vendor_registered_id, str):
+                    return False
+                for element in elements:
+                    if not isinstance(element, list):
+                        return False
+                    ext = NonAccessExtension()
+                    if not ext.from_list(element):
+                        return False
+                    self.__non_access_extensions[vendor_registered_id].append(ext)
 
         return self.is_valid()
 

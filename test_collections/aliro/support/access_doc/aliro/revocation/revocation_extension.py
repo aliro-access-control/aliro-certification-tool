@@ -105,6 +105,16 @@ class RevocationExtension(object):
         return revocation_extension_list
 
     ############################################################################
+    def from_list(self, revocation_extension_list: list) -> bool:
+        if len(revocation_extension_list) != 3:
+            return False
+
+        self.id = int(revocation_extension_list[0])
+        self.version = int(revocation_extension_list[1])
+        self.data = revocation_extension_list[2]
+        return True
+
+    ############################################################################
     def to_cbor(self, validate=True) -> bytes:
         '''Convert the RevocationExtension to CBOR.'''
         revocation_extension_list = self.to_list(validate)

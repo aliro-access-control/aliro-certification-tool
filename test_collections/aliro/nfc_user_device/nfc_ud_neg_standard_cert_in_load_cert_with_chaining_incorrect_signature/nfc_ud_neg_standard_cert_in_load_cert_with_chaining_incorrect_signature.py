@@ -58,7 +58,7 @@ class NFC_UD_NEG_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING_INCORRECT_SIGNATURE(Al
             TestStep("Step4: Send/Receive AUTH0 command/response"),
             TestStep("Step5: Send/Receive LOAD_CERT command/response"),
             TestStep("Step6: Send/Receive AUTH1 command/response"),
-            TestStep("Step7: Send/Receive EXCHANGE command/response"),
+            TestStep("Step7: Send/Receive CONTROL FLOW command/response"),
         ]
 
     async def setup(self) -> None:

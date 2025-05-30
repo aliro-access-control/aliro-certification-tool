@@ -60,7 +60,7 @@ class NFC_UD_NEG_AUTH1_WRONG_VALUES(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step3: Transaction initiation"),
             TestStep("Step4: Send/Receive AUTH0 command/response"),
             TestStep("Step5: Send/Receive AUTH1 command/response"),
-            TestStep("Step6: Send/Receive EXCHANGE command/response"),
+            TestStep("Step6: Send/Receive CONTROL FLOW command/response"),
         ]
 
     async def setup(self) -> None:
