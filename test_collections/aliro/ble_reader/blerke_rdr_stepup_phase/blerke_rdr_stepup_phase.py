@@ -104,6 +104,7 @@ class BLERKE_RDR_STEPUP_PHASE(AliroReaderTestCase, UserPromptSupport):
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
             access_document=access_doc,
             step_up_aid_required=True,
+            enable_uwb=False,
         )
 
     @log_errors

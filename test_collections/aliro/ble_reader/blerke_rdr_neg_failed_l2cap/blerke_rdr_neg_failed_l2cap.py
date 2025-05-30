@@ -65,6 +65,7 @@ class BLERKE_RDR_NEG_FAILED_L2CAP(AliroReaderTestCase, UserPromptSupport):
             mailbox=0x20,
             group_resolving_key=group_resolving_key,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
+            enable_uwb=False,
         )
 
     @log_errors

@@ -76,6 +76,7 @@ class BLERKE_UD_INFO_TAG(AliroUserDeviceTestCase, UserPromptSupport):
             spsm=spsm,
             group_resolving_key=group_resolving_key,
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
+            enable_uwb=False,
         )
 
     @log_errors

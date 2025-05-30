@@ -68,6 +68,7 @@ class BLERKE_UD_NEG_FAILED_L2CAP(AliroUserDeviceTestCase, UserPromptSupport):
             reader_key=key,
             spsm=spsm,
             group_resolving_key=group_resolving_key,
+            enable_uwb=False,
         )
 
     @log_errors
