@@ -57,7 +57,7 @@ class NFC_UD_NEG_AUTH0_UNKNOWN_READER_ID(AliroUserDeviceTestCase, UserPromptSupp
             TestStep("Step2: Set to polling mode"),
             TestStep("Step3: Transaction initiation"), #include select command and response
             TestStep("Step4: Send/Receive AUTH0 command (with unknown reader_identifier)/response"),
-            TestStep("Step5: Send/Receive EXCHANGE command/response"),
+            TestStep("Step5: Send/Receive CONTROL FLOW command/response"),
         ]
 
     async def setup(self) -> None:

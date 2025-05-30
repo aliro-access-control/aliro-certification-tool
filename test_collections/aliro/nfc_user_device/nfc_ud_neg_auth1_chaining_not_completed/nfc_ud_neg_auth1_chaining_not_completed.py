@@ -4,6 +4,7 @@ from aliro_actuator.access_protocol.apdu import (
     Transaction,
     ReaderStatus,
     INS,
+    S2,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -62,7 +63,7 @@ class NFC_UD_NEG_AUTH1_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, UserPromp
             TestStep("Step4: Send/Receive AUTH0 command/response"),
             TestStep("Step5: Send/Receive AUTH1 command/response"),
             TestStep("Step6: Send/Receive SELECT command/response"),
-            TestStep("Step7: Send/Receive EXCHANGE command/response"),
+            TestStep("Step7: Send/Receive CONTROL FLOW command/response"),
         ]
 
     async def setup(self) -> None:
@@ -176,9 +177,7 @@ class NFC_UD_NEG_AUTH1_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, UserPromp
         
         # Test step 7
         try:
-            await self.reader.handle_exchange(
-                False, reader_status=ReaderStatus.INVALID_ACCESS_RIGHTS
-            )
+            await self.reader.handle_control_flow(S2.NONE)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return

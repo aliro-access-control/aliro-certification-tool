@@ -2,6 +2,8 @@ from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     INS,
     StatusBytes,
+    S1,
+    S2,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -55,7 +57,7 @@ class NFC_RDR_NEG_AUTH1_WRONG_UD_SIGNATURE(AliroReaderTestCase, UserPromptSuppor
             TestStep("Step3: Transaction initiation"),
             TestStep("Step4: Receive/Send AUTH0 command/response"),
             TestStep("Step5: Receive/Send AUTH1 command/response"),
-            TestStep("Step6: Receive/Send EXCHANGE command/response"),
+            TestStep("Step6: Receive/Send CONTROL FLOW command/response"),
         ]
 
     async def setup(self) -> None:
@@ -218,19 +220,23 @@ class NFC_RDR_NEG_AUTH1_WRONG_UD_SIGNATURE(AliroReaderTestCase, UserPromptSuppor
             return
         self.next_step()
         
-        # Test Step 5 Receive/Send EXCHANGE command/response
+        # Test Step 5 Receive/Send CONTROL FLOW command/response
         try:
-            cmds_exchange = await self.userdevice.wait_for_command()
+            cmds_controlflow = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:
-                self.mark_step_failure(str(error))
-                return
-
-        if cmds_exchange.ins == INS.EXCHANGE:
-            try:
-                await self.userdevice.handle_exchange(cmds_exchange)
-            except AccessProtocolError as error:
-                self.mark_step_failure(str(error))
-                return
+            self.mark_step_failure(str(error))
+            return
+        try:
+            await self.userdevice.handle_control_flow(cmds_controlflow)
+        except AccessProtocolError as error:
+            self.mark_step_failure(str(error))
+            return
+        if cmds_controlflow.s1 != S1.FINISHED_WITH_FAILURE:
+            self.mark_step_failure(
+                "S1 value of CONTROL FLOW not '0x00 transaction finished with failure'"
+            )
+        if cmds_controlflow.s2 != S2.NONE:
+            self.mark_step_failure("S2 value of CONTROL FLOW not '0x00 no information'")
         self.next_step()
 
     async def cleanup(self) -> None:
