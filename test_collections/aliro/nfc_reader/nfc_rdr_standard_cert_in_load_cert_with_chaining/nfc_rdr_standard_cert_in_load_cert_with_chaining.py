@@ -111,6 +111,7 @@ class NFC_RDR_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING(AliroReaderTestCase, User
                 "Userdevice is not in state auth0 standard done, either fast "
                 "transaction was requested or handling auth0 failed"
             )
+            return
         self.next_step()
 
         # Test step 4 Receive/Send LOAD CERT command/response
@@ -126,6 +127,7 @@ class NFC_RDR_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING(AliroReaderTestCase, User
             return
         if self.userdevice.chaining_command == False:
             self.mark_step_failure("Load cert was used without chaining!")
+            return
         self.next_step()
 
         # Test step 5 Receive/Send Auth1 command/response
