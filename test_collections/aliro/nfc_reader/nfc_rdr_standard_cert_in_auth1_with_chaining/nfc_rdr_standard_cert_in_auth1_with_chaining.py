@@ -138,8 +138,12 @@ class NFC_RDR_STANDARD_CERT_IN_AUTH1_WITH_CHAINING(AliroReaderTestCase, UserProm
         except AccessProtocolError as error:
             self.mark_step_failure(str(error))
             return
-        if hasattr(self.userdevice.session, "cert") and self.userdevice.chaining_command == False:
-            self.mark_step_failure("Load cert was used without chaining!")
+        if not hasattr(self.userdevice.session, "cert"):
+            self.mark_step_failure("Certificate was not passed in AUTH1")
+            return
+        if self.userdevice.chaining_command == False:
+            self.mark_step_failure("Certificate was sent with chaining!")
+            return
         self.next_step()
         
         # Test Step 6 Receive/Send EXCHANGE command/response
