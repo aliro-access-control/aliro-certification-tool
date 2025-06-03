@@ -82,7 +82,7 @@ class NFC_RDR_NEG_STEPUP_AD_VALIDITY_ITERATION(AliroReaderTestCase, UserPromptSu
         ]
 
     def build_access_documents(self, access_credentials: list[AccessCredential]) -> list[tuple[bytes, int, int]]:
-        issuer_keypair, self.element_id = self.access_document_data()
+        issuer_keypair, _, self.element_id = self.access_document_data()
 
         access_docs = []
         access_element = AccessData()
