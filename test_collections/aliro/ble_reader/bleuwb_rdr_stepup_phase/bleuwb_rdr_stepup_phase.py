@@ -68,7 +68,7 @@ class BLEUWB_RDR_STEPUP_PHASE(AliroReaderTestCase, UserPromptSupport):
         ]
 
     def build_access_document(self, access_credential_pk: bytes) -> bytes:
-        issuer_keypair, self.element_id = self.access_document_data()
+        issuer_keypair, _, self.element_id = self.access_document_data()
 
         access_element = AccessData()
         access_element.version = 1
