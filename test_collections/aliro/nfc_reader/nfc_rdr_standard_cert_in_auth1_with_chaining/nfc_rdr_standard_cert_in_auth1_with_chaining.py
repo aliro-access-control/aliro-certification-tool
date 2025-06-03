@@ -120,6 +120,7 @@ class NFC_RDR_STANDARD_CERT_IN_AUTH1_WITH_CHAINING(AliroReaderTestCase, UserProm
                 "Userdevice is not in state auth0 standard done, either fast "
                 "transaction was requested or handling auth0 failed"
             )
+            return
         self.next_step()
 
         # Test step 5 Receive/Send Auth1 command/response
