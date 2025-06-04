@@ -203,6 +203,8 @@ class BLERKE_RDR_NEG_FAST(AliroReaderTestCase, UserPromptSupport):
                 error_str = "{}: {}".format(error.__class__.__name__, repr(error))
                 self.mark_step_failure(error_str)
                 return
+            
+            await self.userdevice.transaction_termination()
 
     async def cleanup(self) -> None:
         logger.info("BLERKE_RDR_NEG_FAST Cleanup")
