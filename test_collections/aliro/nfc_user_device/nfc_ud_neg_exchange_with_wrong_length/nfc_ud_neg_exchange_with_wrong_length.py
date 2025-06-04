@@ -159,12 +159,7 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
                 encryption=encryption,
             )
         except InvalidStatusError as error:
-            Global.logger.error(
-                "Response status does not indicate success, "
-                "status: 0x{:04x}".format(error.status)
-            )
-            await self.reader.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
-            raise error
+            raise InvalidStatusError(error.response, error.status)
         except InvalidResponseError as error:
             Global.logger.error("EXCHANGE response format invalid")
             await self.reader.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
@@ -301,6 +296,12 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
             result_list = await self.handle_exchange_with_wrong_tag_value(
                 False, read_requests = read_request
             )
+        except InvalidStatusError as error:
+            Global.logger.error(
+                "Response status does not indicate success as expected "
+                "status: 0x{:04x}".format(error.status)
+            )
+            pass
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
