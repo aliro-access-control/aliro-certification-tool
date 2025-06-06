@@ -20,16 +20,17 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
+from test_collections.aliro.support.access_doc.mdl.common import DocTypes
 from test_collections.aliro.support.access_doc.mdl.response import DeviceResponse
 from test_collections.aliro.support.access_doc.mdl.request.device_request_builder import DeviceRequestBuilder, RequestElement
 from test_collections.aliro.support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class NFC_UD_STEPUP_BASIC(AliroUserDeviceTestCase, UserPromptSupport):
+class NFC_UD_STEPUP_AD(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "NFC_UD_STEPUP_BASIC",
+        "public_id": "NFC_UD_STEPUP_AD",
         "version": "0.0.1",
-        "title": "NFC_UD_STEPUP_BASIC",
+        "title": "NFC_UD_STEPUP_AD",
         "description": """Verify conformance of User Device UT in ENVELOPE and GET RESPONSE command.""",
     }
 
@@ -83,7 +84,7 @@ class NFC_UD_STEPUP_BASIC(AliroUserDeviceTestCase, UserPromptSupport):
         # Build the Device Request.
         self.issuer_public_key, self.element_id = self.th_access_document_data()
         self.request = DeviceRequestBuilder.build(
-            [RequestElement(self.element_id, False)], [RequestElement(self.element_id, False)]
+            [RequestElement(self.element_id, False)], []
         ).to_cbor()
         logger.info(f"Generated Device Request: {self.request.hex()}")
 
@@ -149,6 +150,10 @@ class NFC_UD_STEPUP_BASIC(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Validate hash and signature
         for document in device_response.documents:
+            if document.doc_type != DocTypes.ALIRO_ACCESS:
+                self.mark_step_failure("Document DocType is invalid.")
+                return
+
             if not document.check_signature(
                     self.issuer_public_key.as_bytes(),
                     self.reader.session.credential_pubk.as_bytes()
@@ -168,5 +173,5 @@ class NFC_UD_STEPUP_BASIC(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("NFC_UD_STEPUP_BASIC Cleanup")
+        logger.info("NFC_UD_STEPUP_AD Cleanup")
         await self.reader.transaction_termination()

@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .nfc_ud_stepup_basic import NFC_UD_STEPUP_BASIC
+from .nfc_ud_stepup_ad import NFC_UD_STEPUP_AD
