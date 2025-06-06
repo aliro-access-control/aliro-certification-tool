@@ -299,7 +299,7 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
                 False, read_requests = read_request
             )
         except InvalidStatusError as error:
-            Global.logger.error(
+            Global.logger.info(
                 "Response status does not indicate success as expected "
                 "status: 0x{:04x}".format(error.status)
             )
