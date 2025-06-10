@@ -72,13 +72,15 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_DOCTYPE_MISMATCH(AliroReaderTestCase, UserPro
             access_credential_pk,
             valid_from=datetime.datetime.now(datetime.timezone.utc),
             valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
+            validate=False,
         )
         m.doc_type = "bad-doctype"  # Make invalid
 
         DeviceResponseBuilder.sign_doc(
             x,
             issuer_keypair.get_private_key().as_bytes(),
-            mso=m
+            mso=m,
+            validate=False
         )
         x = x.to_cbor(validate=False)
 

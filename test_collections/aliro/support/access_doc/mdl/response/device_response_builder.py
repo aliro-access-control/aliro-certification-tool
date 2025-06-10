@@ -185,7 +185,8 @@ class DeviceResponseBuilder(object):
         valid_until : str | int | float | datetime.date | datetime.datetime,
         x509_cert: bytes | None = None,
         validity_iteration : int = -1,
-        time_verification_required: bool = False) -> (Document, MobileSecurityObject):
+        time_verification_required: bool = False,
+        validate: bool = True) -> (Document, MobileSecurityObject):
         '''Internal method to build a Document containing the given data elements.'''
 
         if (data_elements is None) or (len(data_elements) <= 0):
@@ -230,7 +231,7 @@ class DeviceResponseBuilder(object):
             issuer_signed_item.element_value = data_element.value
 
             # Convert the issuer signed item to embedded CBOR within a bstr.
-            issuer_signed_item_cbor_obj = cbor2.CBORTag(cbor_tag_encoded_cbor, bytearray(issuer_signed_item.to_cbor()))
+            issuer_signed_item_cbor_obj = cbor2.CBORTag(cbor_tag_encoded_cbor, bytearray(issuer_signed_item.to_cbor(validate=validate)))
             issuer_signed_item_bytes = cbor2.dumps(issuer_signed_item_cbor_obj)
 
             # Compute the hash of the issuer signed item embedded CBOR.
@@ -242,7 +243,7 @@ class DeviceResponseBuilder(object):
             digest_id += 1
 
         # Convert the mobile security object to embedded CBOR within a bstr.
-        doc.issuer_signed.issuer_auth.payload = cbor2.dumps(cbor2.CBORTag(cbor_tag_encoded_cbor, mso.to_cbor()))
+        doc.issuer_signed.issuer_auth.payload = cbor2.dumps(cbor2.CBORTag(cbor_tag_encoded_cbor, mso.to_cbor(validate=validate)))
 
         # Set x.509 certificate
         doc.issuer_signed.issuer_auth.x5chain = x509_cert
@@ -253,13 +254,14 @@ class DeviceResponseBuilder(object):
         doc: Document,
         issuer_private_key: bytes | bytearray,
         mso: MobileSecurityObject | None = None,
-        use_keyid: bool = True):
+        use_keyid: bool = True,
+        validate: bool = True):
         '''Internal method to sign an existing Document'''
 
         cbor_tag_encoded_cbor = 24
 
         if mso is not None:
-            doc.issuer_signed.issuer_auth.payload = cbor2.dumps(cbor2.CBORTag(cbor_tag_encoded_cbor, mso.to_cbor()))
+            doc.issuer_signed.issuer_auth.payload = cbor2.dumps(cbor2.CBORTag(cbor_tag_encoded_cbor, mso.to_cbor(validate=validate)))
 
         if (len(issuer_private_key) == 32):
             # Convert the raw issuer private key to a signing object.
@@ -272,7 +274,7 @@ class DeviceResponseBuilder(object):
         sig_structure = Sig_structure()
         sig_structure.body_protected = doc.issuer_signed.issuer_auth.protected
         sig_structure.payload = doc.issuer_signed.issuer_auth.payload
-        to_be_signed = sig_structure.to_cbor()
+        to_be_signed = sig_structure.to_cbor(validate=validate)
         sig = pk.sign(to_be_signed, ec.ECDSA(hashes.SHA256()))
 
         # Convert the signature into a raw bytearray with concatenated r + s components.
