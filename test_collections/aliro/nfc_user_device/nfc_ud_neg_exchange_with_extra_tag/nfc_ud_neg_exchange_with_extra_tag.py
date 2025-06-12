@@ -1,3 +1,4 @@
+
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     AuthenticationPolicy,
@@ -65,6 +66,8 @@ class NFC_UD_NEG_EXCHANGE_WITH_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupp
     )
     transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
 
+    UNSPECIFIED_EXCHANGE_EXTRA_TAG = 0x99 # Exchange tag not defined as part of Aliro v1.0
+
     @classmethod
     def pics(cls) -> set[str]:
         return set(
@@ -115,8 +118,8 @@ class NFC_UD_NEG_EXCHANGE_WITH_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupp
             payload_list.append((Exchange.UPDATE_DOC_TAG, update_doc))
 
         if mailbox_commands is not None:                      
-            Global.logger.debug("Adding mailbox commands")
-            payload_list.append((Exchange.MAILBOX_TAG, mailbox_commands))  # Adding an extra mailbox tag in unencrypted payload.
+            Global.logger.debug("Adding undefined command")
+            payload_list.append((self.UNSPECIFIED_EXCHANGE_EXTRA_TAG, mailbox_commands))  # Adding an extra undefined tag in unencrypted payload.
         
         payload_tlv = TLV(payload_list)
         payload = payload_tlv.to_bytes()
