@@ -138,11 +138,6 @@ class NFC_RDR_NEG_SEL_RSP_NO_COMMON_EXPEDITED_PROTOCOL_VERSION(AliroReaderTestCa
                 await self.userdevice.failure_process(StatusBytes.FILE_OR_APP_NOT_FOUND)
                 raise InvalidAIDError(select_command.to_bytes(), select_command.aid)
 
-            # await self.response_select(
-            #     select_command.aid,
-            #     CSA_APPLICATION_TYPE,
-            #     self.supported_versions,
-            # )
             select_response = self.userdevice.apdu.create_select_response(
                 cmds_select.aid,
                 CSA_APPLICATION_TYPE,
