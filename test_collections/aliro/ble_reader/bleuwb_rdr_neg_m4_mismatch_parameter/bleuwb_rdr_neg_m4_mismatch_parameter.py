@@ -249,7 +249,7 @@ class BLEUWB_RDR_NEG_M4_MISMATCH_PARAMETER(AliroReaderTestCase, UserPromptSuppor
 
 
     async def cleanup(self) -> None:
-        logger.info("BLEUWB_RDR_RANGING_SUSPEND Cleanup")
+        logger.info("BLEUWB_RDR_NEG_M4_MISMATCH_PARAMETER Cleanup")
         try:
             await self.userdevice.transaction_termination()
         except NoDeviceConnectedError:
