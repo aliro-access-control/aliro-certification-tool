@@ -121,9 +121,12 @@ class NFC_UD_NEG_AUTH1_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 5
         try:
+
+            self.reader.create_shared_keys()
+
             command_parameters = Auth1Response.CREDENTIAL_PUBLIC_KEY
             data = create_reader_authentication(
-                self.reader.reader_identifier, 
+                self.reader.reader_identifier,
                 self.reader.session.credential_ephemeral_key,
                 self.reader.session.get_reader_epubkey(),
                 self.reader.session.transaction_identifier,

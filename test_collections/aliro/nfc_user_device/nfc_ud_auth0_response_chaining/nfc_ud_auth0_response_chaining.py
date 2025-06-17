@@ -3,6 +3,7 @@ from aliro_actuator.access_protocol.apdu import (
     AuthenticationPolicy,
     Transaction,
     ReaderStatus,
+    INS,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -14,8 +15,9 @@ from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
 )
+from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.access_protocol.reader import Reader
-from aliro_actuator.trust_framework.key import KeyPair
+from aliro_actuator.trust_framework.key import KeyPair, PublicKey
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -113,7 +115,7 @@ class NFC_UD_AUTH0_RESPONSE_CHAINING(AliroUserDeviceTestCase, UserPromptSupport)
             (Auth0.COMMAND_TAG, Transaction.STANDARD.to_bytes(1, "big")),
             (Auth0.AUTHENTICATION_POLICY_TAG, AuthenticationPolicy.USER_DEVICE.to_bytes(1, "big")),
             (Auth0.ETPV_TAG, PROTOCOL_VERSION.to_bytes(2, "big")),
-            (Auth0.READER_EPUBK_TAG, self.reader_epubk),
+            (Auth0.READER_EPUBK_TAG, self.reader_ePuBK),
             (Auth0.TRANSACTION_ID_TAG, self.transaction_identifier),
             (Auth0.READER_IDENTIFIER_TAG, self.reader.reader_identifier),
             (Auth0.VENDOR_SPECIFIC_TAG, self.reader.vendor_extension),
@@ -133,11 +135,16 @@ class NFC_UD_AUTH0_RESPONSE_CHAINING(AliroUserDeviceTestCase, UserPromptSupport)
                 "AUTH0", command, self.reader.transport_protocol
             )
             response = self.reader.apdu.parse_response(response, INS.AUTH0)
+
+            credential_ephemeral_public_key = PublicKey(response.credential_epubk)
+            self.reader.session.set_credential_ephemeral_key(credential_ephemeral_public_key)
+            self.reader.session.set_flag(Transaction.STANDARD, AuthenticationPolicy.USER_DEVICE)
+
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
-        
-        if self.reader.chaining_response != True:
+
+        if response.response_chaining != True:
             self.mark_step_failure("Response is not chained.")
             return
         self.next_step()
