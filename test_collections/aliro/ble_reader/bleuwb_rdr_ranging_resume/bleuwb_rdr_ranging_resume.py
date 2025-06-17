@@ -193,6 +193,7 @@ class BLEUWB_RDR_RANGING_RESUME(AliroReaderTestCase, UserPromptSupport):
         # Test step 8: UserDevice sends Ranging Message ID carrying Ranging Session Suspended Attribute ID
         try:
             await self.userdevice.send_ranging_message_suspended()
+            await self.userdevice.transport_protocol.stop_ranging()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
