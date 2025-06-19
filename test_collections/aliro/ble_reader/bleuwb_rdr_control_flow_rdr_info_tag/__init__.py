@@ -13,5 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .bleuwb_rdr_control_flow_rdr_info_tag import BLEUWB_RDR_CONTROL_FLOW_RDR_INFO_TAG
+from .bleuwb_rdr_control_flow_rdr_descriptor_tag import BLEUWB_RDR_CONTROL_FLOW_RDR_DESCRIPTOR_TAG
 
