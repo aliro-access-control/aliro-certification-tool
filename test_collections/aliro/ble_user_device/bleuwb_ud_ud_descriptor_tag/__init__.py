@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .bleuwb_ud_ud_info_tag import BLEUWB_UD_UD_INFO_TAG
+from .bleuwb_ud_ud_descriptor_tag import BLEUWB_UD_UD_DESCRIPTOR_TAG

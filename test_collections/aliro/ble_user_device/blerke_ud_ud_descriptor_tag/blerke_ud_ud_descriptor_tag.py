@@ -29,11 +29,11 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 
-class BLERKE_UD_INFO_TAG(AliroUserDeviceTestCase, UserPromptSupport):
+class BLERKE_UD_UD_DESCRIPTOR_TAG(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "BLERKE_UD_INFO_TAG",
+        "public_id": "BLERKE_UD_UD_DESCRIPTOR_TAG",
         "version": "0.0.1",
-        "title": "BLERKE_UD_INFO_TAG",
+        "title": "BLERKE_UD_UD_DESCRIPTOR_TAG",
         "description": """Verify conformance of User Device UT in RKE command.""",
     }
 
@@ -108,5 +108,5 @@ class BLERKE_UD_INFO_TAG(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
         
     async def cleanup(self) -> None:
-        logger.info("BLERKE_UD_INFO_TAG Cleanup")
+        logger.info("BLERKE_UD_UD_DESCRIPTOR_TAG Cleanup")
         await self.reader.transaction_termination()

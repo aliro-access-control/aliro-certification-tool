@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .nfc_rdr_exchange_rdr_info_tag import NFC_RDR_EXCHANGE_RDR_INFO_TAG
+from .blerke_ud_ud_descriptor_tag import BLERKE_UD_UD_DESCRIPTOR_TAG

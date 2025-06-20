@@ -29,11 +29,11 @@ from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 from binascii import hexlify
 
 
-class NFC_RDR_CONTROL_FLOW_RDR_INFO_TAG(AliroReaderTestCase, UserPromptSupport):
+class NFC_RDR_CONTROL_FLOW_RDR_DESCRIPTOR_TAG(AliroReaderTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "NFC_RDR_CONTROL_FLOW_RDR_INFO_TAG",
+        "public_id": "NFC_RDR_CONTROL_FLOW_RDR_DESCRIPTOR_TAG",
         "version": "0.0.1",
-        "title": "NFC_RDR_CONTROL_FLOW_RDR_INFO_TAG",
+        "title": "NFC_RDR_CONTROL_FLOW_RDR_DESCRIPTOR_TAG",
         "description": """Verify conformance of Reader UT.""",
     }
 
@@ -234,5 +234,5 @@ class NFC_RDR_CONTROL_FLOW_RDR_INFO_TAG(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("NFC_RDR_CONTROL_FLOW_RDR_INFO_TAG Cleanup")
+        logger.info("NFC_RDR_CONTROL_FLOW_RDR_DESCRIPTOR_TAG Cleanup")
         await self.userdevice.transaction_termination()

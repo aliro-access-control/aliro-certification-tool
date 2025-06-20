@@ -22,11 +22,11 @@ from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
 import random
 
-class NFC_UD_SELECT_RESPONSE_UD_INFO_TAG(AliroUserDeviceTestCase, UserPromptSupport):
+class NFC_UD_SELECT_RESPONSE_UD_DESCRIPTOR_TAG(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "NFC_UD_SELECT_RESPONSE_UD_INFO_TAG",
+        "public_id": "NFC_UD_SELECT_RESPONSE_UD_DESCRIPTOR_TAG",
         "version": "0.0.1",
-        "title": "NFC_UD_SELECT_RESPONSE_UD_INFO_TAG",
+        "title": "NFC_UD_SELECT_RESPONSE_UD_DESCRIPTOR_TAG",
         "description": """SELECT Response with User Device Information Tag""",
     }
 
@@ -134,5 +134,5 @@ class NFC_UD_SELECT_RESPONSE_UD_INFO_TAG(AliroUserDeviceTestCase, UserPromptSupp
         self.next_step()
 
     async def cleanup(self) -> None:
-        logger.info("NFC_UD_SELECT_RESPONSE_UD_INFO_TAG Cleanup")
+        logger.info("NFC_UD_SELECT_RESPONSE_UD_DESCRIPTOR_TAG Cleanup")
         await self.reader.transaction_termination()

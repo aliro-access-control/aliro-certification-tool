@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .nfc_rdr_control_flow_rdr_info_tag import NFC_RDR_CONTROL_FLOW_RDR_INFO_TAG
+from .nfc_ud_select_response_ud_descriptor_tag import NFC_UD_SELECT_RESPONSE_UD_DESCRIPTOR_TAG
