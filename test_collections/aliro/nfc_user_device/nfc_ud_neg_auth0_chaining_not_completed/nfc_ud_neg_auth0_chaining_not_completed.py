@@ -1,3 +1,4 @@
+
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     AuthenticationPolicy,
@@ -9,16 +10,20 @@ from aliro_actuator.access_protocol.apdu import (
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     Auth0,
+    Auth1,
     PROTOCOL_VERSION,
     TransportProtocol,
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
+    InvalidStatusError,
 )
 from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.access_protocol.reader import Reader
-from aliro_actuator.trust_framework.key import KeyPair
+from aliro_actuator.trust_framework.key import KeyPair, PublicKey
+from aliro_actuator.access_protocol.authentication import create_reader_authentication
+
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -44,6 +49,12 @@ class NFC_UD_NEG_AUTH0_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, UserPromp
         "3c0f74114cd2a021e8066efbaa31dbb97ef0054272192606fd96633a04f66214"
     )
     transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
+
+    dummy_credential_ephemeral_public_key = bytes.fromhex(
+        "045d75ab60136a2c54ff27b799ee157f3f3329435c0d"
+        "f608de904c920ac29f72bd4274c2edc810a93e240bf5"
+        "d6394a92c9766b690b2bf5128ae70d6e29257ea786"
+    )
 
     @classmethod
     def pics(cls) -> set[str]:
@@ -133,26 +144,60 @@ class NFC_UD_NEG_AUTH0_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, UserPromp
             max_data_len=30,
         )
         try:
-            response = await self.reader.apdu.handle_chaining_send_command(
+            # do not send second block of the chain
+            await self.reader.apdu.handle_chaining_send_command(
                 "AUTH0", command, self.reader.transport_protocol, skip_command=1,
             )
-            response = self.reader.apdu.parse_response(response, INS.AUTH0)
-        except (AccessProtocolError, InvalidResponseError) as error:
-            # self.mark_step_failure(str(error))
-            # return
+        except (AccessProtocolError, InvalidResponseError, InvalidStatusError) as error:
+            # error expected
             pass
+        else:
+            # success when it should not have
+            self.mark_step_failure("Auth0 success when it should not have.")
+            return
+
         self.next_step()
         
         # Test step 6
         try:
-            await self.reader.handle_auth1(
-                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
+            # prepare context to generate properly formatted Auth1 (with dummy user-device ephemeral public key since we're not receiving an Auth0 response)
+            command_parameters = Auth1Response.CREDENTIAL_PUBLIC_KEY
+            data = create_reader_authentication(
+                self.reader.reader_identifier,
+                PublicKey(self.dummy_credential_ephemeral_public_key),
+                self.reader.session.get_reader_epubkey(),
+                self.reader.session.transaction_identifier,
             )
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
+            reader_sig = self.reader.reader_key.sign(data.to_bytes())
+
+            data_fields: list[tuple[int, bytes | list]] = [
+                (Auth1.COMMAND_TAG, command_parameters.to_bytes(1, "big")),
+                (Auth1.READER_SIG_TAG, reader_sig),
+            ]
+
+            data = TLV(data_fields)
+            command = self.reader.apdu.create_command(
+                cla=0x80,
+                ins=INS.AUTH1,
+                p1=0x00,
+                p2=0x00,
+                data=bytes(data.to_bytes()),
+                le=0x00,
+            )
+            response = await self.reader.apdu.handle_chaining_send_command(
+                "AUTH1", command, self.reader.transport_protocol
+            )
+        except InvalidStatusError as error:
+            logger.info(
+                "Received error status (as expected), status received: 0x{:04x}".format(
+                    error.status
+                )
+            )
+        else:
+            self.mark_step_failure("No error status returned")
             return
         self.next_step()
-        
+
         # Test step 7
         try:
             await self.reader.handle_control_flow(S2.NONE)
@@ -164,3 +209,5 @@ class NFC_UD_NEG_AUTH0_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, UserPromp
     async def cleanup(self) -> None:
         logger.info("NFC_UD_NEG_AUTH0_CHAINING_NOT_COMPLETED Cleanup")
         await self.reader.transaction_termination()
+
+
