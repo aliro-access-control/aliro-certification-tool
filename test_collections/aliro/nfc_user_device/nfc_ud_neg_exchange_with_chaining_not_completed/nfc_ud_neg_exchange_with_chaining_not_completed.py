@@ -188,23 +188,11 @@ class NFC_UD_NEG_EXCHANGE_WITH_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, U
             result = await self.reader.handle_exchange(
                 False, read_requests=[(0x00, 0x08)]
             )
-        except (AccessProtocolError, InvalidResponseError) as error:
+        except (AccessProtocolError, InvalidResponseError, InvalidStatusError) as error:
+            # Exchange command should fail
+            pass
+        else:
             self.mark_step_failure(str(error))
-            return
-        if len(result) == 0:
-            self.mark_step_failure("Exchange response did not return a read result")
-            return
-        if len(result) > 1:
-            self.mark_step_failure(
-                "Exchange response returned more than 1 read result, "
-                "while only one was requested"
-            )
-            return
-        if len(result[0]) != 0x08:
-            self.mark_step_failure(
-                "Exchange response read result has invalid length, "
-                "requested: 0x08, got 0x{:04x}".format(len(result[0]))
-            )
             return
         self.next_step()
 
