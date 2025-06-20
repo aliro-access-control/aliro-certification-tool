@@ -3,6 +3,7 @@ from aliro_actuator.access_protocol.apdu import (
     INS,
     StatusBytes,
     Command,
+    Transaction,
     TLV,
     S1,
     S2,
@@ -11,6 +12,15 @@ from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
     Auth0,
+)
+from aliro_actuator.transport_protocol.ble_message_format import (
+    BleAttribute,
+    BleMessage,
+    GeneralError_Values,
+    Notification_ID,
+    UWB_AttributeID,
+    ProtocolType,
+    UWB_RangingService_ID,
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
@@ -239,7 +249,7 @@ class BLEUWB_RDR_CONTROL_FLOW_RDR_DESCRIPTOR_TAG(AliroReaderTestCase, UserPrompt
             and event_message.id == Notification_ID.EVENT
         ):
             try:
-                await self.userdevice.handle_event_message(event_message)
+                self.userdevice.handle_event_message(event_message)
             except AccessProtocolError as error:
                 self.mark_step_failure(str(error))
                 return
