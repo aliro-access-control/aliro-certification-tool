@@ -167,11 +167,17 @@ class NFC_UD_NEG_AUTH1_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, UserPromp
             return
         self.next_step()
         
-        # Test step 6
+         # Test step 6
         try:
-            await self.reader.handle_select(STEPUP_PHASE_AID)
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
+            await self.reader.command_select(STEPUP_PHASE_AID, False)            
+        except InvalidStatusError as error:
+            logger.info(
+                "Received error status (as expected), status received: 0x{:04x}".format(
+                    error.status
+                )
+            )
+        else:
+            self.mark_step_failure("No error status returned")
             return
         self.next_step()
         
