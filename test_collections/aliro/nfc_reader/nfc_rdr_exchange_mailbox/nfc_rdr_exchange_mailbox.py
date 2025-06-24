@@ -141,7 +141,7 @@ class NFC_RDR_EXCHANGE_MAILBOX(AliroReaderTestCase, UserPromptSupport):
                     UserSessionState.TRANSACTION_COMPLETE
                 ):
                     break
-                # re-enter loop waiting for control flow
+                # re-enter loop waiting for exchange
             else:
                 self.mark_step_failure(f"Unexpected command {cmds_exchange.ins}")
                 return
@@ -150,9 +150,9 @@ class NFC_RDR_EXCHANGE_MAILBOX(AliroReaderTestCase, UserPromptSupport):
                 cmds_exchange.reader_status.value
             )
         )
-        if cmds_exchange.reader_status != ReaderStatus.READER_STATE_SECURED:
+        if not ReaderStatus(cmds_exchange.reader_status).is_success:
             self.mark_step_failure(
-                "Expected 'Reader state is secured', but received {}".format(
+                "Expected Success Reader Status (0x01..), but received {}".format(
                     cmds_exchange.reader_status.name
                 )
             )
