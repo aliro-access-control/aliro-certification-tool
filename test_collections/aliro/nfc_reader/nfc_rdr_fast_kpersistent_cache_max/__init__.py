@@ -13,4 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .nfc_rdr_fast_kpersistent_cache_max import NFC_RDR_FAST_KPERSISTENT_CACHE_MAX
+from .nfc_rdr_fast import NFC_RDR_FAST

@@ -40,8 +40,13 @@ class Utility(object):
 
     ############################################################################
     @staticmethod
-    def time_val_to_tdate(val : int | float | datetime.date | datetime.datetime) -> str:
-        '''Convert the date / time to tdate with format "YYYY-mm-ddTHH:MM:SSZ".'''
+    def time_val_to_tdate(val : int | float | datetime.date | datetime.datetime, isUtc: bool = True) -> str:
+        '''
+            Convert the date / time to tdate with format "YYYY-mm-ddTHH:MM:SSZ".
+                val: value of time data to be converted to tdate
+                isUtc: if true, incoming data is already UTC. If false, data will be converted
+                       from local timezone to UTC.
+        '''
         assert isinstance(val, (int, float, datetime.date, datetime.datetime))
         if isinstance(val, (int, float)):
             dt = datetime.datetime.fromtimestamp(val)
@@ -52,7 +57,17 @@ class Utility(object):
         else:
             raise TypeError
 
-        return dt.astimezone(datetime.timezone.utc).isoformat('T', 'seconds').replace('+00:00', 'Z')
+        if isUtc:
+            dt = dt.replace(tzinfo=datetime.timezone.utc)
+        else:
+            dt = dt.astimezone(datetime.timezone.utc)
+
+        return dt.isoformat('T', 'seconds').replace('+00:00', 'Z')
+
+    ############################################################################
+    @staticmethod
+    def tdate_to_datetime(val: str) -> datetime.datetime:
+        return datetime.datetime.strptime(val, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=datetime.timezone.utc)
 
     ############################################################################
     @staticmethod

@@ -16,24 +16,26 @@
 
 import cbor2
 import hashlib
+import datetime
+
+import cryptography.x509
 
 from .issuer_signed import IssuerSigned
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import utils
-from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
 from cryptography.hazmat.primitives.serialization import Encoding
-from cryptography.hazmat.primitives.serialization import (
-    load_der_private_key,
-    load_der_public_key,
-)
+from cryptography.hazmat.primitives.serialization import load_der_public_key
 from cryptography.hazmat.primitives.serialization import PublicFormat
 from cryptography.exceptions import InvalidSignature
 
 from mdl.common.doc_types import DocTypes
 from mdl.response.mobile_security_object import MobileSecurityObject
-from mdl.response.sig_structure import Sig_structure
+from mdl.response.issuer_signed_item import IssuerSignedItem
+from mdl.response.cose_key import COSE_Key
+
+from utility import Utility
 
 ################################################################################
 class Document(object):
@@ -147,44 +149,146 @@ class Document(object):
         return self.from_dict(cbor2.loads(cbor_data))
 
     ############################################################################
-    def check_signature(self, issuer_private_key) -> bool:
+    def check_signature(self, issuer_public_key: bytes, access_credential_public_key: bytes, check_time: bool = True) -> bool:
+        '''Check that a document is cryptographically valid'''
+
+        if len(issuer_public_key) == 65:
+            public_key = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), issuer_public_key)
+        else:
+            public_key = load_der_public_key(issuer_public_key)
+
+        # Check key_id or issuer certificate
+        cert = None
+        if self.issuer_signed.issuer_auth.key_id is not None:
+            if not self._check_keyid(public_key):
+                print("Invalid Key ID.")
+                return False
+        elif self.issuer_signed.issuer_auth.x5chain is not None:
+            cert = self._check_x5chain(public_key, check_time)
+            if cert is None:
+                print("Could not validate certificate.")
+                return False
+            public_key = load_der_public_key(cert.public_bytes(Encoding.DER))
+        else:
+            print("Invalid IssuerAuth.")
+            return False
+
+        # Verify signature
+        if not self.issuer_signed.issuer_auth.check_signature(public_key):
+            print("IssuerAuth signature is invalid.")
+            return False
+
         mso = MobileSecurityObject()
         if not mso.from_cbor(cbor2.loads(self.issuer_signed.issuer_auth.payload).value):
             print("Mobile security object is invalid.")
             return False
 
-        if (len(issuer_private_key) == 32):
-            # Convert the raw issuer private key to a signing object.
-            pk = ec.derive_private_key(int.from_bytes(issuer_private_key, byteorder='big'), ec.SECP256R1())
-        else:
-            # Convert the DER encoded issuer private key to a signing object.
-            pk = load_der_private_key(issuer_private_key, password=None)
-
-        # Sign the payload.
-        sig_structure = Sig_structure()
-        sig_structure.body_protected = self.issuer_signed.issuer_auth.protected
-        sig_structure.payload = self.issuer_signed.issuer_auth.payload
-        signed_data = sig_structure.to_cbor()
-
-        public_key = pk.public_key()
-        sig = self.issuer_signed.issuer_auth.signature
-        r = int.from_bytes(sig[:32], byteorder='big')
-        s = int.from_bytes(sig[32:], byteorder='big')
-        signature = utils.encode_dss_signature(r, s)
-        try:
-            public_key.verify(signature, signed_data, ec.ECDSA(hashes.SHA256()))
-        except InvalidSignature:
-            print("Invalid signature for document.")
+        # Check digests
+        if not self._check_hashes(mso):
             return False
 
-        # Create the issuer public key identifier by hashing "key-identifier"
-        # concatenated with the issuer public key and keeping the first eight bytes.
-        h = hashlib.new('sha256', "key-identifier".encode())
-        h.update(pk.public_key().public_bytes(Encoding.X962, PublicFormat.UncompressedPoint))
-
-        # Check if issuer public key id is valid
-        if (self.issuer_signed.issuer_auth.key_id != h.digest()[0:8]):
-            print("Issuer public key id is invalid.")
+        # Check MSO
+        if not self._check_mso(mso, access_credential_public_key, cert, check_time):
             return False
 
         return True
+
+    ############################################################################
+    def _check_hashes(self, mso: MobileSecurityObject):
+        if len(self.issuer_signed.namespaces) == 0:
+            print("No data elements present")
+            return False
+
+        for namespace, elements in self.issuer_signed.namespaces.items():
+            if namespace not in mso.value_digests.data.keys():
+                print("Could not find namespace in Mobile Security Object")
+                return False
+
+            for element in elements:
+                item = IssuerSignedItem()
+                if not item.from_cbor(element.value):
+                    print("Failed to parse IssuerSignedItem")
+                    return False
+
+                if item.digest_id not in mso.value_digests.data[namespace].keys():
+                    print("Failed to find DigestID in Mobile Security Object")
+                    return False
+
+                digest = hashlib.sha256(cbor2.dumps(element)).digest()
+                if digest != mso.value_digests.data[namespace][item.digest_id]:
+                    print("Incorrect hash in Mobile Security Object")
+                    return False
+        return True
+
+    ############################################################################
+    def _check_mso(self, mso: MobileSecurityObject, access_cred_pk: bytes, cert=None, check_time: bool = True) -> bool:
+        # Verify static data
+        if mso.version != "1.0" or mso.digest_algorithm != "SHA-256" or mso.doc_type != self.doc_type:
+            print("Mobile security object contents are invalid.")
+            return False
+
+        # Check DeviceKeyInfo
+        if self.doc_type == MobileSecurityObject.DOC_TYPE_ALIRO_ACCESS:
+            if len(access_cred_pk) == 65:
+                public_key = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256R1(), access_cred_pk)
+            else:
+                public_key = load_der_public_key(access_cred_pk)
+
+            key = mso.device_key_info.device_key
+            if key.key_type != COSE_Key.KEY_TYPE_EC2 or key.curve_type != COSE_Key.ELLIPTIC_CURVE_TYPE_P256:
+                print("Device Key invalid format")
+                return False
+
+            if key.x != public_key.public_numbers().x.to_bytes(32, 'big') or \
+               key.y != public_key.public_numbers().y.to_bytes(32, 'big'):
+                print("Device Key does not match Access Credential")
+                return False
+
+        # Check validity iteration
+        if check_time:
+            now = datetime.datetime.now(datetime.timezone.utc)
+            not_before = Utility.tdate_to_datetime(mso.validity_info.valid_from)
+            not_after = Utility.tdate_to_datetime(mso.validity_info.valid_until)
+            if now < not_before or now > not_after:
+                print(f"Mobile security object has expired.")
+                return False
+
+            if cert is not None:
+                signed = Utility.tdate_to_datetime(mso.validity_info.signed)
+                if signed < cert.not_valid_before_utc or signed > cert.not_valid_after_utc:
+                    print("Mobile security object signed outside certificate validity period.")
+                    return False
+        elif mso.time_verification_required:
+            print("Asked to not check time, but Mobile Security Object requires time check.")
+            return False
+
+        return True
+
+    ############################################################################
+    def _check_keyid(self, public_key: ec.EllipticCurvePublicKey) -> bool:
+        h = hashlib.new('sha256', "key-identifier".encode())
+        h.update(public_key.public_bytes(Encoding.X962, PublicFormat.UncompressedPoint))
+
+        # Check if issuer public key id is valid
+        if self.issuer_signed.issuer_auth.key_id != h.digest()[0:8]:
+            return False
+        return True
+
+    ############################################################################
+    def _check_x5chain(self, public_key: ec.EllipticCurvePublicKey, check_time: bool = True) -> cryptography.x509.Certificate | None:
+        cert = cryptography.x509.load_der_x509_certificate(self.issuer_signed.issuer_auth.x5chain)
+
+        r = int.from_bytes(cert.signature[0:32], byteorder='big')
+        s = int.from_bytes(cert.signature[32:64], byteorder='big')
+        signature = utils.encode_dss_signature(r, s)
+        try:
+            public_key.verify(signature, cert.tbs_certificate_bytes, ec.ECDSA(hashes.SHA256()))
+        except InvalidSignature:
+            return None
+
+        if check_time:
+            now = datetime.datetime.now(datetime.timezone.utc)
+            if now < cert.not_valid_before_utc or now > cert.not_valid_after_utc:
+                return None
+
+        return cert
