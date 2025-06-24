@@ -229,9 +229,6 @@ class BLEUWB_UD_NEG_RESUME_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserPromp
         # Test step 9: Reader sends Ranging Session Resume Request and User Device send Ranging Session Resume Response
         try:
             logger.info("Sending ranging session resume request ble message")
-            uwb_session_id = self.reader.transport_protocol.get_uwb_session_id()
-            uwb_session_id += 1 # Wrong session ID
-
             message = self.create_ranging_session_resume_request(
                 self.reader.session.get_ble_encryption(),
             )
