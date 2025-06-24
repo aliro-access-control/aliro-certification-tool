@@ -31,7 +31,7 @@ class NFC_RDR_NEG_SEL_RSP_NO_COMMON_EXPEDITED_PROTOCOL_VERSION(AliroReaderTestCa
         "public_id": "NFC_RDR_NEG_SEL_RSP_NO_COMMON_EXPEDITED_PROTOCOL_VERSION",
         "version": "0.0.1",
         "title": "NFC_RDR_NEG_SEL_RSP_NO_COMMON_EXPEDITED_PROTOCOL_VERSION",
-        "description": """Verify conformance of Reader UT in AUTH1 command.""",
+        "description": """Verify conformance of Reader UT in SELECT command.""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
