@@ -214,9 +214,6 @@ class BLEUWB_UD_NEG_SUSPEND_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserProm
         # Test step 8: Reader sends Ranging Session Suspend Request with incorrect session ID
         try:
             logger.info("Sending ranging session suspend request ble message")
-            uwb_session_id = self.reader.transport_protocol.get_uwb_session_id()
-            uwb_session_id += 1
-
             message = self.create_ranging_session_suspend_request(
                 self.reader.session.get_ble_encryption(),
             )
