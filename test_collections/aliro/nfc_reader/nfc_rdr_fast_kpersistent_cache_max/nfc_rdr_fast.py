@@ -1,4 +1,4 @@
-from aliro_actuator.access_protocol.apdu import INS
+from aliro_actuator.access_protocol.apdu import INS, ReaderStatus
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
@@ -21,7 +21,7 @@ class NFC_RDR_FAST(AliroReaderTestCase, UserPromptSupport):
         "public_id": "NFC_RDR_FAST",
         "version": "0.0.1",
         "title": "NFC_RDR_FAST",
-        "description": """Verify conformance of Reader UT in AUTH0 command.""",
+        "description": """Verify conformance of Reader UT in Expedited-Fast Transaction.""",
     }
 
     endpoint_ePuBK = bytes.fromhex(
@@ -216,6 +216,14 @@ class NFC_RDR_FAST(AliroReaderTestCase, UserPromptSupport):
                 cmds_exchange.reader_status.value
             )
         )
+
+        if not ReaderStatus(cmds_exchange.reader_status).is_success:
+            self.mark_step_failure(
+                "Expected Success Reader Status (0x01..), but received {}".format(
+                    cmds_exchange.reader_status.name
+                )
+            )
+            return
 
 
     async def cleanup(self) -> None:
