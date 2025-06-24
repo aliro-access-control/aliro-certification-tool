@@ -7,4 +7,7 @@
     "flake8.args": [
         "--max-line-length", "88"
     ],
+    "python.analysis.extraPaths": [
+        "test_collections/aliro/support/aliro_actuator/src"
+    ]
 }
