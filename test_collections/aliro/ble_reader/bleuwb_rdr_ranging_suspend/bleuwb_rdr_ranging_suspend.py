@@ -193,7 +193,8 @@ class BLEUWB_RDR_RANGING_SUSPEND(AliroReaderTestCase, UserPromptSupport):
         
         # Step9: Reader sends Ranging Session Suspend Response
         try:
-            await self.userdevice.handle_ranging_session_suspend_response()
+            message = await self.userdevice.wait_for_ble_message()
+            await self.userdevice.handle_ranging_session_suspend_response(message)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
