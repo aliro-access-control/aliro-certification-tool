@@ -21,9 +21,9 @@ from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSuppor
 
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
-class BLEUWB_UD_UD_INFO_TAG(AliroUserDeviceTestCase, UserPromptSupport):
+class BLEUWB_UD_UD_DESCRIPTOR_TAG(AliroUserDeviceTestCase, UserPromptSupport):
     metadata = {
-        "public_id": "BLEUWB_UD_UD_INFO_TAG",
+        "public_id": "BLEUWB_UD_UD_DESCRIPTOR_TAG",
         "version": "0.0.1",
         "title": "BLEUWB_UD_UD_INFO_TAG",
         "description": """Verify conformance of User Device UT in BLE discovery.""",
@@ -121,7 +121,7 @@ class BLEUWB_UD_UD_INFO_TAG(AliroUserDeviceTestCase, UserPromptSupport):
 
         
     async def cleanup(self) -> None:
-        logger.info("BLEUWB_UD_UD_INFO_TAG Cleanup")
+        logger.info("BLEUWB_UD_UD_DESCRIPTOR_TAG Cleanup")
         try:
             await self.reader.transaction_termination()
         except NoDeviceConnectedError:
