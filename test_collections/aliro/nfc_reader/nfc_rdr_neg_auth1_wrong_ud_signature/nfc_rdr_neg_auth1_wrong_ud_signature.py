@@ -203,7 +203,7 @@ class NFC_RDR_NEG_AUTH1_WRONG_UD_SIGNATURE(AliroReaderTestCase, UserPromptSuppor
             self.userdevice.session.update_state(UserSessionState.AUTH1_DONE)
             self.chaining_command = cmds_auth1.chaining
 
-            signature = signature[:-1] + bytes([0xFF])
+            signature = signature[:-1] + bytes([signature[-1] ^ 0xFF])
             await self.userdevice.response_auth1(
                 self.userdevice.session.access_credential.get_key_slot(),
                 self.userdevice.session.access_credential.get_access_credential_public_key().as_bytes(),

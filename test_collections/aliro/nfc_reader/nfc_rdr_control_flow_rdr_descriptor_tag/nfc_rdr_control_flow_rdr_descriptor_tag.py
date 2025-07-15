@@ -149,15 +149,6 @@ class NFC_RDR_CONTROL_FLOW_RDR_DESCRIPTOR_TAG(AliroReaderTestCase, UserPromptSup
                 raise AccessProtocolError("Reader ephemeral key is invalid")
             logger.info("Reader ephemeral key is a valid key")
 
-            # Setup UWB session id
-            if (
-                self.userdevice.transport_protocol_type == TransportProtocol.BLE_UWB
-                or self.userdevice.transport_protocol_type == TransportProtocol.SOCKET_BLE
-            ):
-                await self.userdevice.transport_protocol.driver.session_init(
-                    session_id=self.userdevice.session.transaction_identifier[-4:]
-                )
-
             logger.info("Looking up access credential")
             for access_credential in self.userdevice.access_credentials:
                 if access_credential.has_identifier(self.userdevice.session.reader_group_identifier):
