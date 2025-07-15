@@ -13,7 +13,7 @@ from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
 )
-from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.access_protocol.reader import Reader, ReaderState
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
@@ -165,7 +165,9 @@ class NFC_UD_STEPUP_AD(AliroUserDeviceTestCase, UserPromptSupport):
         # Test step 6
         try:
             await self.reader.handle_exchange(
-                False, reader_status=ReaderStatus.READER_STATE_UNSECURED
+                False,
+                reader_status=ReaderStatus.READER_STATE_UNSECURED,
+                reader_state=ReaderState.STEPUP,
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
