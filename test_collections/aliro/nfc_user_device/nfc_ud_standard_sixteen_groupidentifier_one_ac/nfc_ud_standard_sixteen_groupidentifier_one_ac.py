@@ -50,12 +50,22 @@ class NFC_UD_STANDARD_SIXTEEN_GROUPIDENTIFIER_ONE_AC(AliroUserDeviceTestCase, Us
 
     def create_test_steps(self) -> None:
         self.test_steps = [
-            TestStep("Step1: Initialization"),
-            TestStep("Step2: Set to polling mode"),
-            TestStep("Step3: Transaction initiation"),
-            TestStep("Step4: Send/Receive AUTH0 command/response"),
-            TestStep("Step5: Send/Receive AUTH1 command/response"),
-            TestStep("Step6: Send/Receive EXCHANGE command/response"),
+            TestStep("Step1: Iteration 1"),
+            TestStep("Step2: Iteration 2"),
+            TestStep("Step3: Iteration 3"),
+            TestStep("Step4: Iteration 4"),
+            TestStep("Step5: Iteration 5"),
+            TestStep("Step6: Iteration 6"),
+            TestStep("Step7: Iteration 7"),
+            TestStep("Step8: Iteration 8"),
+            TestStep("Step9: Iteration 9"),
+            TestStep("Step10: Iteration 10"),
+            TestStep("Step11: Iteration 11"),
+            TestStep("Step12: Iteration 12"),
+            TestStep("Step13: Iteration 13"),
+            TestStep("Step14: Iteration 14"),
+            TestStep("Step15: Iteration 15"),
+            TestStep("Step16: Iteration 16"),
         ]
 
     async def setup(self) -> None:
@@ -64,20 +74,7 @@ class NFC_UD_STANDARD_SIXTEEN_GROUPIDENTIFIER_ONE_AC(AliroUserDeviceTestCase, Us
 
     @log_errors
     async def execute(self) -> None:
-        # Test step 1
-        # Done in setup
-        self.next_step()
-
-        # Test step 2
-        # Display pop-up to put the User Device UT on the TH
-        await self.send_prompt_request(
-            OptionsSelectPromptRequest(
-                prompt="Tap User Device on the Test Harness NFC", options={"OK": 1}
-            )
-        )
-        self.next_step()
-        
-        for i in range(2, 16):
+        for i in range(16):
             logger.info(f"===Iteration number: {i}===")
             group_id = [
                 "00113344667799AA00113344667799AB",
@@ -146,13 +143,19 @@ class NFC_UD_STANDARD_SIXTEEN_GROUPIDENTIFIER_ONE_AC(AliroUserDeviceTestCase, Us
                 ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
             )
 
+            # Display pop-up to put the User Device UT on the TH
+            await self.send_prompt_request(
+                OptionsSelectPromptRequest(
+                    prompt="Tap User Device on the Test Harness NFC", options={"OK": 1}
+                )
+            )
+
             # Test step 3
             try:
                 await self.reader.transaction_initiation()  # including SELECT command
             except (AccessProtocolError, InvalidResponseError) as error:
                 self.mark_step_failure(str(error))
                 return
-            self.next_step()
 
             # Test step 4
             authentication_policy = random.randint(
@@ -167,7 +170,6 @@ class NFC_UD_STANDARD_SIXTEEN_GROUPIDENTIFIER_ONE_AC(AliroUserDeviceTestCase, Us
             except (AccessProtocolError, InvalidResponseError) as error:
                 self.mark_step_failure(str(error))
                 return
-            self.next_step()
 
             # Test step 5
             try:
@@ -177,7 +179,6 @@ class NFC_UD_STANDARD_SIXTEEN_GROUPIDENTIFIER_ONE_AC(AliroUserDeviceTestCase, Us
             except (AccessProtocolError, InvalidResponseError) as error:
                 self.mark_step_failure(str(error))
                 return
-            self.next_step()
             
             # Test step 6
             try:
@@ -187,6 +188,7 @@ class NFC_UD_STANDARD_SIXTEEN_GROUPIDENTIFIER_ONE_AC(AliroUserDeviceTestCase, Us
             except (AccessProtocolError, InvalidResponseError) as error:
                 self.mark_step_failure(str(error))
                 return
+
             self.next_step()
 
     async def cleanup(self) -> None:
