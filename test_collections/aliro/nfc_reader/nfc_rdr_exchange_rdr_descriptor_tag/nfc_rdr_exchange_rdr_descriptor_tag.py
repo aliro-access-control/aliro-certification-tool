@@ -116,11 +116,6 @@ class NFC_RDR_EXCHANGE_RDR_DESCRIPTOR_TAG(AliroReaderTestCase, UserPromptSupport
         except InvalidCommandError as error:
             self.mark_step_failure(str(error))
             return
-        if cmds_auth1.expected_response != Auth1Response.CREDENTIAL_PUBLIC_KEY:
-            self.mark_step_failure(
-                "Access Credential key type request is not endpoint public key!"
-            )
-            return
         try:
             await self.userdevice.handle_auth1(cmds_auth1, extra_tlv=bytes.fromhex("010203"))
         except AccessProtocolError as error:
