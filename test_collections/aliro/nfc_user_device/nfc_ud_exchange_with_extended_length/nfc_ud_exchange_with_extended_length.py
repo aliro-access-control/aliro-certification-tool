@@ -94,7 +94,7 @@ class NFC_UD_EXCHANGE_WITH_EXTENDED_LENGTH(AliroUserDeviceTestCase, UserPromptSu
 
         # Test step 3
         try:
-            await self.reader.transaction_initiation()  # including SELECT command
+            await self.reader.transaction_initiation(check_apdu_length=True)  # including SELECT command
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
