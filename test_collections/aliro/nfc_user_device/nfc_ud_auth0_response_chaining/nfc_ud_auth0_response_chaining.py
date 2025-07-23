@@ -108,6 +108,7 @@ class NFC_UD_AUTH0_RESPONSE_CHAINING(AliroUserDeviceTestCase, UserPromptSupport)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
+        self.reader.apdu.reset_extended_length()
         self.next_step()
 
         # Test step 5
