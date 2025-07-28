@@ -167,28 +167,27 @@ class BLERKE_RDR_STEPUP_PHASE(AliroReaderTestCase, UserPromptSupport):
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
-        try:
-            cmds_exchange = await self.userdevice.wait_for_command(
-                expected_command=INS.EXCHANGE,
-            )
-            await self.userdevice.handle_exchange(cmds_exchange)
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
 
         self.next_step()
+        while True:
+            try:
+                cmds_msg = await self.userdevice.wait_for_command()
+                if cmds_msg.ins == INS.ENVELOPE:
+                    break
+                elif cmds_msg.ins == INS.EXCHANGE:
+                    await self.userdevice.handle_exchange(cmds_msg)
+                else:
+                    self.mark_step_failure("Unexpected instruction: " + str(cmds_msg.ins))
+                    return
 
-        # Test step 1 - STEPUP: envelope
-        try:
-            cmds_envelope = await self.userdevice.wait_for_command()
-        except InvalidCommandError as error:
-            self.mark_step_failure(str(error))
-            return
+            except Exception as error:
+                error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+                self.mark_step_failure(error_str)
+                return
 
         #   verify device request
         device_request = DeviceRequest()
-        if not device_request.from_cbor(cmds_envelope.decrypted_payload):
+        if not device_request.from_cbor(cmds_msg.decrypted_payload):
             self.mark_step_failure("Failed to parse device request.")
             return
 
@@ -209,7 +208,7 @@ class BLERKE_RDR_STEPUP_PHASE(AliroReaderTestCase, UserPromptSupport):
             return
 
         try:
-            await self.userdevice.handle_envelope(cmds_envelope)
+            await self.userdevice.handle_envelope(cmds_msg)
         except AccessProtocolError as error:
             self.mark_step_failure(str(error))
             return
