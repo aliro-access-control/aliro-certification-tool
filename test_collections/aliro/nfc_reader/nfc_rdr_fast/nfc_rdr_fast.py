@@ -60,6 +60,7 @@ class NFC_RDR_FAST(AliroReaderTestCase, UserPromptSupport):
             TestStep("Step6: Receive/Send EXCHANGE command/response Standard"),
             TestStep("Step7: Transaction Initiation Fast"),
             TestStep("Step8: Receive/Send AUTH0 command/response Fast"),
+            TestStep("Step9: Receive/Send EXCHANGE command/response Fast"),
         ]
 
     async def setup(self) -> None:
@@ -152,15 +153,22 @@ class NFC_RDR_FAST(AliroReaderTestCase, UserPromptSupport):
                 except AccessProtocolError as error:
                     self.mark_step_failure(str(error))
                     return
-                if self.userdevice.session.state_valid(
-                    UserSessionState.TRANSACTION_COMPLETE
-                ):
-                    break
-                # re-enter loop waiting for EXCHANGE with reader status
+
+                if self.userdevice.session.state_valid(UserSessionState.TRANSACTION_COMPLETE):
+                    if not ReaderStatus(cmds_exchange.reader_status).is_success:
+                        self.mark_step_failure(
+                            "Expected Success Reader Status (0x01..), but received {}".format(
+                                cmds_exchange.reader_status.name
+                            )
+                        )
+                        return
+                    else:
+                        break
             else:
                 self.mark_step_failure(f"Unexpected command {cmds_exchange.ins}")
                 return
 
+        self.next_step()
         await self.userdevice.transaction_termination()
         await self.send_prompt_request(
             OptionsSelectPromptRequest(
@@ -199,31 +207,33 @@ class NFC_RDR_FAST(AliroReaderTestCase, UserPromptSupport):
         self.next_step()
         
         # Test step 9:
-        try:
-            cmds_exchange = await self.userdevice.wait_for_command()
-        except InvalidCommandError as error:
-            self.mark_step_failure(str(error))
-            return
+        while True:
+            try:
+                cmds_exchange = await self.userdevice.wait_for_command()
+            except InvalidCommandError as error:
+                self.mark_step_failure(str(error))
+                return
 
-        try:
-            await self.userdevice.handle_exchange(cmds_exchange)
-        except AccessProtocolError as error:
-            self.mark_step_failure(str(error))
-            return
+            if cmds_exchange.ins == INS.EXCHANGE:
+                try:
+                    await self.userdevice.handle_exchange(cmds_exchange)
+                except AccessProtocolError as error:
+                    self.mark_step_failure(str(error))
+                    return
 
-        logger.info(
-            "Received EXCHANGE command with reader status: 0x{:04x}".format(
-                cmds_exchange.reader_status.value
-            )
-        )
-
-        if not ReaderStatus(cmds_exchange.reader_status).is_success:
-            self.mark_step_failure(
-                "Expected Success Reader Status (0x01..), but received {}".format(
-                    cmds_exchange.reader_status.name
-                )
-            )
-            return
+                if self.userdevice.session.state_valid(UserSessionState.TRANSACTION_COMPLETE):
+                    if not ReaderStatus(cmds_exchange.reader_status).is_success:
+                        self.mark_step_failure(
+                            "Expected Success Reader Status (0x01..), but received {}".format(
+                                cmds_exchange.reader_status.name
+                            )
+                        )
+                        return
+                    else:
+                        break
+            else:
+                self.mark_step_failure(f"Unexpected command {cmds_exchange.ins}")
+                return
 
 
     async def cleanup(self) -> None:
