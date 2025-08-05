@@ -66,7 +66,7 @@ class NFC_RDR_NEG_STEPUP_AD_INVALID_ACCESS_DATA_ELEMENT_VERSION(AliroReaderTestC
 
         x = DeviceResponseBuilder.build_doc(
             DocTypes.ALIRO_ACCESS,
-            IssuerNamespaces.ALIRO_REVOCATION,
+            IssuerNamespaces.ALIRO_ACCESS,
             [ResponseElement(data_element_id=self.element_id, value=access_element)],
             issuer_keypair.get_private_key().as_bytes(),
             access_credential_pk,
