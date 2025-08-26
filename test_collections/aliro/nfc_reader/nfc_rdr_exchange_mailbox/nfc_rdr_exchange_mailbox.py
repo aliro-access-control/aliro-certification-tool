@@ -123,6 +123,8 @@ class NFC_RDR_EXCHANGE_MAILBOX(AliroReaderTestCase, UserPromptSupport):
             return
         self.next_step()
 
+        mailbox_cmds_found = 0
+
         # Test step 6
         while True:
             try:
@@ -132,6 +134,13 @@ class NFC_RDR_EXCHANGE_MAILBOX(AliroReaderTestCase, UserPromptSupport):
                 return
 
             if cmds_exchange.ins == INS.EXCHANGE:
+                if cmds_exchange.mailbox_commands is not None:
+                    try:
+                        assert len(cmds_exchange.mailbox_commands_tlv.data) >= 1, "Mailbox command is empty"
+                        mailbox_cmds_found += len(cmds_exchange.mailbox_commands_tlv.data)
+                    except AssertionError as error:
+                        self.mark_step_failure(str(error))
+                        return
                 try:
                     await self.userdevice.handle_exchange(cmds_exchange)
                 except AccessProtocolError as error:
@@ -145,6 +154,10 @@ class NFC_RDR_EXCHANGE_MAILBOX(AliroReaderTestCase, UserPromptSupport):
             else:
                 self.mark_step_failure(f"Unexpected command {cmds_exchange.ins}")
                 return
+        logger.info("Received EXCHANGE command with {} mailbox commands".format(mailbox_cmds_found))
+        if not mailbox_cmds_found:
+            self.mark_step_failure(f"Exchange does not contain Mailbox commands")
+            return
         logger.info(
             "Received EXCHANGE command with reader status: 0x{:04x}".format(
                 cmds_exchange.reader_status.value
