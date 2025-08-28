@@ -59,7 +59,7 @@ class NFC_RDR_NEG_STEPUP_AD_NO_DATA_ELEMENTS(AliroReaderTestCase, UserPromptSupp
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
-        access_credential = self.reader_access_credential()
+        access_credential = self.reader_access_credential(use_random_ud_keypair=True)
 
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,

@@ -166,7 +166,7 @@ class NFC_RDR_NEG_STEPUP_AD_VALIDITY_ITERATION(AliroReaderTestCase, UserPromptSu
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
-        access_credential1 = self.reader_access_credential()
+        access_credential1 = self.reader_access_credential(use_random_ud_keypair=True)
         access_credential2 = AccessCredential(
             access_credential_key_pair=KeyPair(
                 self.access_credential2_PrivK, self.access_credential2_PuBK

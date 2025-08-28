@@ -95,7 +95,7 @@ class NFC_RDR_STEPUP_AD_UNKNOWN_NON_ACCESS_EXTENSION(AliroReaderTestCase, UserPr
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
-        access_credential = self.reader_access_credential()
+        access_credential = self.reader_access_credential(use_random_ud_keypair=True)
         access_doc = self.build_access_document(
             access_credential.get_access_credential_public_key().as_bytes()
         )
