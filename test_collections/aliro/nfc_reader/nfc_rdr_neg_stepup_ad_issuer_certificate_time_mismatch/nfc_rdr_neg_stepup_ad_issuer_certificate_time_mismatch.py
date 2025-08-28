@@ -76,10 +76,10 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
         )
 
         x, m = DeviceResponseBuilder.build_doc_unsigned(
-            DocTypes.ALIRO_ACCESS,
-            IssuerNamespaces.ALIRO_ACCESS,
-            [ResponseElement(data_element_id=self.element_id, value=access_element)],
-            access_credential_pk,
+            doc_type=DocTypes.ALIRO_ACCESS,
+            namespace=IssuerNamespaces.ALIRO_ACCESS,
+            data_elements=[ResponseElement(data_element_id=self.element_id, value=access_element)],
+            device_public_key=access_credential_pk,
             valid_from=datetime.datetime.now(datetime.timezone.utc),
             valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
             x509_cert=x509,
@@ -87,8 +87,8 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
         m.validity_info.signed = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=14)  # Make invalid
 
         DeviceResponseBuilder.sign_doc(
-            x,
-            issuer_keypair.get_private_key().as_bytes(),
+            doc=x,
+            issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
             mso=m,
             use_keyid=False
         )

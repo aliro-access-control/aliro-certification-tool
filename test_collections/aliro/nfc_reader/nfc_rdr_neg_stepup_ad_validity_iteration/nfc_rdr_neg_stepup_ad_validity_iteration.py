@@ -92,11 +92,11 @@ class NFC_RDR_NEG_STEPUP_AD_VALIDITY_ITERATION(AliroReaderTestCase, UserPromptSu
         access_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    DocTypes.ALIRO_ACCESS,
-                    IssuerNamespaces.ALIRO_ACCESS,
-                    [ResponseElement(data_element_id=self.element_id, value=access_element)],
-                    issuer_keypair.get_private_key().as_bytes(),
-                    access_credentials[0].get_access_credential_public_key().as_bytes(),
+                    doc_type=DocTypes.ALIRO_ACCESS,
+                    namespace=IssuerNamespaces.ALIRO_ACCESS,
+                    data_elements=[ResponseElement(data_element_id=self.element_id, value=access_element)],
+                    issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+                    device_public_key=access_credentials[0].get_access_credential_public_key().as_bytes(),
                     valid_from=datetime.datetime.now(datetime.timezone.utc),
                     valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
                     validity_iteration=1,
@@ -110,11 +110,11 @@ class NFC_RDR_NEG_STEPUP_AD_VALIDITY_ITERATION(AliroReaderTestCase, UserPromptSu
         access_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    DocTypes.ALIRO_ACCESS,
-                    IssuerNamespaces.ALIRO_ACCESS,
-                    [ResponseElement(data_element_id=self.element_id, value=access_element)],
-                    issuer_keypair.get_private_key().as_bytes(),
-                    access_credentials[1].get_access_credential_public_key().as_bytes(),
+                    doc_type=DocTypes.ALIRO_ACCESS,
+                    namespace=IssuerNamespaces.ALIRO_ACCESS,
+                    data_elements=[ResponseElement(data_element_id=self.element_id, value=access_element)],
+                    issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+                    device_public_key=access_credentials[1].get_access_credential_public_key().as_bytes(),
                     valid_from=datetime.datetime.now(datetime.timezone.utc),
                     valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
                     validity_iteration=9,
@@ -128,11 +128,11 @@ class NFC_RDR_NEG_STEPUP_AD_VALIDITY_ITERATION(AliroReaderTestCase, UserPromptSu
         access_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    DocTypes.ALIRO_ACCESS,
-                    IssuerNamespaces.ALIRO_ACCESS,
-                    [ResponseElement(data_element_id=self.element_id, value=access_element)],
-                    issuer_keypair.get_private_key().as_bytes(),
-                    access_credentials[0].get_access_credential_public_key().as_bytes(),
+                    doc_type=DocTypes.ALIRO_ACCESS,
+                    namespace=IssuerNamespaces.ALIRO_ACCESS,
+                    data_elements=[ResponseElement(data_element_id=self.element_id, value=access_element)],
+                    issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+                    device_public_key=access_credentials[0].get_access_credential_public_key().as_bytes(),
                     valid_from=datetime.datetime.now(datetime.timezone.utc),
                     valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
                     validity_iteration=3,
@@ -146,11 +146,11 @@ class NFC_RDR_NEG_STEPUP_AD_VALIDITY_ITERATION(AliroReaderTestCase, UserPromptSu
         access_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    DocTypes.ALIRO_ACCESS,
-                    IssuerNamespaces.ALIRO_ACCESS,
-                    [ResponseElement(data_element_id=self.element_id, value=access_element)],
-                    issuer_keypair.get_private_key().as_bytes(),
-                    access_credentials[2].get_access_credential_public_key().as_bytes(),
+                    doc_type=DocTypes.ALIRO_ACCESS,
+                    namespace=IssuerNamespaces.ALIRO_ACCESS,
+                    data_elements=[ResponseElement(data_element_id=self.element_id, value=access_element)],
+                    issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+                    device_public_key=access_credentials[2].get_access_credential_public_key().as_bytes(),
                     valid_from=datetime.datetime.now(datetime.timezone.utc),
                     valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
                     validity_iteration=1,

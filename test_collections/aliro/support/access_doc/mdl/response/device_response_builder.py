@@ -107,33 +107,33 @@ class DeviceResponseBuilder(object):
         device_response = DeviceResponse()
 
         doc = DeviceResponseBuilder.build_doc(
-            IssuerNamespaces.ALIRO_ACCESS,
-            DocTypes.ALIRO_ACCESS,
-            access_data_elements,
-            issuer_private_key,
-            device_public_key,
-            valid_from,
-            valid_until,
-            x509_cert,
-            validity_iteration,
-            time_verification_required,
-            use_keyId)
+            namespace=IssuerNamespaces.ALIRO_ACCESS,
+            doc_type=DocTypes.ALIRO_ACCESS,
+            data_elements=access_data_elements,
+            issuer_private_key=issuer_private_key,
+            device_public_key=device_public_key,
+            valid_from=valid_from,
+            valid_until=valid_until,
+            x509_cert=x509_cert,
+            validity_iteration=validity_iteration,
+            time_verification_required=time_verification_required,
+            use_keyId=use_keyId)
 
         if doc is not None:
             device_response.documents.append(doc)
 
         doc = DeviceResponseBuilder.build_doc(
-            IssuerNamespaces.ALIRO_REVOCATION,
-            DocTypes.ALIRO_REVOCATION,
-            revocation_data_elements,
-            issuer_private_key,
-            device_public_key,
-            valid_from,
-            valid_until,
-            x509_cert,
-            validity_iteration,
-            time_verification_required,
-            use_keyId)
+            namespace=IssuerNamespaces.ALIRO_REVOCATION,
+            doc_type=DocTypes.ALIRO_REVOCATION,
+            data_elements=revocation_data_elements,
+            issuer_private_key=issuer_private_key,
+            device_public_key=device_public_key,
+            valid_from=valid_from,
+            valid_until=valid_until,
+            x509_cert=x509_cert,
+            validity_iteration=validity_iteration,
+            time_verification_required=time_verification_required,
+            use_keyId=use_keyId)
 
         if doc is not None:
             device_response.documents.append(doc)
@@ -143,6 +143,7 @@ class DeviceResponseBuilder(object):
     ############################################################################
     @staticmethod
     def build_doc(
+            *,
             namespace: str,
             doc_type: str,
             data_elements: list[ResponseElement] | None,
@@ -156,20 +157,20 @@ class DeviceResponseBuilder(object):
             use_keyId: bool = True
     ) -> Document | None:
         doc, _ = DeviceResponseBuilder.build_doc_unsigned(
-            namespace,
-            doc_type,
-            data_elements,
-            device_public_key,
-            valid_from,
-            valid_until,
-            x509_cert,
-            validity_iteration,
-            time_verification_required)
+            namespace=namespace,
+            doc_type=doc_type,
+            data_elements=data_elements,
+            device_public_key=device_public_key,
+            valid_from=valid_from,
+            valid_until=valid_until,
+            x509_cert=x509_cert,
+            validity_iteration=validity_iteration,
+            time_verification_required=time_verification_required)
 
         if doc is not None:
             DeviceResponseBuilder.sign_doc(
-                doc,
-                issuer_private_key,
+                doc=doc,
+                issuer_private_key=issuer_private_key,
                 use_keyid=use_keyId
             )
         return doc
@@ -177,6 +178,7 @@ class DeviceResponseBuilder(object):
     ############################################################################
     @staticmethod
     def build_doc_unsigned(
+        *,
         namespace : str,
         doc_type : str,
         data_elements : list[ResponseElement],
@@ -251,6 +253,7 @@ class DeviceResponseBuilder(object):
 
     @staticmethod
     def sign_doc(
+        *,
         doc: Document,
         issuer_private_key: bytes | bytearray,
         mso: MobileSecurityObject | None = None,

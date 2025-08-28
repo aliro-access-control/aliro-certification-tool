@@ -66,18 +66,18 @@ class NFC_RDR_NEG_STEPUP_AD_INVALID_HASH_ISSUER_AUTH(AliroReaderTestCase, UserPr
         access_element.version = 1
 
         x, m = DeviceResponseBuilder.build_doc_unsigned(
-            DocTypes.ALIRO_ACCESS,
-            IssuerNamespaces.ALIRO_ACCESS,
-            [ResponseElement(data_element_id=self.element_id, value=access_element)],
-            access_credential_pk,
+            doc_type=DocTypes.ALIRO_ACCESS,
+            namespace=IssuerNamespaces.ALIRO_ACCESS,
+            data_elements=[ResponseElement(data_element_id=self.element_id, value=access_element)],
+            device_public_key=access_credential_pk,
             valid_from=datetime.datetime.now(datetime.timezone.utc),
             valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
         )
         m.value_digests.data["aliro-a"][1] = bytes.fromhex("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F") # Make invalid
 
         DeviceResponseBuilder.sign_doc(
-            x,
-            issuer_keypair.get_private_key().as_bytes(),
+            doc=x,
+            issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
             mso=m
         )
         x = x.to_cbor(validate=False)

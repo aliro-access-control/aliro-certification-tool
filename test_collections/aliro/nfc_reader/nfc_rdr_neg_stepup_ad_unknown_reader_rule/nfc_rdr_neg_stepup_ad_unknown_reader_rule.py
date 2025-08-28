@@ -66,11 +66,11 @@ class NFC_RDR_NEG_STEPUP_AD_UNKNOWN_READER_RULE(AliroReaderTestCase, UserPromptS
         access_element.reader_rule_ids.append(0xF118)  # This assumes this reader rule is not defined on the reader
 
         x = DeviceResponseBuilder.build_doc(
-            DocTypes.ALIRO_ACCESS,
-            IssuerNamespaces.ALIRO_ACCESS,
-            [ResponseElement(data_element_id=self.element_id, value=access_element)],
-            issuer_keypair.get_private_key().as_bytes(),
-            access_credential_pk,
+            doc_type=DocTypes.ALIRO_ACCESS,
+            namespace=IssuerNamespaces.ALIRO_ACCESS,
+            data_elements=[ResponseElement(data_element_id=self.element_id, value=access_element)],
+            issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+            device_public_key=access_credential_pk,
             valid_from=datetime.datetime.now(datetime.timezone.utc),
             valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
         ).to_cbor(validate=False)

@@ -80,11 +80,11 @@ class NFC_RDR_NEG_STEPUP_AD_SCHEDULE_TIME_VERIFY_REQUIRED(AliroReaderTestCase, U
         access_element.schedules.append(schedule)
 
         x = DeviceResponseBuilder.build_doc(
-            DocTypes.ALIRO_ACCESS,
-            IssuerNamespaces.ALIRO_ACCESS,
-            [ResponseElement(data_element_id=self.element_id, value=access_element)],
-            issuer_keypair.get_private_key().as_bytes(),
-            access_credential_pk,
+            doc_type=DocTypes.ALIRO_ACCESS,
+            namespace=IssuerNamespaces.ALIRO_ACCESS,
+            data_elements=[ResponseElement(data_element_id=self.element_id, value=access_element)],
+            issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+            device_public_key=access_credential_pk,
             valid_from=datetime.datetime.now(datetime.timezone.utc),
             valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
             time_verification_required=True,
