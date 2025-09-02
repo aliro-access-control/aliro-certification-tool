@@ -288,7 +288,8 @@ class NFC_UD_NEG_EXCHANGE_MAILBOX_OUT_OF_BOUNDS(AliroUserDeviceTestCase, UserPro
         self.next_step()
 
         # Test step 6
-        read_request = [(0x11C, 0x100)] #  Mailbox size is fixed to 0x12C, and creating a read request that exceeds mailbox boundaries.
+        #  Mailboxes are assumed to only have 16-bits of addressable space, given the spec
+        read_request = [(0x11C, 0xFF00)]
 
         try:
             result_list = await self.handle_exchange_with_out_of_bounds_mailbox_read(
