@@ -19,6 +19,7 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     UnsolicitedReaderStatusReporting_Values,
     Notification_ID,
     GeneralError_Values,
+    RangingMessage_AttributeID,
 )
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
@@ -158,6 +159,7 @@ class BLEUWB_UD_NEG_M1_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserPromptSup
             await self.reader.expedited_transaction_standard(
                 authentication_policy=AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
             )
+            await self.reader.handle_exchange(False, ursk=True)
             await self.reader.reader_status_access_protocol_completed(
                 UnsolicitedReaderStatusReporting_Values.SEND_TO_EACH_CONNECTED,
                 ReaderStatusInformation_Values.SECURED,
@@ -186,6 +188,8 @@ class BLEUWB_UD_NEG_M1_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserPromptSup
                 self.reader.session.get_ble_encryption()
             )
             message.parse_payload(self.reader.session.get_ble_encryption())
+            if message.id != Notification_ID.RANGING or message.attribute.id != RangingMessage_AttributeID.INITIATE_RANGING_SESSION:
+                raise UnexpectedMessageTypeError
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
