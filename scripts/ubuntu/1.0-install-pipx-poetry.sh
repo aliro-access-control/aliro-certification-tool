@@ -10,7 +10,7 @@ sudo apt install python3-pip
 
 # Install pipx using pip
 echo "Installing pipx..."
-pip3 install --user pipx
+python3 -m pip install --user pipx
 python3 -m pipx ensurepath
 
 # Add pipx to PATH if not already present
