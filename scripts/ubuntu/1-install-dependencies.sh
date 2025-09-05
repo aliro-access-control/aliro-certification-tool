@@ -20,6 +20,10 @@ SCRIPT_DIR="$ROOT_DIR/scripts"
 UBUNTU_SCRIPT_DIR="$SCRIPT_DIR/ubuntu"
 
 printf "\n\n**********"
+printf "\n*** Installing pipx & poetry ***\n"
+$UBUNTU_SCRIPT_DIR/1.0-install-pipx-poetry.sh
+
+printf "\n\n**********"
 printf "\n*** Installing Dependencies ***\n"
 $UBUNTU_SCRIPT_DIR/1.1-install-docker-repository.sh
 
@@ -38,4 +42,4 @@ sudo DEBIAN_FRONTEND=noninteractive echo "$PACKAGES" | sudo xargs apt-get instal
 echo "$PACKAGES" | sudo xargs apt-mark hold
 
 # Install Peotry, needed for Test Harness CLI
-curl -sSL https://install.python-poetry.org | python3 -
+# curl -sSL https://install.python-poetry.org | python3 -
