@@ -228,8 +228,6 @@ class BLEUWB_UD_EXPEDITED_FAST_PHASE(AliroUserDeviceTestCase, UserPromptSupport)
         # Test step 18
         try:
             await self.reader.reader_status_access_protocol_completed(1, 0)
-            # time.sleep(0.1)
-            # await self.reader.transaction_termination()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)

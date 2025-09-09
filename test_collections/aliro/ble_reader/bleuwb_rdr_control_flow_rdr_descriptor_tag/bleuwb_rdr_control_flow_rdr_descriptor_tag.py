@@ -16,7 +16,7 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.transport_protocol.ble_message_format import (
     BleAttribute,
     BleMessage,
-    GeneralError_Values,
+    Event_AttributeID, GeneralError_Values,
     Notification_ID,
     UWB_AttributeID,
     ProtocolType,
@@ -250,11 +250,15 @@ class BLEUWB_RDR_CONTROL_FLOW_RDR_DESCRIPTOR_TAG(AliroReaderTestCase, UserPrompt
         ):
             try:
                 self.userdevice.handle_event_message(event_message)
+                if event_message.attribute != Event_AttributeID.GENERAL_ERROR:
+                    self.mark_step_failure("Did not receive General Error Attribute ID")
+                if event_message.reader_descriptor is None:
+                    self.mark_step_failure("Did not receive Reader Descriptor Attribute ID")
             except AccessProtocolError as error:
                 self.mark_step_failure(str(error))
                 return
         else:
-            self.mark_step_failure("Did not recieve Event Message ID")
+            self.mark_step_failure("Did not receive Event Message ID")
             return
         self.next_step()
        
