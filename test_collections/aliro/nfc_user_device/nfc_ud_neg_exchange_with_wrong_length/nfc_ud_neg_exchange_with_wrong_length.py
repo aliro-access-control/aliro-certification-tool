@@ -6,6 +6,7 @@ from aliro_actuator.access_protocol.apdu import (
     INS,
     Transaction,
     ReaderStatus,
+    Response,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -143,7 +144,12 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
             raise TimeoutError
 
         Global.logger.info("Received response")
-        response = self.reader.apdu.parse_response(response, INS.EXCHANGE, encryption)
+        response = Response.create_from_bytestring(response)
+        try:
+            response.parse_as_exchange(encryption)
+        except InvalidStatusError as error:
+            raise InvalidStatusError(response=response.data, status=error.status,
+                                     additional_message="EXCHANGE response command SW != SUCCESS (0x9000)")
         return response
 
     async def handle_exchange_with_wrong_tag_value(
@@ -220,6 +226,8 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
         elif reader_state == ReaderState.STEPUP:
             Global.logger.debug("Using step up encryption key")
             encryption = self.reader.session.encryption_stepup
+        else:
+            encryption = None
 
         if notify is not None:
             notify_bytes = notify.to_bytes()
@@ -235,8 +243,6 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
                 update_doc=update_doc,
                 encryption=encryption,
             )
-        except InvalidStatusError as error:
-            raise InvalidStatusError(response=bytes(), status=error.status)
         except InvalidResponseError as error:
             Global.logger.error("EXCHANGE response format invalid")
             await self.reader.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
@@ -266,37 +272,6 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
                 response.status_code
             )
         )
-
-        Global.logger.info("Checking read data")
-        read_data = []
-        if len(response.read_data) == 0:
-            if read_requests is not None and len(read_requests) != 0:
-                raise AccessProtocolError(
-                    "Send EXCHANGE command with read requests, but no read data found "
-                    "in response"
-                )
-            else:
-                Global.logger.info("No read data found, as expected")
-        else:
-            index = 0
-            while index < len(response.read_data):
-                length = int.from_bytes(response.read_data[index : index + 2], "big")
-                data = response.read_data[index + 2 : index + 2 + length]
-                read_data.append(data)
-                index = index + 2 + length
-                Global.logger.info("Read data found: {!r}".format(hexlify(data)))
-            if read_requests is None or len(read_requests) != len(read_data):
-                raise AccessProtocolError(
-                    "Number of read requests in EXCHANGE command ({}) differs from "
-                    "number of read data in response ({})".format(
-                        len(read_requests), len(read_data)
-                    )
-                )
-
-        Global.logger.info("Handling EXCHANGE response done")
-
-        return read_data
-
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
@@ -370,17 +345,21 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
         # Test step 6
         read_request = [(0x00C, 0x010)] 
         try:
-            result_list = await self.handle_exchange_with_wrong_tag_value(
+            await self.handle_exchange_with_wrong_tag_value(
                 False, read_requests = read_request
             )
         except InvalidStatusError as error:
+            Global.logger.info(str(error))
             Global.logger.info(
-                "Response status does not indicate success as expected "
+                "EXCHANGE response status does not indicate success as expected "
                 "status: 0x{:04x}".format(error.status)
             )
             pass
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
+            return
+        else:
+            self.mark_step_failure("EXCHANGE with wrong length did not raise expected status word error")
             return
             
         self.next_step()
