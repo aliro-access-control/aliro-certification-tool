@@ -17,6 +17,7 @@ from aliro_actuator.access_protocol.errors import (
 )
 from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.access_protocol.vendor_extension import VendorExtension
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
@@ -70,6 +71,7 @@ class NFC_UD_AUTH0_RESPONSE_CHAINING(AliroUserDeviceTestCase, UserPromptSupport)
         sub_group_id = self.th_sub_group_identifier()
         key = self.th_reader_keypair()
         protocol_version = PROTOCOL_VERSION
+        vendor_ext = VendorExtension(b'\x00\x00\x01', TLV([(1, os.urandom(30))]))
 
         # Initialize Aliro NFC Reader
         self.reader = Reader(
@@ -79,7 +81,7 @@ class NFC_UD_AUTH0_RESPONSE_CHAINING(AliroUserDeviceTestCase, UserPromptSupport)
             reader_key=key,
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
-            vendor_extension=os.urandom(30),
+            vendor_extension=vendor_ext.to_bytes(),
         )
 
     @log_errors
