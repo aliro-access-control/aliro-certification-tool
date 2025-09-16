@@ -1,4 +1,4 @@
-from aliro_actuator.access_protocol.apdu import Auth1Response, INS
+from aliro_actuator.access_protocol.apdu import Auth1Response, INS, ReaderStatus
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
@@ -124,19 +124,49 @@ class NFC_RDR_EXCHANGE_RDR_DESCRIPTOR_TAG(AliroReaderTestCase, UserPromptSupport
         self.next_step()
         
         # Test Step 6 Receive/Send EXCHANGE command/response
-        try:
-            cmds_exchange = await self.userdevice.wait_for_command()
-        except InvalidCommandError as error:
+        reader_descriptor_found = False
+        while True:
+            try:
+                cmds_exchange = await self.userdevice.wait_for_command()
+            except InvalidCommandError as error:
                 self.mark_step_failure(str(error))
                 return
 
-        if cmds_exchange.ins == INS.EXCHANGE:
-            try:
-                await self.userdevice.handle_exchange(cmds_exchange)
-            except AccessProtocolError as error:
-                self.mark_step_failure(str(error))
+            if cmds_exchange.ins == INS.EXCHANGE:
+                if cmds_exchange.notify is not None and cmds_exchange.reader_descriptor is not None:
+                    reader_descriptor_found = True
+                    logger.info("Received Reader Descriptor in Exchange Notify tag (0xAE)")
+                    logger.info("Vendor ID: {}".format(cmds_exchange.reader_vendor_id))
+                    logger.info("Product ID: {}".format(cmds_exchange.reader_product_id))
+                    logger.info("Firmware Version: {}".format(cmds_exchange.reader_firmware_version))
+                try:
+                    await self.userdevice.handle_exchange(cmds_exchange)
+                except AccessProtocolError as error:
+                    self.mark_step_failure(str(error))
+                    return
+                if self.userdevice.session.state_valid(
+                    UserSessionState.TRANSACTION_COMPLETE
+                ):
+                    break
+                # re-enter loop waiting for exchange
+            else:
+                self.mark_step_failure(f"Unexpected command {cmds_exchange.ins}")
                 return
-        self.next_step()
+        if not reader_descriptor_found:
+            self.mark_step_failure(f"Reader Descriptor not found in Exchange command.")
+            return
+        logger.info(
+            "Received EXCHANGE command with reader status: 0x{:04x}".format(
+                cmds_exchange.reader_status.value
+            )
+        )
+        if not ReaderStatus(cmds_exchange.reader_status).is_success:
+            self.mark_step_failure(
+                "Expected Success Reader Status (0x01..), but received {}".format(
+                    cmds_exchange.reader_status.name
+                )
+            )
+            return
 
     async def cleanup(self) -> None:
         logger.info("NFC_RDR_EXCHANGE_RDR_DESCRIPTOR_TAG Cleanup")
