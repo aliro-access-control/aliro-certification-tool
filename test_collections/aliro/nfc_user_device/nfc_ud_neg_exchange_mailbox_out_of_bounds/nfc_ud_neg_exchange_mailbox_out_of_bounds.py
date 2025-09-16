@@ -145,8 +145,11 @@ class NFC_UD_NEG_EXCHANGE_MAILBOX_OUT_OF_BOUNDS(AliroUserDeviceTestCase, UserPro
                     atomic_session
                 )
             )
+            atomic_session_tlv = TLV(
+                [(Exchange.ATOMIC_SESSION_TAG, atomic_session.to_bytes(1, "big"))]
+            )
             mailbox_commands = (
-                atomic_session.to_bytes(1, "big") + mailbox_commands_tlv.to_bytes()
+                atomic_session_tlv.to_bytes() + mailbox_commands_tlv.to_bytes()
             )
             Global.logger.debug("Creating mailbox commands TLV Done")
         else:

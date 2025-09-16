@@ -3,8 +3,10 @@ from binascii import hexlify
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     AuthenticationPolicy,
+    INS,
     Transaction,
     ReaderStatus,
+    Response,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -18,6 +20,8 @@ from aliro_actuator.access_protocol.errors import (
     InvalidStatusError
 )
 from aliro_actuator.access_protocol.encryption import (
+    EncryptionEngine,
+    EncryptionMissingError,
     VerificationError,
 )
 from aliro_actuator.access_protocol.reader import Reader
@@ -74,6 +78,80 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
             TestStep("Step7: Send/Receive EXCHANGE command/response with Tag 0x97"),
         ]
 
+    async def create_exchange_command_with_wrong_length_tag_value(
+        self, 
+        mailbox_commands: bytes | None = None,
+        notify: bytes | None = None,
+        reader_status: int | None = None,
+        ursk: bool = False,
+        update_doc: bytes | None = None,
+        encryption: EncryptionEngine | None = None
+        ):
+
+        Global.logger.info("Creating EXCHANGE command with wrong length/tag value")
+        if encryption is None:
+            raise EncryptionMissingError
+
+        Global.logger.debug("Creating TLV")
+        payload_list: list[tuple[int, bytes | list]] = []
+        if mailbox_commands is not None:
+            Global.logger.debug("Adding mailbox commands")
+            payload_list.append((Exchange.MAILBOX_TAG, mailbox_commands))
+        if notify is not None:
+            Global.logger.debug("Adding notify")
+            payload_list.append((Exchange.NOTIFY_TAG, notify))
+        if reader_status is not None:
+            Global.logger.debug("Adding reader status: 0x{:04x}".format(reader_status))
+            payload_list.append(
+                (Exchange.READER_STATUS_TAG, reader_status.to_bytes(2, "big"))
+            )
+        if ursk:
+            Global.logger.debug("Adding URSK")
+            payload_list.append((Exchange.URSK_TAG, bytes()))
+        if update_doc is not None:
+            Global.logger.debug("Adding update doc")
+            payload_list.append((Exchange.UPDATE_DOC_TAG, update_doc))
+
+        payload_tlv = TLV(payload_list)
+        payload = bytearray(payload_tlv.to_bytes())
+        # Assign a wrong value to length byte in exchange command payload. 
+        payload[1] = min(0xFF, len(payload) + 0x64)
+        payload = bytes(payload)
+
+        Global.logger.debug("Payload: {!r}".format(hexlify(payload)))
+
+        Global.logger.info("encrypting EXCHANGE command payload")
+        encrypted_payload, tag = encryption.encrypt(
+            payload,
+        )
+        payload = encrypted_payload + tag
+
+        command =  self.reader.apdu.create_command(
+            cla=0x80,
+            ins=INS.EXCHANGE,
+            p1=0x00,
+            p2=0x00,
+            data=payload,
+            le=0x00,
+        )
+
+        try:
+            response = await self.reader.apdu.handle_chaining_send_command(
+                "EXCHANGE", command, self.reader.transport_protocol, timeout=self.reader.timeout
+            )
+        except TimeoutError:
+            await self.reader.handle_timeout()
+            raise TimeoutError
+
+        Global.logger.info("Received response")
+        response = Response.create_from_bytestring(response)
+        try:
+            response.parse_as_exchange(encryption)
+        except InvalidStatusError as error:
+            raise InvalidStatusError(response=response.data, status=error.status,
+                                     additional_message="EXCHANGE response command SW != SUCCESS (0x9000)")
+        return response
+
     async def handle_exchange_with_wrong_tag_value(
         self,
         atomic_session: bool = False,
@@ -96,7 +174,7 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
         Global.logger.debug("Creating mailbox commands TLV")
         mailbox_commands_list: list[tuple[int, bytes | list]] = []
         if read_requests is not None:
-            Global.logger.debug("Adding read requests")
+            Global.logger.debug("Adding read requests with wrong tag value")
             for read_request in read_requests:
                 mailbox_commands_list.append(
                     (
@@ -131,8 +209,11 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
                     atomic_session
                 )
             )
+            atomic_session_tlv = TLV(
+                [(Exchange.ATOMIC_SESSION_TAG, atomic_session.to_bytes(1, "big"))]
+            )
             mailbox_commands = (
-                atomic_session.to_bytes(1, "big") + mailbox_commands_tlv.to_bytes()
+                atomic_session_tlv.to_bytes() + mailbox_commands_tlv.to_bytes()
             )
             Global.logger.debug("Creating mailbox commands TLV Done")
         else:
@@ -145,6 +226,8 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
         elif reader_state == ReaderState.STEPUP:
             Global.logger.debug("Using step up encryption key")
             encryption = self.reader.session.encryption_stepup
+        else:
+            encryption = None
 
         if notify is not None:
             notify_bytes = notify.to_bytes()
@@ -152,7 +235,7 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
             notify_bytes = None
 
         try:
-            response = await self.reader.command_exchange(
+            response = await self.create_exchange_command_with_wrong_length_tag_value(
                 mailbox_commands=mailbox_commands,
                 notify=notify_bytes,
                 reader_status=reader_status,
@@ -160,8 +243,6 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
                 update_doc=update_doc,
                 encryption=encryption,
             )
-        except InvalidStatusError as error:
-            raise InvalidStatusError(response=bytes(), status=error.status)
         except InvalidResponseError as error:
             Global.logger.error("EXCHANGE response format invalid")
             await self.reader.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
@@ -191,37 +272,6 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
                 response.status_code
             )
         )
-
-        Global.logger.info("Checking read data")
-        read_data = []
-        if len(response.read_data) == 0:
-            if read_requests is not None and len(read_requests) != 0:
-                raise AccessProtocolError(
-                    "Send EXCHANGE command with read requests, but no read data found "
-                    "in response"
-                )
-            else:
-                Global.logger.info("No read data found, as expected")
-        else:
-            index = 0
-            while index < len(response.read_data):
-                length = int.from_bytes(response.read_data[index : index + 2], "big")
-                data = response.read_data[index + 2 : index + 2 + length]
-                read_data.append(data)
-                index = index + 2 + length
-                Global.logger.info("Read data found: {!r}".format(hexlify(data)))
-            if read_requests is None or len(read_requests) != len(read_data):
-                raise AccessProtocolError(
-                    "Number of read requests in EXCHANGE command ({}) differs from "
-                    "number of read data in response ({})".format(
-                        len(read_requests), len(read_data)
-                    )
-                )
-
-        Global.logger.info("Handling EXCHANGE response done")
-
-        return read_data
-
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
@@ -295,17 +345,21 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
         # Test step 6
         read_request = [(0x00C, 0x010)] 
         try:
-            result_list = await self.handle_exchange_with_wrong_tag_value(
+            await self.handle_exchange_with_wrong_tag_value(
                 False, read_requests = read_request
             )
         except InvalidStatusError as error:
+            Global.logger.info(str(error))
             Global.logger.info(
-                "Response status does not indicate success as expected "
+                "EXCHANGE response status does not indicate success as expected "
                 "status: 0x{:04x}".format(error.status)
             )
             pass
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
+            return
+        else:
+            self.mark_step_failure("EXCHANGE with wrong length did not raise expected status word error")
             return
             
         self.next_step()
