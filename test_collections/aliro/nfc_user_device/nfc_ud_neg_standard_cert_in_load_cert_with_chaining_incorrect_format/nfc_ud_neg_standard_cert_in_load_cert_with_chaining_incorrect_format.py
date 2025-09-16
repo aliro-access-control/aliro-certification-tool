@@ -57,9 +57,7 @@ class NFC_UD_NEG_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING_INCORRECT_FORMAT(Aliro
             TestStep("Step2: Set to polling mode"),
             TestStep("Step3: Transaction initiation"),
             TestStep("Step4: Send/Receive AUTH0 command/response"),
-            TestStep("Step5: Send/Receive LOAD_CERT command/response"),
-            TestStep("Step6: Send/Receive AUTH1 command/response"),
-            TestStep("Step7: Send/Receive EXCHANGE command/response"),
+            TestStep("Step5: Send/Receive LOAD_CERT command/response")
         ]
 
     async def setup(self) -> None:
@@ -134,39 +132,26 @@ class NFC_UD_NEG_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING_INCORRECT_FORMAT(Aliro
         self.next_step()
 
         # Test step 5
-        try:
-            compressed_cert = bytearray(self.reader.reader_cert.encode_compressed())
-            logger.debug("compressed cert: {!r}".format(hexlify(compressed_cert)))
-            compressed_cert[6] = 0xFF
-            compressed_cert[5] = 0xFF
-            logger.debug(
-                "compressed cert with encoding error: {!r}".format(
-                    hexlify(compressed_cert)
-                )
+        compressed_cert = bytearray(self.reader.reader_cert.encode_compressed())
+        logger.debug("compressed cert: {!r}".format(hexlify(compressed_cert)))
+        compressed_cert[6] = 0xFF
+        compressed_cert[5] = 0xFF
+        logger.debug(
+            "compressed cert with encoding error: {!r}".format(
+                hexlify(compressed_cert)
             )
+        )
+
+        try:
             await self.reader.command_load_cert(bytes(compressed_cert))
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
-        self.next_step()
+        except InvalidStatusError:
+            self.next_step()
+            return  # success!
 
-        # Test step 6
-        try:
-            await self.reader.handle_auth1(
-                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
-            )
-        except InvalidStatusError as error:
-            logger.info(
-                "Error status returned: 0x{:04x}, as expected".format(error.status)
-            )
-            pass
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        else:
-            self.mark_step_failure("No error status returned")
-            return
-        self.next_step()
+        self.mark_step_failure("Expected non-successful return status, but got success")
 
     async def cleanup(self) -> None:
         logger.info("NFC_UD_NEG_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING_INCORRECT_FORMAT Cleanup")
