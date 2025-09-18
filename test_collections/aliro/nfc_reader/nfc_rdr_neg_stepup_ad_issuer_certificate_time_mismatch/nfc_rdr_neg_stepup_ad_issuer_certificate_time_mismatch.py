@@ -107,7 +107,7 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential],
-            mailbox=0x00,
+            mailbox=None,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
             access_document=access_doc,
         )

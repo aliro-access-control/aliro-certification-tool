@@ -93,7 +93,7 @@ class NFC_RDR_NEG_STEPUP_RD_INVALID_ELEMENT_VERSION(AliroReaderTestCase, UserPro
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential],
-            mailbox=0x00,
+            mailbox=None,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
             revocation_document=revocation_doc,
             step_up_aid_required=True,

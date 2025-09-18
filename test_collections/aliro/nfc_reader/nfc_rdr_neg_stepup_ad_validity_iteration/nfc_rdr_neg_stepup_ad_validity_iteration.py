@@ -188,7 +188,7 @@ class NFC_RDR_NEG_STEPUP_AD_VALIDITY_ITERATION(AliroReaderTestCase, UserPromptSu
         self.access_cred1 = UserDevice(
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential1],
-            mailbox=0x00,
+            mailbox=None,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
             step_up_aid_required=False,
         )
@@ -196,7 +196,7 @@ class NFC_RDR_NEG_STEPUP_AD_VALIDITY_ITERATION(AliroReaderTestCase, UserPromptSu
         self.access_cred2 = UserDevice(
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential2],
-            mailbox=0x00,
+            mailbox=None,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
             step_up_aid_required=False,
         )
@@ -204,7 +204,7 @@ class NFC_RDR_NEG_STEPUP_AD_VALIDITY_ITERATION(AliroReaderTestCase, UserPromptSu
         self.access_cred3 = UserDevice(
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential3],
-            mailbox=0x00,
+            mailbox=None,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
             step_up_aid_required=False,
         )
