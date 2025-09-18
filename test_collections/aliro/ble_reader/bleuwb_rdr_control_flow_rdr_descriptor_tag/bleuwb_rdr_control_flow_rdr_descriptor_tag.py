@@ -250,7 +250,7 @@ class BLEUWB_RDR_CONTROL_FLOW_RDR_DESCRIPTOR_TAG(AliroReaderTestCase, UserPrompt
         ):
             try:
                 self.userdevice.handle_event_message(event_message)
-                if event_message.attribute != Event_AttributeID.GENERAL_ERROR:
+                if event_message.attribute.id != Event_AttributeID.GENERAL_ERROR:
                     self.mark_step_failure("Did not receive General Error Attribute ID")
                 if event_message.reader_descriptor is None:
                     self.mark_step_failure("Did not receive Reader Descriptor Attribute ID")
