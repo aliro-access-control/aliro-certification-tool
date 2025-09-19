@@ -11,6 +11,7 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
+    CryptogramNotFound,
 )
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair
@@ -19,6 +20,8 @@ from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
+from binascii import hexlify
+import time
 
 
 class NFC_UD_NEG_AUTH0_DIFFERENT_CRYPTOGRAM_CONSECUTIVE_FAST(AliroUserDeviceTestCase, UserPromptSupport):
@@ -60,18 +63,14 @@ class NFC_UD_NEG_AUTH0_DIFFERENT_CRYPTOGRAM_CONSECUTIVE_FAST(AliroUserDeviceTest
         self.test_steps = [
             TestStep("Step1: Initialization"),
             TestStep("Step2: Set to polling mode"),
-            TestStep("Step3: Transaction initiation (standard)"),
+            TestStep("Step3: Transaction initiation (fast)"),
             TestStep("Step4: Send/Receive AUTH0 command/response"),
-            TestStep("Step5: Send/Receive AUTH1 command/response"),
-            TestStep("Step6: Send/Receive EXCHANGE command/response"),
-            TestStep("Step7: Transaction initiation (fast)"),
-            TestStep("Step8: Send/Receive AUTH0 command/response"),
-            TestStep("Step9: Send/Receive Select command/response"),
-            TestStep("Step10: Send/Receive second AUTH0 command/response"),
+            TestStep("Step5: Send/Receive Select command/response"),
+            TestStep("Step6: Send/Receive second AUTH0 command/response"),
         ]
 
     async def setup(self) -> None:
-        logger.info("UD_NFC_AUTH0_10 setup")
+        logger.info("NFC_UD_NEG_AUTH0_DIFFERENT_CRYPTOGRAM_CONSECUTIVE_FAST setup")
         # load parameters from project config
         group_id = self.th_group_identifier()
         sub_group_id = self.th_sub_group_identifier()
@@ -107,51 +106,8 @@ class NFC_UD_NEG_AUTH0_DIFFERENT_CRYPTOGRAM_CONSECUTIVE_FAST(AliroUserDeviceTest
             )
         )
         self.next_step()
-
-        # Test step 3
-        await self.reader.transaction_initiation()  # including SELECT command
-        self.next_step()
-
-        # Test step 4
-        try:
-            await self.reader.handle_auth0(
-                transaction_type=Transaction.STANDARD,
-                authentication_policy=AuthenticationPolicy.USER_DEVICE,
-            )
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        self.next_step()
-
-        # Test step 5
-        try:
-            await self.reader.handle_auth1(
-                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY
-            )
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        self.next_step()
         
-        # Test step 6
-        try:
-            await self.reader.handle_exchange(
-                False, reader_status=ReaderStatus.READER_STATE_UNSECURED
-            )
-        except (AccessProtocolError, InvalidResponseError) as error:
-            self.mark_step_failure(str(error))
-            return
-        self.next_step()
-
-        await self.reader.transaction_termination()
-        await self.send_prompt_request(
-            OptionsSelectPromptRequest(
-                prompt="Remove and Tap User Device again on the Test Harness NFC",
-                options={"OK": 1},
-            )
-        )
-        
-        # Test Step 7
+        # Test Step 3
         try:
             await self.reader.transaction_initiation()  # including select
         except (AccessProtocolError, InvalidResponseError) as error:
@@ -159,31 +115,28 @@ class NFC_UD_NEG_AUTH0_DIFFERENT_CRYPTOGRAM_CONSECUTIVE_FAST(AliroUserDeviceTest
             return
         self.next_step()
 
-        # Test step 8
+        # Test step 4
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.FAST,
                 authentication_policy=AuthenticationPolicy.USER_DEVICE,
             )
+        except CryptogramNotFound as error:
+            logger.info(str(error))
+            logger.info("Cryptogram decryption failed as expected, because Expedited Standard phase was not executed.")
+            pass
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
 
-        # Check cryptogram
-        if self.reader.session.signaling_bitmap == None:
-            self.mark_step_failure("Signaling bitmap missing.")
-            return
-        if self.reader.session.credential_signed_timestamp == None:
-            self.mark_step_failure("Credential signed timestamp missing.")
-            return
-        if self.reader.session.revocation_signed_timestamp == None:
-            self.mark_step_failure("Revocation signed timestamp missing.")
-            return
-
+        first_credential_ephemeral_key = self.reader.session.credential_ephemeral_key.as_bytes()
         first_received_cryptogram = self.reader.session.received_cryptogram
         self.next_step()
+
+        # Wait for 3 seconds
+        time.sleep(3)
         
-        # Test step 9
+        # Test step 5
         try:
             await self.reader.handle_select(aid=EXPEDITED_PHASE_AID)
         except (AccessProtocolError, InvalidResponseError) as error:
@@ -191,31 +144,32 @@ class NFC_UD_NEG_AUTH0_DIFFERENT_CRYPTOGRAM_CONSECUTIVE_FAST(AliroUserDeviceTest
             return
         self.next_step()
 
-        # Test step 10
+        # Test step 6
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.FAST,
                 authentication_policy=AuthenticationPolicy.USER_DEVICE,
             )
+        except CryptogramNotFound as error:
+            logger.info(str(error))
+            logger.info("Second cryptogram decryption failed as expected, because Expedited Standard phase was not executed.")
+            pass
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
         
-        if self.reader.session.received_cryptogram == None:
-            self.mark_step_failure("missing cryptogram.")
-            return
-        if self.reader.session.signaling_bitmap == None:
-            self.mark_step_failure("Signaling bitmap missing.")
-            return
-        if self.reader.session.credential_signed_timestamp == None:
-            self.mark_step_failure("Credential signed timestamp missing.")
-            return
-        if self.reader.session.revocation_signed_timestamp == None:
-            self.mark_step_failure("Revocation signed timestamp missing.")
-            return
-        
-        if self.reader.session.received_cryptogram == first_received_cryptogram:
+        second_credential_ephemeral_key = self.reader.session.credential_ephemeral_key.as_bytes()
+        second_received_cryptogram = self.reader.session.received_cryptogram
+
+        logger.info("First cryptogram: {!r}".format(hexlify(first_received_cryptogram)))
+        logger.info("First credential ephemeral public key: {!r}".format(hexlify(first_credential_ephemeral_key)))
+        logger.info("Second cryptogram: {!r}".format(hexlify(second_received_cryptogram)))
+        logger.info("First credential ephemeral public key: {!r}".format(hexlify(second_credential_ephemeral_key)))
+        if second_received_cryptogram == first_received_cryptogram:
             self.mark_step_failure("Received cryptogram same as previous response.")
+            return
+        if second_credential_ephemeral_key == first_credential_ephemeral_key:
+            self.mark_step_failure("Received credential epubk same as previous response.")
             return
         self.next_step()
 
