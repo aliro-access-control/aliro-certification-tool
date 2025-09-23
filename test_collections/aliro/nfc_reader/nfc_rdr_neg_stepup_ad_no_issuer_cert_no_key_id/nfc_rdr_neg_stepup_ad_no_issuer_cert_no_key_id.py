@@ -65,11 +65,11 @@ class NFC_RDR_NEG_STEPUP_AD_NO_ISSUER_CERT_NO_KEY_ID(AliroReaderTestCase, UserPr
         access_element.version = 1
 
         x = DeviceResponseBuilder.build_doc(
-            DocTypes.ALIRO_ACCESS,
-            IssuerNamespaces.ALIRO_ACCESS,
-            [ResponseElement(data_element_id=self.element_id, value=access_element)],
-            issuer_keypair.get_private_key().as_bytes(),
-            access_credential_pk,
+            doc_type=DocTypes.ALIRO_ACCESS,
+            namespace=IssuerNamespaces.ALIRO_ACCESS,
+            data_elements=[ResponseElement(data_element_id=self.element_id, value=access_element)],
+            issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+            device_public_key=access_credential_pk,
             valid_from=datetime.datetime.now(datetime.timezone.utc),
             valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
         )
@@ -81,7 +81,7 @@ class NFC_RDR_NEG_STEPUP_AD_NO_ISSUER_CERT_NO_KEY_ID(AliroReaderTestCase, UserPr
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
-        access_credential = self.reader_access_credential()
+        access_credential = self.reader_access_credential(use_random_ud_keypair=True)
         access_doc = self.build_access_document(
             access_credential.get_access_credential_public_key().as_bytes()
         )
@@ -89,7 +89,7 @@ class NFC_RDR_NEG_STEPUP_AD_NO_ISSUER_CERT_NO_KEY_ID(AliroReaderTestCase, UserPr
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential],
-            mailbox=0x00,
+            mailbox=None,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
             access_document=access_doc,
         )

@@ -71,11 +71,11 @@ class NFC_RDR_NEG_STEPUP_RD_INVALID_ELEMENT_VERSION(AliroReaderTestCase, UserPro
         revocation_element.entries.append(entry)
 
         x = DeviceResponseBuilder.build_doc(
-            DocTypes.ALIRO_REVOCATION,
-            IssuerNamespaces.ALIRO_REVOCATION,
-            [ResponseElement(data_element_id=self.element_id, value=revocation_element)],
-            issuer_keypair.get_private_key().as_bytes(),
-            access_credential_pk,
+            doc_type=DocTypes.ALIRO_REVOCATION,
+            namespace=IssuerNamespaces.ALIRO_REVOCATION,
+            data_elements=[ResponseElement(data_element_id=self.element_id, value=revocation_element)],
+            issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+            device_public_key=access_credential_pk,
             valid_from=datetime.datetime.now(datetime.timezone.utc),
             valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
         ).to_cbor(validate=False)
@@ -93,7 +93,7 @@ class NFC_RDR_NEG_STEPUP_RD_INVALID_ELEMENT_VERSION(AliroReaderTestCase, UserPro
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential],
-            mailbox=0x00,
+            mailbox=None,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
             revocation_document=revocation_doc,
             step_up_aid_required=True,

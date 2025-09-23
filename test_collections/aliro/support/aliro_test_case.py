@@ -258,7 +258,7 @@ class AliroReaderTestCase(AliroTestCase):
             self.ACCESS_ELEMENT_ID_KEY: "floor1",
         }
 
-    def reader_access_credential(self, add_issuer_public_key: bool = False) -> AccessCredential:
+    def reader_access_credential(self, *, add_issuer_public_key: bool = False, use_random_ud_keypair: bool = False) -> AccessCredential:
         """Load DUT reader test parameters, and build an AccessCredential to be used
         when initializing a UserDevice in reader test cases.
 
@@ -270,36 +270,43 @@ class AliroReaderTestCase(AliroTestCase):
         logger.info("Loading DUT Reader info from test_parameters in project config.")
 
         # User Device Key Pair
-        logger.info("Generating User Device Key Pair")
+        if use_random_ud_keypair:
+            logger.info("Generating User Device Key Pair")
+            user_device_key_pair = KeyPair()
+        else:
+            logger.info(
+                f"Loading public key from '{self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY}'"
+            )
+            access_credential_public_key = self.public_key_from_config(
+                self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY
+            )
+
+            logger.info(
+                f"Loading private key from '{self.ACCESS_CREDENTIAL_PRIVATE_KEY_KEY}'"
+            )
+            access_credential_private_key = self.private_key_from_config(
+                self.ACCESS_CREDENTIAL_PRIVATE_KEY_KEY,
+                public_key=access_credential_public_key,
+            )
+
+            user_device_key_pair = KeyPair(
+                access_credential_private_key, access_credential_public_key
+            )
+
         logger.info(
-            f"Loading public key from '{self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY}'"
-        )
-        access_credential_public_key = self.public_key_from_config(
-            self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY
+            f"TH Using Access Credential Public Key(hex): \n{user_device_key_pair.get_public_key().as_bytes().hex()}"
         )
         logger.info(
-            f"TH Using Access Credential Public Key(hex): \n{access_credential_public_key.as_bytes().hex()}"
-        )
-        logger.info(
-            f"TH Using Access Credential Public Key(pem): \n{access_credential_public_key.as_pem()}"
+            f"TH Using Access Credential Public Key(pem): \n{user_device_key_pair.get_public_key().as_pem()}"
         )
 
         logger.info(
-            f"Loading private key from '{self.ACCESS_CREDENTIAL_PRIVATE_KEY_KEY}'"
-        )
-        access_credential_private_key = self.private_key_from_config(
-            self.ACCESS_CREDENTIAL_PRIVATE_KEY_KEY,
-            public_key=access_credential_public_key,
+            f"TH Using Access Credential Private Key(hex): \n{user_device_key_pair.get_private_key().as_bytes().hex()}"
         )
         logger.info(
-            f"TH Using Access Credential Private Key(hex): \n{access_credential_private_key.as_bytes().hex()}"
+            f"TH Using Access Credential Private Key(pem): \n{user_device_key_pair.get_private_key().as_pem()}"
         )
-        logger.info(
-            f"TH Using Access Credential Private Key(pem): \n{access_credential_private_key.as_pem()}"
-        )
-        user_device_key_pair = KeyPair(
-            access_credential_private_key, access_credential_public_key
-        )
+
 
         # Public Key
         if add_issuer_public_key:

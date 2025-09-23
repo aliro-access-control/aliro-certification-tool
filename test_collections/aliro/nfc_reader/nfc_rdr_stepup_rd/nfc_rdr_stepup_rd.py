@@ -112,11 +112,11 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revoke_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    DocTypes.ALIRO_REVOCATION,
-                    IssuerNamespaces.ALIRO_REVOCATION,
-                    [ResponseElement(data_element_id=self.element_id, value=revocation_element)],
-                    issuer_keypair.get_private_key().as_bytes(),
-                    access_credential_pk,
+                    doc_type=DocTypes.ALIRO_REVOCATION,
+                    namespace=IssuerNamespaces.ALIRO_REVOCATION,
+                    data_elements=[ResponseElement(data_element_id=self.element_id, value=revocation_element)],
+                    issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+                    device_public_key=access_credential_pk,
                     valid_from=datetime.datetime.now(datetime.timezone.utc),
                     valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
                 ).to_cbor(),
@@ -134,11 +134,11 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revoke_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    DocTypes.ALIRO_REVOCATION,
-                    IssuerNamespaces.ALIRO_REVOCATION,
-                    [ResponseElement(data_element_id=self.element_id, value=revocation_element)],
-                    issuer_keypair.get_private_key().as_bytes(),
-                    access_credential_pk,
+                    doc_type=DocTypes.ALIRO_REVOCATION,
+                    namespace=IssuerNamespaces.ALIRO_REVOCATION,
+                    data_elements=[ResponseElement(data_element_id=self.element_id, value=revocation_element)],
+                    issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+                    device_public_key=access_credential_pk,
                     valid_from=datetime.datetime.now(datetime.timezone.utc),
                     valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
                 ).to_cbor(),
@@ -156,11 +156,11 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revoke_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    DocTypes.ALIRO_REVOCATION,
-                    IssuerNamespaces.ALIRO_REVOCATION,
-                    [ResponseElement(data_element_id=self.element_id, value=revocation_element)],
-                    issuer_keypair.get_private_key().as_bytes(),
-                    access_credential_pk,
+                    doc_type=DocTypes.ALIRO_REVOCATION,
+                    namespace=IssuerNamespaces.ALIRO_REVOCATION,
+                    data_elements=[ResponseElement(data_element_id=self.element_id, value=revocation_element)],
+                    issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+                    device_public_key=access_credential_pk,
                     valid_from=datetime.datetime.now(datetime.timezone.utc),
                     valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
                 ).to_cbor(),
@@ -180,11 +180,11 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revoke_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    DocTypes.ALIRO_REVOCATION,
-                    IssuerNamespaces.ALIRO_REVOCATION,
-                    [ResponseElement(data_element_id=self.element_id, value=revocation_element)],
-                    issuer_keypair.get_private_key().as_bytes(),
-                    access_credential_pk,
+                    doc_type=DocTypes.ALIRO_REVOCATION,
+                    namespace=IssuerNamespaces.ALIRO_REVOCATION,
+                    data_elements=[ResponseElement(data_element_id=self.element_id, value=revocation_element)],
+                    issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+                    device_public_key=access_credential_pk,
                     valid_from=datetime.datetime.now(datetime.timezone.utc),
                     valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
                 ).to_cbor(),
@@ -202,11 +202,11 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revoke_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    DocTypes.ALIRO_REVOCATION,
-                    IssuerNamespaces.ALIRO_REVOCATION,
-                    [ResponseElement(data_element_id=self.element_id, value=revocation_element)],
-                    issuer_keypair.get_private_key().as_bytes(),
-                    access_credential_pk,
+                    doc_type=DocTypes.ALIRO_REVOCATION,
+                    namespace=IssuerNamespaces.ALIRO_REVOCATION,
+                    data_elements=[ResponseElement(data_element_id=self.element_id, value=revocation_element)],
+                    issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+                    device_public_key=access_credential_pk,
                     valid_from=datetime.datetime.now(datetime.timezone.utc),
                     valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
                 ).to_cbor(),
@@ -223,11 +223,11 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revoke_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    DocTypes.ALIRO_REVOCATION,
-                    IssuerNamespaces.ALIRO_REVOCATION,
-                    [ResponseElement(data_element_id=self.element_id, value=revocation_element)],
-                    issuer_keypair.get_private_key().as_bytes(),
-                    access_credential_pk,
+                    doc_type=DocTypes.ALIRO_REVOCATION,
+                    namespace=IssuerNamespaces.ALIRO_REVOCATION,
+                    data_elements=[ResponseElement(data_element_id=self.element_id, value=revocation_element)],
+                    issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+                    device_public_key=access_credential_pk,
                     valid_from=datetime.datetime.now(datetime.timezone.utc),
                     valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
                 ).to_cbor(),
@@ -264,7 +264,7 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential0],
-            mailbox=0x00,
+            mailbox=None,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
             step_up_aid_required=False,
         )
@@ -272,7 +272,7 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         self.access_cred1 = UserDevice(
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential1],
-            mailbox=0x00,
+            mailbox=None,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
             step_up_aid_required=False,
         )
@@ -280,7 +280,7 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         self.access_cred2 = UserDevice(
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential2],
-            mailbox=0x00,
+            mailbox=None,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
             step_up_aid_required=False,
         )

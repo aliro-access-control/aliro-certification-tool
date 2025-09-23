@@ -76,10 +76,10 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
         )
 
         x, m = DeviceResponseBuilder.build_doc_unsigned(
-            DocTypes.ALIRO_ACCESS,
-            IssuerNamespaces.ALIRO_ACCESS,
-            [ResponseElement(data_element_id=self.element_id, value=access_element)],
-            access_credential_pk,
+            doc_type=DocTypes.ALIRO_ACCESS,
+            namespace=IssuerNamespaces.ALIRO_ACCESS,
+            data_elements=[ResponseElement(data_element_id=self.element_id, value=access_element)],
+            device_public_key=access_credential_pk,
             valid_from=datetime.datetime.now(datetime.timezone.utc),
             valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
             x509_cert=x509,
@@ -87,8 +87,8 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
         m.validity_info.signed = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=14)  # Make invalid
 
         DeviceResponseBuilder.sign_doc(
-            x,
-            issuer_keypair.get_private_key().as_bytes(),
+            doc=x,
+            issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
             mso=m,
             use_keyid=False
         )
@@ -99,7 +99,7 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
-        access_credential = self.reader_access_credential()
+        access_credential = self.reader_access_credential(use_random_ud_keypair=True)
         access_doc = self.build_access_document(
             access_credential.get_access_credential_public_key().as_bytes()
         )
@@ -107,7 +107,7 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERTIFICATE_TIME_MISMATCH(AliroReaderTestCase
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential],
-            mailbox=0x00,
+            mailbox=None,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
             access_document=access_doc,
         )

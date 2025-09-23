@@ -92,11 +92,11 @@ class NFC_RDR_NEG_STEPUP_AD_VALIDITY_ITERATION(AliroReaderTestCase, UserPromptSu
         access_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    DocTypes.ALIRO_ACCESS,
-                    IssuerNamespaces.ALIRO_ACCESS,
-                    [ResponseElement(data_element_id=self.element_id, value=access_element)],
-                    issuer_keypair.get_private_key().as_bytes(),
-                    access_credentials[0].get_access_credential_public_key().as_bytes(),
+                    doc_type=DocTypes.ALIRO_ACCESS,
+                    namespace=IssuerNamespaces.ALIRO_ACCESS,
+                    data_elements=[ResponseElement(data_element_id=self.element_id, value=access_element)],
+                    issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+                    device_public_key=access_credentials[0].get_access_credential_public_key().as_bytes(),
                     valid_from=datetime.datetime.now(datetime.timezone.utc),
                     valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
                     validity_iteration=1,
@@ -110,11 +110,11 @@ class NFC_RDR_NEG_STEPUP_AD_VALIDITY_ITERATION(AliroReaderTestCase, UserPromptSu
         access_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    DocTypes.ALIRO_ACCESS,
-                    IssuerNamespaces.ALIRO_ACCESS,
-                    [ResponseElement(data_element_id=self.element_id, value=access_element)],
-                    issuer_keypair.get_private_key().as_bytes(),
-                    access_credentials[1].get_access_credential_public_key().as_bytes(),
+                    doc_type=DocTypes.ALIRO_ACCESS,
+                    namespace=IssuerNamespaces.ALIRO_ACCESS,
+                    data_elements=[ResponseElement(data_element_id=self.element_id, value=access_element)],
+                    issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+                    device_public_key=access_credentials[1].get_access_credential_public_key().as_bytes(),
                     valid_from=datetime.datetime.now(datetime.timezone.utc),
                     valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
                     validity_iteration=9,
@@ -128,11 +128,11 @@ class NFC_RDR_NEG_STEPUP_AD_VALIDITY_ITERATION(AliroReaderTestCase, UserPromptSu
         access_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    DocTypes.ALIRO_ACCESS,
-                    IssuerNamespaces.ALIRO_ACCESS,
-                    [ResponseElement(data_element_id=self.element_id, value=access_element)],
-                    issuer_keypair.get_private_key().as_bytes(),
-                    access_credentials[0].get_access_credential_public_key().as_bytes(),
+                    doc_type=DocTypes.ALIRO_ACCESS,
+                    namespace=IssuerNamespaces.ALIRO_ACCESS,
+                    data_elements=[ResponseElement(data_element_id=self.element_id, value=access_element)],
+                    issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+                    device_public_key=access_credentials[0].get_access_credential_public_key().as_bytes(),
                     valid_from=datetime.datetime.now(datetime.timezone.utc),
                     valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
                     validity_iteration=3,
@@ -146,11 +146,11 @@ class NFC_RDR_NEG_STEPUP_AD_VALIDITY_ITERATION(AliroReaderTestCase, UserPromptSu
         access_docs.append(
             (
                 DeviceResponseBuilder.build_doc(
-                    DocTypes.ALIRO_ACCESS,
-                    IssuerNamespaces.ALIRO_ACCESS,
-                    [ResponseElement(data_element_id=self.element_id, value=access_element)],
-                    issuer_keypair.get_private_key().as_bytes(),
-                    access_credentials[2].get_access_credential_public_key().as_bytes(),
+                    doc_type=DocTypes.ALIRO_ACCESS,
+                    namespace=IssuerNamespaces.ALIRO_ACCESS,
+                    data_elements=[ResponseElement(data_element_id=self.element_id, value=access_element)],
+                    issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+                    device_public_key=access_credentials[2].get_access_credential_public_key().as_bytes(),
                     valid_from=datetime.datetime.now(datetime.timezone.utc),
                     valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),
                     validity_iteration=1,
@@ -166,7 +166,7 @@ class NFC_RDR_NEG_STEPUP_AD_VALIDITY_ITERATION(AliroReaderTestCase, UserPromptSu
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
-        access_credential1 = self.reader_access_credential()
+        access_credential1 = self.reader_access_credential(use_random_ud_keypair=True)
         access_credential2 = AccessCredential(
             access_credential_key_pair=KeyPair(
                 self.access_credential2_PrivK, self.access_credential2_PuBK
@@ -188,7 +188,7 @@ class NFC_RDR_NEG_STEPUP_AD_VALIDITY_ITERATION(AliroReaderTestCase, UserPromptSu
         self.access_cred1 = UserDevice(
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential1],
-            mailbox=0x00,
+            mailbox=None,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
             step_up_aid_required=False,
         )
@@ -196,7 +196,7 @@ class NFC_RDR_NEG_STEPUP_AD_VALIDITY_ITERATION(AliroReaderTestCase, UserPromptSu
         self.access_cred2 = UserDevice(
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential2],
-            mailbox=0x00,
+            mailbox=None,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
             step_up_aid_required=False,
         )
@@ -204,7 +204,7 @@ class NFC_RDR_NEG_STEPUP_AD_VALIDITY_ITERATION(AliroReaderTestCase, UserPromptSu
         self.access_cred3 = UserDevice(
             transport_protocol=TransportProtocol.NFC,
             access_credentials=[access_credential3],
-            mailbox=0x00,
+            mailbox=None,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
             step_up_aid_required=False,
         )
