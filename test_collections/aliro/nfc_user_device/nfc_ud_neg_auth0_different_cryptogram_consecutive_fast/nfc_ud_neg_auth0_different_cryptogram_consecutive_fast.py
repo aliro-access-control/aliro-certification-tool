@@ -164,7 +164,7 @@ class NFC_UD_NEG_AUTH0_DIFFERENT_CRYPTOGRAM_CONSECUTIVE_FAST(AliroUserDeviceTest
         logger.info("First cryptogram: {!r}".format(hexlify(first_received_cryptogram)))
         logger.info("First credential ephemeral public key: {!r}".format(hexlify(first_credential_ephemeral_key)))
         logger.info("Second cryptogram: {!r}".format(hexlify(second_received_cryptogram)))
-        logger.info("First credential ephemeral public key: {!r}".format(hexlify(second_credential_ephemeral_key)))
+        logger.info("Second credential ephemeral public key: {!r}".format(hexlify(second_credential_ephemeral_key)))
         if second_received_cryptogram == first_received_cryptogram:
             self.mark_step_failure("Received cryptogram same as previous response.")
             return
