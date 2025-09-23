@@ -94,7 +94,7 @@ class NFC_UD_EXCHANGE_WITH_EXTENDED_LENGTH(AliroUserDeviceTestCase, UserPromptSu
 
         # Test step 3
         try:
-            await self.reader.transaction_initiation()  # including SELECT command
+            await self.reader.transaction_initiation(check_apdu_length=True)  # including SELECT command
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
@@ -126,11 +126,15 @@ class NFC_UD_EXCHANGE_WITH_EXTENDED_LENGTH(AliroUserDeviceTestCase, UserPromptSu
         self.next_step()
         
         # Test step 6
-        read_requests = [(0x00, 0x113)] # Giving a large read request(length > 256)
-    
+        read_requests = [(0x00, 0x113)]  # Giving a large read request(length > 256)
+        if not self.reader.apdu.support_extended_length:
+            self.mark_step_failure("DUT does not support Extended Length APDUs")
+            return
 
-        self.reader.apdu.set_extended_length(275, 275)
-        # Sets maximum_command_apdu and maximum_response_apdu to extended lengths
+        if self.reader.apdu.maximum_response_apdu < 0x113:
+            self.mark_step_failure(f"User device only reports supporting Extended Length responses of "
+                                   f"{self.reader.apdu.maximum_response_apdu} bytes, but test requires {0x113}")
+            return
 
         try:
             #Exchange command with  extended length APDU and large Read request

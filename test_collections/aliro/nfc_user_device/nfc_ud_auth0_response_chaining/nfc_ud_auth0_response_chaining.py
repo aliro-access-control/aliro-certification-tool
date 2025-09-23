@@ -110,6 +110,7 @@ class NFC_UD_AUTH0_RESPONSE_CHAINING(AliroUserDeviceTestCase, UserPromptSupport)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
+        self.reader.apdu.reset_extended_length()
         self.next_step()
 
         # Test step 5
@@ -138,9 +139,11 @@ class NFC_UD_AUTH0_RESPONSE_CHAINING(AliroUserDeviceTestCase, UserPromptSupport)
             )
             response = self.reader.apdu.parse_response(response, INS.AUTH0)
 
+            logger.info("Saving Auth0 response data to session")
             credential_ephemeral_public_key = PublicKey(response.credential_epubk)
             self.reader.session.set_credential_ephemeral_key(credential_ephemeral_public_key)
             self.reader.session.set_flag(Transaction.STANDARD, AuthenticationPolicy.USER_DEVICE)
+            self.reader.session.set_response_vendor_extension(response.vendor_specific_extensions)
 
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
