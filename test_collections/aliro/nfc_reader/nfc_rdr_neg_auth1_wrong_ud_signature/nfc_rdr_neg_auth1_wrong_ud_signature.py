@@ -4,6 +4,7 @@ from aliro_actuator.access_protocol.apdu import (
     StatusBytes,
     S1,
     S2,
+    ReaderStatus,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -12,12 +13,14 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidCommandError,
+    SessionError,
 )
 from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
 from aliro_actuator.access_protocol.authentication import (
     create_user_device_authentication,
 )
 from aliro_actuator.trust_framework.key import KeyPair
+from aliro_actuator.trust_framework.errors import KeyLookupFailed
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -54,10 +57,10 @@ class NFC_RDR_NEG_AUTH1_WRONG_UD_SIGNATURE(AliroReaderTestCase, UserPromptSuppor
     def create_test_steps(self) -> None:
         self.test_steps = [
             TestStep("Step1: Initialization"),
-            TestStep("Step3: Transaction initiation"),
-            TestStep("Step4: Receive/Send AUTH0 command/response"),
-            TestStep("Step5: Receive/Send AUTH1 command/response"),
-            TestStep("Step6: Receive/Send CONTROL FLOW command/response"),
+            TestStep("Step2: Transaction initiation"),
+            TestStep("Step3: Receive/Send AUTH0 command/response"),
+            TestStep("Step4: Receive/Send AUTH1 command/response"),
+            TestStep("Step5: Receive/Send EXCHANGE command/response"),
         ]
 
     async def setup(self) -> None:
@@ -215,23 +218,24 @@ class NFC_RDR_NEG_AUTH1_WRONG_UD_SIGNATURE(AliroReaderTestCase, UserPromptSuppor
             return
         self.next_step()
         
-        # Test Step 5 Receive/Send CONTROL FLOW command/response
+        # Test Step 5 Receive/Send EXCHANGE command/response
         try:
-            cmds_controlflow = await self.userdevice.wait_for_command()
+            cmds_exchange = await self.userdevice.wait_for_command()
         except InvalidCommandError as error:
             self.mark_step_failure(str(error))
             return
         try:
-            await self.userdevice.handle_control_flow(cmds_controlflow)
+            await self.userdevice.handle_exchange(cmds_exchange)
         except AccessProtocolError as error:
             self.mark_step_failure(str(error))
             return
-        if cmds_controlflow.s1 != S1.FINISHED_WITH_FAILURE:
-            self.mark_step_failure(
-                "S1 value of CONTROL FLOW not '0x00 transaction finished with failure'"
-            )
-        if cmds_controlflow.s2 != S2.NONE:
-            self.mark_step_failure("S2 value of CONTROL FLOW not '0x00 no information'")
+        if not self.userdevice.session.state_valid(UserSessionState.TRANSACTION_COMPLETE):
+            self.mark_step_failure("Exchange message did not include reader status")
+            return
+        if ReaderStatus(cmds_exchange.reader_status).is_success:
+            self.mark_step_failure("Exchange indicates success, when it should indicate failure")
+            return
+
         self.next_step()
 
     async def cleanup(self) -> None:
