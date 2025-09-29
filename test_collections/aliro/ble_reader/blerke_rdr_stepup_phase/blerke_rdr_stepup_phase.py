@@ -22,6 +22,7 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
+from ...support.access_doc.mdl.common import IssuerNamespaces, DocTypes
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 from ...support.access_doc.mdl.request import DeviceRequest
 from ...support.access_doc.mdl.response import DeviceResponse
@@ -69,11 +70,11 @@ class BLERKE_RDR_STEPUP_PHASE(AliroReaderTestCase, UserPromptSupport):
         access_element.version = 1
 
         x = DeviceResponseBuilder.build_doc(
-            'aliro-a',
-            'aliro-a',
-            [ResponseElement(data_element_id=self.element_id, value=access_element)],
-            issuer_keypair.get_private_key().as_bytes(),
-            access_credential_pk,
+            doc_type=DocTypes.ALIRO_ACCESS,
+            namespace=IssuerNamespaces.ALIRO_ACCESS,
+            data_elements=[ResponseElement(data_element_id=self.element_id, value=access_element)],
+            issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
+            device_public_key=access_credential_pk,
             valid_from=datetime.datetime.now(datetime.timezone.utc),
             valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
         ).to_cbor()
@@ -90,7 +91,7 @@ class BLERKE_RDR_STEPUP_PHASE(AliroReaderTestCase, UserPromptSupport):
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
-        self.access_credential = self.reader_access_credential(add_issuer_public_key=True)
+        self.access_credential = self.reader_access_credential(add_issuer_public_key=True, use_random_ud_keypair=True)
         group_resolving_key = self.reader_group_resolving_key()
         access_credential = self.reader_access_credential()
         access_doc = self.build_access_document(
@@ -99,7 +100,7 @@ class BLERKE_RDR_STEPUP_PHASE(AliroReaderTestCase, UserPromptSupport):
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.BLE_UWB,
             access_credentials=[self.access_credential],
-            mailbox=0x20,
+            mailbox=None,
             group_resolving_key=group_resolving_key,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
             access_document=access_doc,
