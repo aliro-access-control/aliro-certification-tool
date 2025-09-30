@@ -110,6 +110,7 @@ class BLERKE_RDR_NEG_FAILED_SPSM_L2CAP(AliroReaderTestCase, UserPromptSupport):
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             logger.info(error_str)
             self.mark_step_failure("BLE GAP Connection establishment failure.")
+            return
         self.next_step()
 
         # Test step 2
@@ -132,6 +133,7 @@ class BLERKE_RDR_NEG_FAILED_SPSM_L2CAP(AliroReaderTestCase, UserPromptSupport):
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             logger.info(error_str)
             self.mark_step_failure("Wrong SPSM value was accepted by Reader for L2CAP connection.")
+            return
         else:
             logger.info("L2CAP connection establishment failed as expected, disconnect devices")    
         self.next_step()
