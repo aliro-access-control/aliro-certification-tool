@@ -98,9 +98,8 @@ class BLEUWB_RDR_STEPUP_PHASE(AliroReaderTestCase, UserPromptSupport):
         logger.info("This is a test case setup")
         self.access_credential = self.reader_access_credential(add_issuer_public_key=True, use_random_ud_keypair=True)
         group_resolving_key = self.reader_group_resolving_key()
-        access_credential = self.reader_access_credential()
         access_doc = self.build_access_document(
-            access_credential.get_access_credential_public_key().as_bytes()
+            self.access_credential.get_access_credential_public_key().as_bytes()
         )
         self.userdevice = UserDevice(
             transport_protocol=TransportProtocol.BLE_UWB,
