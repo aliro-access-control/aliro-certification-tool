@@ -113,17 +113,13 @@ class BLERKE_UD_NEG_FAILED_L2CAP(AliroUserDeviceTestCase, UserPromptSupport):
         try:
             # Set timeout on the reader before L2CAP Connection channel establishment
             self.reader.transport_protocol.driver.enable_timeout = True
-            self.reader.transport_protocol.driver.timeout = 10
+            self.reader.transport_protocol.driver.timeout = 5
             self.reader.transport_protocol.ble_version, self.reader.transport_protocol.features = await self.reader.transport_protocol.driver.wait_for_write()
             logger.info(
                 "Checking ble version requested by User Device: 0x{:4x}".format(
                     self.reader.transport_protocol.ble_version
                 )
             )
-            if self.reader.transport_protocol.ble_version in SUPPORTED_VERSIONS:
-                logger.info("User Device requested a valid BLE UWB protocol version")
-            if self.reader.transport_protocol.ble_version in INVALID_VERSIONS:
-                logger.info("User Device requested an invalid BLE UWB protocol version as indicated by the Reader")
             await self.reader.transport_protocol.driver.setup_l2cap_connection_reader(self.reader.spsm)
         except (DeviceDisconnectedError, NoResponseError) as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
