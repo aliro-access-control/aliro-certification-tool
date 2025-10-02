@@ -2,13 +2,17 @@ from aliro_actuator.access_protocol.apdu import (
     INS,
     Auth1Response,
     AuthenticationPolicy,
+    Command,
+    Response,
+    StatusBytes,
     Transaction,
 )
 from aliro_actuator.access_protocol.defines import (
+    Auth0,
     EXPEDITED_PHASE_AID,
     TransportProtocol,
 )
-from aliro_actuator.access_protocol.user_device import UserDevice
+from aliro_actuator.access_protocol.user_device import UserDevice, UserSession, UserSessionState
 from aliro_actuator.transport_protocol.ble_message_format import (
     OperationSourceInformation_Values,
     ReaderStatusInformation_Values,
@@ -19,15 +23,23 @@ from aliro_actuator.transport_protocol.ble_message_format import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
+    SessionError,
+    VersionError,
 )
+from aliro_actuator.access_document.access_document import AccessDocument
+from aliro_actuator.access_document.revocation_document import RevocationDocument
+from aliro_actuator.access_protocol.encryption import compute_cryptogram
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
+from aliro_actuator.trust_framework.errors import InvalidKeyError, KeyLookupFailed
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
+import asyncio
 import time
-
+from binascii import hexlify
+from os import urandom
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
@@ -75,6 +87,173 @@ class BLEUWB_RDR_TIMEOUT_EXTENSION(AliroReaderTestCase, UserPromptSupport):
         for key, value in uwb_config.items():
             logger.info(f"{key:<12}: {value}")
         logger.info("-" * 50)
+
+    async def handle_auth0_command(self, auth0_command: Command) -> list[Response]:
+        """
+        Parse auth0 command to prepare for response.
+
+        Args:
+            auth0_command (Command): The command to respond to.
+
+        Raises:
+            SessionError: Raised when the session is missing or in an invalid state.
+            VersionError: Raised when the protocol version is not supported.
+            NotImplementedError:
+        """
+        if auth0_command.ins != INS.AUTH0:
+            raise AccessProtocolError(
+                "Tried to handle auth0 command, "
+                "but received command is not a auth0 command"
+            )
+
+        if self.userdevice.session is None:
+            raise SessionError("No Session")
+        if not self.userdevice.session.state_valid(UserSessionState.SELECT_DONE) and (
+            self.userdevice.transport_protocol_type != TransportProtocol.BLE_UWB
+            and self.userdevice.transport_protocol_type != TransportProtocol.SOCKET_BLE
+        ):
+            state = self.userdevice.session.state
+            await self.userdevice.failure_process(StatusBytes.INVALID_INSTRUCTION)
+            raise SessionError("unexpected state for auth0 command: {}".format(state))
+
+        logger.info("Handling AUTH0 Command")
+        if (
+            auth0_command.expedited_phase_protocol_version
+            not in self.userdevice.supported_versions
+        ):
+            await self.userdevice.failure_process(StatusBytes.CONDITIONS_OF_USE_NOT_SATISFIED)
+            raise VersionError
+        else:
+            logger.info(
+                "Requested version 0x{:04x} is supported (supported versions: {})".format(
+                    auth0_command.expedited_phase_protocol_version,
+                    ", ".join(str(hex(x)) for x in self.userdevice.supported_versions),
+                )
+            )
+
+        logger.info("Saving AUTH0 data")
+        try:
+            self.userdevice.session.set_auth0_data(auth0_command)
+        except InvalidKeyError:
+            raise AccessProtocolError("Reader ephemeral key is invalid")
+        logger.info("Reader ephemeral key is a valid key")
+
+        # Setup UWB session id
+        if (
+            self.userdevice.transport_protocol_type == TransportProtocol.BLE_UWB
+            or self.userdevice.transport_protocol_type == TransportProtocol.SOCKET_BLE
+        ):
+            if self.userdevice.enable_uwb:
+                await self.userdevice.transport_protocol.driver.session_init(
+                    session_id=self.userdevice.session.transaction_identifier[-4:]
+                )
+
+        logger.info("Looking up access credential")
+        for access_credential in self.userdevice.access_credentials:
+            if access_credential.has_identifier(self.userdevice.session.reader_group_identifier):
+                self.userdevice.session.set_access_credential(access_credential)
+                logger.info("Access credential found")
+                try:
+                    key = access_credential.get_reader_public_key(
+                        self.userdevice.session.reader_group_identifier
+                    ).as_bytes()
+                    logger.info(
+                        "Reader public key in access credential: {!r}".format(
+                            hexlify(key)
+                        )
+                    )
+                except KeyLookupFailed:
+                    pass
+
+                break
+        else:
+            raise AccessProtocolError(
+                "Could not find key for reader identifier in access credential: "
+                "{!r}".format(hexlify(self.userdevice.session.reader_group_identifier))
+            )
+            
+        if hasattr(auth0_command, "tlv_check"):
+            command_status = auth0_command.tlv_check
+        else:
+            command_status = True
+        
+        cryptogram = None
+
+        if self.userdevice.session.get_transaction_type() == Transaction.STANDARD:
+            logger.info("Standard transaction requested")
+            self.userdevice.session.update_state(UserSessionState.AUTH0_STD_DONE)
+
+        elif self.userdevice.session.get_transaction_type() == Transaction.FAST:
+            logger.info("Fast transaction requested")
+            logger.info("Looking for Kpersistent in storage")
+            kpersistent = self.userdevice.storage.find_kpersistent(
+                self.userdevice.session.reader_group_sub_identifier
+            )
+            if self.userdevice.fast_transaction_implemented and kpersistent is not None:
+                logger.info(
+                    "Kpersistent found: {!r}".format(hexlify(kpersistent))
+                )
+                logger.info("Creating Cryptogram")
+                self.userdevice.session.derive_key_volatile_fast(
+                    self.userdevice.transport_protocol_type, kpersistent
+                )
+                self.userdevice.session.create_encryption_engine_expedited()
+                if self.userdevice.transport_protocol_type in [
+                    TransportProtocol.BLE_UWB,
+                    TransportProtocol.SOCKET_BLE,
+                ]:
+                    logger.info("Setting up BLE encryption")
+                    self.userdevice.session.set_ble_encryption(self.userdevice.transport_protocol)
+                    logger.info("Setting up UWB secure ranging")
+                    await self.userdevice.transport_protocol.set_session_key(self.userdevice.session.UR_SK)
+
+                doc_timestamp = None
+                revoke_timestamp = None
+                if self.userdevice.access_document is not None:
+                    doc_timestamp = AccessDocument(self.userdevice.access_document).get_timestamp()
+                if self.userdevice.revocation_document is not None:
+                    revoke_timestamp = RevocationDocument(self.userdevice.revocation_document).get_timestamp()
+                cryptogram = compute_cryptogram(
+                    self.userdevice.session.cryptogram_SK,
+                    signaling_bitmap=self.userdevice.get_signaling_bitmap(),
+                    credential_signed_timestamp=doc_timestamp,
+                    revocation_signed_timestamp=revoke_timestamp,
+                )
+            else:
+                logger.info("Kpersistent not found, assigning random cryptogram")
+                cryptogram = urandom(Auth0.CRYPTOGRAM_LEN)
+
+            self.userdevice.session.update_state(UserSessionState.AUTH0_FAST_DONE)
+
+        if command_status:
+            status = StatusBytes.SUCCESS
+        else:
+            status = StatusBytes.COMMAND_NOT_COMPLIANT
+
+        logger.info("Handling AUTH0 command done")
+            
+        return self.userdevice.apdu.create_auth0_response(
+            credential_epubk=self.userdevice.session.get_credential_epubkey().as_bytes(),
+            status=status, 
+            cryptogram=cryptogram
+        )
+
+    async def send_auth0_response(self, auth0_response):
+        logger.info("Sending AUTH0 response")
+        try:
+            await self.userdevice.apdu.handle_chaining_send_response(
+                auth0_response, self.userdevice.transport_protocol, timeout=self.userdevice.timeout
+            )
+        except TimeoutError:
+            await self.userdevice.handle_timeout()
+            raise TimeoutError
+        logger.info("Sending AUTH0 reponse done")
+
+    async def th_sleep(self, delay: float):
+        logger.info(f"Test Harness sleeping for {delay}s")
+        await asyncio.sleep(delay)
+        logger.info(f"Test Harness done sleeping")
+        return None
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
@@ -136,21 +315,34 @@ class BLEUWB_RDR_TIMEOUT_EXTENSION(AliroReaderTestCase, UserPromptSupport):
 
         self.next_step()
         # Test step 4: Wait for 1 second
-        time.sleep(1)
+        try:
+            response = await asyncio.gather(
+                self.th_sleep(1.0),
+                self.handle_auth0_command(cmds_auth0)          
+            )
+            auth0_response = response[1]
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
 
         self.next_step()
         # Test step 5: Send General error with Busy attribute
         try:
-            await self.userdevice.send_event(Event_AttributeID.BUSY, None)
+            await asyncio.gather(
+                self.th_sleep(1.0),
+                self.userdevice.send_event(Event_AttributeID.BUSY, None)
+                )
+
+            # await self.userdevice.send_event(Event_AttributeID.BUSY, None)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
 
         self.next_step()
         # Step6: Send AUTH0 Response after 1 second
-        time.sleep(1)
         try:
-            await self.userdevice.handle_auth0(cmds_auth0)
+            await self.send_auth0_response(auth0_response)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)

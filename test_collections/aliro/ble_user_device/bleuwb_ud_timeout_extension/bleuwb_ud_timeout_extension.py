@@ -24,6 +24,7 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
+import asyncio
 import time
 
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
@@ -61,12 +62,11 @@ class BLEUWB_UD_TIMEOUT_EXTENSION(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step0: Send Bluetooth LE advertisement"),
             TestStep("Step1: Establish L2CAP"),
             TestStep("Step2: Send Initiate AP Message ID"),
-            TestStep("Step3: Send Event message with Busy attribute"),
-            TestStep("Step4: Wait for 1sec"),
-            TestStep("Step5: Handle AUTH0 command"),
-            TestStep("Step6: Handle AUTH1 command"),
-            TestStep("Step7: Handle EXCHANGE command"),
-            TestStep("Step8: Send reader status AP complete"),
+            TestStep("Step3: Send Event message with Busy attribute after 1 second"),
+            TestStep("Step4: Handle AUTH0 command after 1 second"),
+            TestStep("Step5: Handle AUTH1 command"),
+            TestStep("Step6: Handle EXCHANGE command"),
+            TestStep("Step7: Send reader status AP complete"),
         ]
 
     def print_uwb_configuration(self, uwb_config: dict) -> None:
@@ -75,6 +75,12 @@ class BLEUWB_UD_TIMEOUT_EXTENSION(AliroUserDeviceTestCase, UserPromptSupport):
         for key, value in uwb_config.items():
             logger.info(f"{key:<12}: {value}")
         logger.info("-" * 50)
+
+    async def th_sleep(self, delay: float):
+        logger.info(f"Test Harness sleeping for {delay}s")
+        await asyncio.sleep(delay)
+        logger.info(f"Test Harness done sleeping")
+        return None
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
@@ -135,16 +141,17 @@ class BLEUWB_UD_TIMEOUT_EXTENSION(AliroUserDeviceTestCase, UserPromptSupport):
             self.mark_step_failure(str(error))
             return
 
-        self.next_step()
-        # Step3: Send Event message with Busy attribute
-        await self.reader.send_event(Event_AttributeID.BUSY, None)
+        self.next_step()        
+        # Step3: Send Event message with Busy attribute after 1 second
+        await self.th_sleep(delay=1.0)
+        await asyncio.gather(
+                self.reader.send_event(Event_AttributeID.BUSY, None),
+                self.th_sleep(delay=1.0)
+                )
 
         self.next_step()
-        # Step4: Wait for 1sec
-        time.sleep(1)
 
-        self.next_step()
-        # Step5: Handle AUTH0 command
+        # Step4: Handle AUTH0 command after 1 second
         try:
             await self.reader.handle_auth0(
                 transaction_type=Transaction.STANDARD,
@@ -155,7 +162,7 @@ class BLEUWB_UD_TIMEOUT_EXTENSION(AliroUserDeviceTestCase, UserPromptSupport):
             return
         
         self.next_step()
-        # Step6: Handle AUTH1 command
+        # Step5: Handle AUTH1 command
         try:
             await self.reader.handle_auth1()
         except (AccessProtocolError, InvalidResponseError) as error:
@@ -163,7 +170,7 @@ class BLEUWB_UD_TIMEOUT_EXTENSION(AliroUserDeviceTestCase, UserPromptSupport):
             return
         
         self.next_step()
-        # Step7: Handle EXCHANGE command
+        # Step6: Handle EXCHANGE command
         try:
             await self.reader.handle_exchange(ursk=True)
         except (AccessProtocolError, InvalidResponseError) as error:
@@ -171,7 +178,7 @@ class BLEUWB_UD_TIMEOUT_EXTENSION(AliroUserDeviceTestCase, UserPromptSupport):
             return
 
         self.next_step()
-        # Step8: Send reader status AP complete
+        # Step7: Send reader status AP complete
         try:
             await self.reader.reader_status_access_protocol_completed(
                 UnsolicitedReaderStatusReporting_Values.SEND_TO_EACH_CONNECTED,
