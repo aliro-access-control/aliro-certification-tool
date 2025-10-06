@@ -32,4 +32,4 @@ fi
 # Can be used to build dependencies or make configurations specific to the Aliro test collection.
 
 cd $COLLECTION_PATH/support/aliro_actuator
-NXP_TRANSPORT=${NXP_TRANSPORT} ./scripts/install_nfc.sh
+sudo NXP_TRANSPORT=${NXP_TRANSPORT} ./scripts/install_nfc.sh
