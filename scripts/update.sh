@@ -40,14 +40,14 @@ if [ "$ROOT_BRANCH" = "HEAD" ]; then
     done
 fi
 
-echo "*** Stashing local changes"
-cd $ROOT_DIR && git stash && git submodule foreach 'git stash'
+# echo "*** Stashing local changes"
+# cd $ROOT_DIR && git stash && git submodule foreach 'git stash'
 
-echo "*** Pull latest Test Harness code"
-cd $ROOT_DIR && \
-    git checkout $ROOT_BRANCH && \
-    git pull && \
-    git submodule update --init --recursive
+# echo "*** Pull latest Test Harness code"
+# cd $ROOT_DIR && \
+#     git checkout $ROOT_BRANCH && \
+#     git pull && \
+#     git submodule update --init --recursive
     
 echo "*** Download latest Docker images"
 cd $ROOT_DIR

@@ -1,2 +1,3 @@
-linux-modules-extra-raspi=5.15.0.*
-pi-bluetooth=0.1.18ubuntu4
+pi-bluetooth=0.2ubuntu1
+bluetooth=5.72-0ubuntu5.*
+linux-raspi=6.8.0-1040.*

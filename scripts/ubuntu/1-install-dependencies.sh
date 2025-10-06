@@ -34,7 +34,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 PACKAGES_FILE="$(realpath "$(dirname "$0")")/packages-ubuntu.txt"
 # regex to allow comments after each package entry
 PACKAGES=$(grep -oE "^[^#[:space:]]+" "$PACKAGES_FILE")
-sudo DEBIAN_FRONTEND=noninteractive echo "$PACKAGES" | sudo xargs apt-get install -y
+echo "$PACKAGES" | sudo DEBIAN_FRONTEND=noninteractive xargs apt-get install -y
 echo "$PACKAGES" | sudo xargs apt-mark hold
 
 # Install Peotry, needed for Test Harness CLI
