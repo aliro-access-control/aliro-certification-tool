@@ -12,8 +12,11 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     ReaderStatusInformation_Values,
     UnsolicitedReaderStatusReporting_Values,
 )
-from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
+from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError, TransportProtocolError
+from aliro_actuator.transport_protocol.ble_uwb import ALIRO_BLE_UWB_PROTOCOL_VERSION
 from aliro_actuator.transport_protocol import Mode
+from aliro_actuator.hw_driver.murata_driver.errors import ErrorReturnedError
+from aliro_actuator.hw_driver.murata_driver.fsci import L2CapConnectionResult
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
@@ -49,7 +52,8 @@ class BLERKE_RDR_NEG_FAILED_SPSM_L2CAP(AliroReaderTestCase, UserPromptSupport):
 
     def create_test_steps(self) -> None:
         self.test_steps = [
-            TestStep("Step1: Send wrong SPSM"),
+            TestStep("Step1: Setup BLE connection"),
+            TestStep("Step2: User device sends wrong SPSM in L2CAP connection request"),
         ]
 
     async def setup(self) -> None:
@@ -92,23 +96,45 @@ class BLERKE_RDR_NEG_FAILED_SPSM_L2CAP(AliroReaderTestCase, UserPromptSupport):
                 reader_group_identifier_list=reader_group_list,
                 enable_uwb=False,
             )
-            (
-                advertisement_version,
-                notification,
-                BLE_UWB_supported,
-                BLE_only_supported,
+            (advertisement_version, 
+             self.userdevice.transport_protocol.notification, 
+             self.userdevice.transport_protocol.BLE_UWB_supported, 
+             self.userdevice.transport_protocol.BLE_only_supported,
             ) = await self.userdevice.transport_protocol.driver.wait_for_connection()
             if advertisement_version != ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION:
                 await self.userdevice.transport_protocol.disconnect()
                 raise TransportProtocolError("Invalid BLE advertisement version")
-            self.ble_version = 0x0100
+            self.ble_version = ALIRO_BLE_UWB_PROTOCOL_VERSION
             await self.userdevice.transport_protocol.handle_GATT_layer(self.ble_version)
-
-            await self.userdevice.transport_protocol.driver.setup_l2cap_connection_user(bytes.fromhex("0081"))
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            logger.info("Establish L2CAP connection fails.")
+            logger.info(error_str)
+            self.mark_step_failure("BLE GAP Connection establishment failure.")
             return
+        self.next_step()
+
+        # Test step 2
+        try:
+            wrong_spsm = bytearray(self.userdevice.transport_protocol.spsm)
+            if wrong_spsm[1] < 0xFF:
+                wrong_spsm[1] += 1
+            else:
+                wrong_spsm[1] = 0x80
+            logger.debug("Setup l2cap connection with wrong SPSM value")
+            await self.userdevice.transport_protocol.driver.register_le_cb_callback()
+            await self.userdevice.transport_protocol.driver.register_le_psm(wrong_spsm)
+            await self.userdevice.transport_protocol.driver.connect_le_psm(
+                self.userdevice.transport_protocol.driver.connected_devices[0], 
+                wrong_spsm, 
+                0xFF, 
+                expected_status=L2CapConnectionResult.LePsmNotSupported)
+        except ErrorReturnedError as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            logger.info(error_str)
+            self.mark_step_failure("Wrong SPSM value was accepted by Reader for L2CAP connection.")
+            return
+        else:
+            logger.info("L2CAP connection establishment failed as expected, disconnect devices")    
         self.next_step()
 
     async def cleanup(self) -> None:
