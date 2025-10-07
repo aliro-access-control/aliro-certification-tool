@@ -2,7 +2,7 @@ from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
 )
-from aliro_actuator.hw_driver.murata_driver.errors import DeviceDisconnectedError
+from aliro_actuator.hw_driver.murata_driver.errors import DeviceDisconnectedError, NoResponseError
 from aliro_actuator.hw_driver.murata_driver.opcodes import (
     OpCodeGAP,
     OpGroup,
@@ -10,6 +10,7 @@ from aliro_actuator.hw_driver.murata_driver.opcodes import (
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.transport_protocol import Mode
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
+from aliro_actuator.transport_protocol.ble_uwb import INVALID_VERSIONS, SUPPORTED_VERSIONS
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
@@ -36,8 +37,6 @@ class BLERKE_UD_NEG_FAILED_L2CAP(AliroUserDeviceTestCase, UserPromptSupport):
     transaction_identifier = bytes.fromhex("4165A83667AD0AF5AB115247424822E0")
     group_resolving_key = 16 * bytes.fromhex("00")
 
-    BLE_UWB_VERSION = 0x0100
-
     @classmethod
     def pics(cls) -> set[str]:
         return set(
@@ -49,9 +48,8 @@ class BLERKE_UD_NEG_FAILED_L2CAP(AliroUserDeviceTestCase, UserPromptSupport):
     def create_test_steps(self) -> None:
         self.test_steps = [
             TestStep("Step1: Configure User Device to scan for BLE advertisements"),
-            TestStep("Step2: Reader sends BLE packet: ADV_IND"),
-            TestStep("Step3: Establish L2CAP connection"),
-            TestStep("Step4: Disconnect event"),
+            TestStep("Step2: Setup BLE connection with invalid BLE UWB Protocol Version in Reader Characteristic"),
+            TestStep("Step3: L2CAP connection establishment failure"),
         ]
 
     async def setup(self) -> None:
@@ -81,8 +79,6 @@ class BLERKE_UD_NEG_FAILED_L2CAP(AliroUserDeviceTestCase, UserPromptSupport):
         )
 
         # Test step 1
-        group_id = self.th_group_identifier()
-        sub_group_id = self.th_sub_group_identifier()
         # Done in setup
         await self.send_prompt_request(
             OptionsSelectPromptRequest(
@@ -93,12 +89,20 @@ class BLERKE_UD_NEG_FAILED_L2CAP(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 2
         try:
+            logger.info("Setting up connection")
             await self.reader.transport_protocol.initialization(
                 Mode.READER,
-                group_id,
-                sub_group_id,
-                advertisement_version=0x01,
+                reader_group_identifier=self.reader.reader_group_identifier,
+                reader_group_sub_identifier=self.reader.reader_group_sub_identifier,
+                group_resolving_key=self.reader.group_resolving_key,
+                spsm=self.reader.spsm,
+                timeout=self.reader.timeout,
+                advertisement_version=self.reader.advertisement_version,
+                enable_uwb=self.reader.enable_uwb,
+                reader_supported_ble_uwb_versions=INVALID_VERSIONS
             )
+            # Wait for GAP connection to be established
+            await self.reader.transport_protocol.driver.wait_for_connection()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
@@ -107,24 +111,22 @@ class BLERKE_UD_NEG_FAILED_L2CAP(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Test step 3
         try:
-            await self.reader.transport_protocol.driver.wait_for_connection()
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-        self.next_step()
-
-        # Test step 4
-        try:
-            await self.reader.transport_protocol.driver.wait_for_message(
-                OpGroup.GAP, 
-                OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
-            )
-        except DeviceDisconnectedError as error:
+            # Set timeout on the reader before L2CAP Connection channel establishment
+            self.reader.transport_protocol.driver.enable_timeout = True
+            self.reader.transport_protocol.driver.timeout = 5
+            self.reader.transport_protocol.ble_version, self.reader.transport_protocol.features = await self.reader.transport_protocol.driver.wait_for_write()
             logger.info(
-                "Disconnect error received, as expected"
+                "Checking ble version requested by User Device: 0x{:4x}".format(
+                    self.reader.transport_protocol.ble_version
+                )
             )
-            pass
+            await self.reader.transport_protocol.driver.setup_l2cap_connection_reader(self.reader.spsm)
+        except (DeviceDisconnectedError, NoResponseError) as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            logger.info(error_str)
+            logger.info("L2CAP connection establishment failed as expected, disconnect devices")
+        else:
+            self.mark_step_failure("Wrong BLE_UWB protocol version was accepted for L2CAP connection.")
         self.next_step()
 
     async def cleanup(self) -> None:
