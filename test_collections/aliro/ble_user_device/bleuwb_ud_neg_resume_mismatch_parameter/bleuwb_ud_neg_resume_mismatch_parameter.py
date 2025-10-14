@@ -128,6 +128,7 @@ class BLEUWB_UD_NEG_RESUME_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserPromp
             await self.reader.expedited_transaction_standard(
                 authentication_policy=AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
             )
+            await self.reader.handle_exchange(False, ursk=True)
             await self.reader.reader_status_access_protocol_completed(
                 UnsolicitedReaderStatusReporting_Values.SEND_TO_EACH_CONNECTED,
                 ReaderStatusInformation_Values.SECURED,

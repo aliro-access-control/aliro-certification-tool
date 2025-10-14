@@ -13,6 +13,10 @@ from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
 )
+from aliro_actuator.transport_protocol.ble_message_format import (
+    OperationSourceInformation_Values,
+    ReaderStatusInformation_Values,
+)
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
@@ -79,6 +83,13 @@ class BLEUWB_UD_EXPEDITED_FAST_PHASE(AliroUserDeviceTestCase, UserPromptSupport)
             TestStep("Step25: Reader acquires UWB ranging result"),
             TestStep("Step26: Reader sends AP message: Status changed"),
         ]
+
+    def print_uwb_configuration(self, uwb_config: dict) -> None:
+        logger.info("UWB Configuration is:")
+        logger.info("-" * 50)
+        for key, value in uwb_config.items():
+            logger.info(f"{key:<12}: {value}")
+        logger.info("-" * 50)
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
@@ -206,7 +217,7 @@ class BLEUWB_UD_EXPEDITED_FAST_PHASE(AliroUserDeviceTestCase, UserPromptSupport)
 
         # Test step 16 and step 17
         try:
-            await self.reader.handle_exchange(False, ursk=b"")
+            await self.reader.handle_exchange(False, ursk=True)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
