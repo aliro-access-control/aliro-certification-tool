@@ -7,6 +7,7 @@ from aliro_actuator.access_protocol.apdu import (
     Transaction,
     ReaderStatus,
     Response,
+    S2,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -15,6 +16,7 @@ from aliro_actuator.access_protocol.defines import (
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
+    InvalidResponseDataError,
     InvalidResponseError,
     SessionError,
     InvalidStatusError
@@ -260,10 +262,9 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
                     response.status_code
                 )
             )
-        if response.status_code != bytes.fromhex("00020000"):
-            await self.reader.failure_process(ReaderStatus.STATUS_WORD_ERROR)
-            raise AccessProtocolError(
-                "EXCHANGE returned error status at end of payload: {!r}".format(
+        if response.status_code == bytes.fromhex("00020000"):
+            raise InvalidResponseDataError(response.decrypted_payload,
+                "EXCHANGE returned success status at end of payload: {!r}".format(
                     response.status_code
                 )
             )
@@ -349,26 +350,24 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
                 False, read_requests = read_request
             )
         except InvalidStatusError as error:
-            Global.logger.info(str(error))
             Global.logger.info(
-                "EXCHANGE response status does not indicate success as expected "
-                "status: 0x{:04x}".format(error.status)
+                "EXCHANGE command response SW does not indicate success as expected, "
+                "received status: 0x{:04x}".format(error.status)
             )
-            pass
-        except (AccessProtocolError, InvalidResponseError) as error:
+            self.mark_step_failure(str(error))
+            return
+        except (AccessProtocolError, InvalidResponseDataError,InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
         else:
-            self.mark_step_failure("EXCHANGE with wrong length did not raise expected status word error")
-            return
+            Global.logger.info("EXCHANGE with wrong length generated response with error status code")
             
         self.next_step()
 
         # Test step 7
         try:
-            await self.reader.handle_exchange(
-                False, reader_status=ReaderStatus.STATUS_WORD_ERROR
-            )
+            self.reader.session.encryption_expedited = None
+            await self.reader.handle_control_flow(s2=S2.NONE)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return

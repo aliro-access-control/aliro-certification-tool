@@ -3,6 +3,7 @@ from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     AuthenticationPolicy,
     ReaderStatus,
+    S2,
     Transaction,
 )
 from aliro_actuator.access_protocol.defines import (
@@ -11,6 +12,7 @@ from aliro_actuator.access_protocol.defines import (
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
+    InvalidResponseDataError,
     InvalidResponseError,
     InvalidStatusError,
 )
@@ -57,7 +59,8 @@ class NFC_UD_NEG_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING_INCORRECT_FORMAT(Aliro
             TestStep("Step2: Set to polling mode"),
             TestStep("Step3: Transaction initiation"),
             TestStep("Step4: Send/Receive AUTH0 command/response"),
-            TestStep("Step5: Send/Receive LOAD_CERT command/response")
+            TestStep("Step5: Send/Receive LOAD_CERT command/response"),
+            TestStep("Step6: Execute CONTROL FLOW indicating transaction failure")
         ]
 
     async def setup(self) -> None:
@@ -145,14 +148,21 @@ class NFC_UD_NEG_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING_INCORRECT_FORMAT(Aliro
 
         try:
             await self.reader.command_load_cert(bytes(compressed_cert))
-        except (AccessProtocolError, InvalidResponseError) as error:
+        except (AccessProtocolError, InvalidResponseError, InvalidResponseDataError) as error:
             self.mark_step_failure(str(error))
             return
         except InvalidStatusError:
             self.next_step()
-            return  # success!
+        else:
+            self.mark_step_failure("Expected non-successful return status, but got success")
+            return
 
-        self.mark_step_failure("Expected non-successful return status, but got success")
+        # Test step 6
+        try:
+            await self.reader.handle_control_flow(s2=S2.NONE)
+        except AccessProtocolError as error:
+            self.mark_step_failure(str(error))
+            return
 
     async def cleanup(self) -> None:
         logger.info("NFC_UD_NEG_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING_INCORRECT_FORMAT Cleanup")
