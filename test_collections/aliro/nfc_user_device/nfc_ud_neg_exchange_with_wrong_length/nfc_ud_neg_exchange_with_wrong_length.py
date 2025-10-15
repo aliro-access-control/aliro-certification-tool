@@ -146,12 +146,8 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
             raise TimeoutError
 
         Global.logger.info("Received response")
-        response = Response.create_from_bytestring(response)
-        try:
-            response.parse_as_exchange(encryption)
-        except InvalidStatusError as error:
-            raise InvalidStatusError(response=response.data, status=error.status,
-                                     additional_message="EXCHANGE response command SW != SUCCESS (0x9000)")
+        response = self.reader.apdu.parse_response(response, INS.EXCHANGE, encryption)
+
         return response
 
     async def handle_exchange_with_wrong_tag_value(
@@ -356,7 +352,7 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
             )
             self.mark_step_failure(str(error))
             return
-        except (AccessProtocolError, InvalidResponseDataError,InvalidResponseError) as error:
+        except (AccessProtocolError, InvalidResponseDataError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
         else:
