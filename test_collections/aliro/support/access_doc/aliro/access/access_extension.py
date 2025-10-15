@@ -129,7 +129,7 @@ class AccessExtension(object):
         access_extension_list.append(int(self.version))
 
         # Encode the Data.
-        access_extension_list.append(self.data.to_dict(validate))
+        access_extension_list.append(self.data.to_bytes(validate))
 
         return access_extension_list
 

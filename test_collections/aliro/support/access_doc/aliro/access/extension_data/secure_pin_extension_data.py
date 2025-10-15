@@ -80,7 +80,7 @@ class ReaderPin(object):
         return True
 
     ############################################################################
-    def to_dict(self, validate=True) -> dict:
+    def to_bytes(self, validate=True) -> bytes | None:
         '''Convert the ReaderPin to a dictionary.'''
         if validate and not self.is_valid():
             return None

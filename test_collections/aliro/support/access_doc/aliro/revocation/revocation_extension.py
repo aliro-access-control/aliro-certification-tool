@@ -100,7 +100,7 @@ class RevocationExtension(object):
         revocation_extension_list.append(int(self.version))
 
         # Encode the Data.
-        revocation_extension_list.append(self.data.to_dict(validate))
+        revocation_extension_list.append(self.data.to_bytes(validate))
 
         return revocation_extension_list
 

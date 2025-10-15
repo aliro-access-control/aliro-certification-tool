@@ -71,7 +71,7 @@ class ExtensionDataExample(ExtensionData):
         return True
 
     ############################################################################
-    def to_dict(self, validate=True) -> dict:
+    def to_bytes(self, validate=True) -> bytes | None:
         '''Convert the ExtensionDataExample to a dictionary.'''
         if validate and not self.is_valid():
             return None

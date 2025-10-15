@@ -29,6 +29,6 @@ class ExtensionData(ABC):
 
     ############################################################################
     @abstractmethod
-    def to_dict(self, validate=True) -> dict:
-        '''Convert the ExtensionData to a dictionary.'''
+    def to_bytes(self, validate=True) -> bytes | None:
+        '''Convert the ExtensionData to a byte string.'''
         pass
