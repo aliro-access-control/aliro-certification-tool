@@ -148,11 +148,11 @@ class NFC_UD_NEG_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING_INCORRECT_FORMAT(Aliro
 
         try:
             await self.reader.command_load_cert(bytes(compressed_cert))
+        except InvalidStatusError:
+            self.next_step()
         except (AccessProtocolError, InvalidResponseError, InvalidResponseDataError) as error:
             self.mark_step_failure(str(error))
             return
-        except InvalidStatusError:
-            self.next_step()
         else:
             self.mark_step_failure("Expected non-successful return status, but got success")
             return
