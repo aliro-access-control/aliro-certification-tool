@@ -80,7 +80,7 @@ class ReaderPin(object):
         return True
 
     ############################################################################
-    def to_bytes(self, validate=True) -> bytes | None:
+    def to_dict(self, validate=True) -> dict:
         '''Convert the ReaderPin to a dictionary.'''
         if validate and not self.is_valid():
             return None
@@ -174,8 +174,8 @@ class SecurePinExtensionData(ExtensionData):
         return True
 
     ############################################################################
-    def to_dict(self, validate=True) -> dict:
-        '''Convert the SecurePinExtensionData to a dictionary.'''
+    def to_bytes(self, validate=True) -> bytes | None:
+        '''Convert the SecurePinExtensionData to a byte array.'''
         if validate and not self.is_valid():
             return None
 

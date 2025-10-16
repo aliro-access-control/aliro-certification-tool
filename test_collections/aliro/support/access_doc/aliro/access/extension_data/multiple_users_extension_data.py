@@ -185,7 +185,7 @@ class MultipleUsersExtensionData(ExtensionData):
 
     ############################################################################
     def to_bytes(self, validate=True) -> bytes | None:
-        '''Convert the MultipleUsersExtensionData to a dictionary.'''
+        '''Convert the MultipleUsersExtensionData to a byte array.'''
         if validate and not self.is_valid():
             return None
 
