@@ -15,10 +15,13 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidCommandError,
+    SessionError,
+    VersionError,
 )
 from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
 from aliro_actuator.trust_framework.key import KeyPair
 from aliro_actuator.trust_framework.errors import (
+    InvalidKeyError,
     KeyLookupFailed,
 )
 from app.test_engine.logger import test_engine_logger as logger
@@ -127,6 +130,9 @@ class NFC_RDR_NEG_AUTH0_EXTRA_TAG(AliroReaderTestCase, UserPromptSupport):
                 state = self.userdevice.session.state
                 await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
                 raise SessionError("unexpected state for auth0 command: {}".format(state))
+            
+            # New user credential ephemeral key is set whenever sending an Auth0 response
+            self.userdevice.set_credential_ephemeral_key()
 
             logger.info("Handling AUTH0 Command")
             if (
