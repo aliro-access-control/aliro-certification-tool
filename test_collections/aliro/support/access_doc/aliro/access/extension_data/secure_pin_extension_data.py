@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+import cbor2
+
 from aliro.common.extension_data import ExtensionData
 
 ################################################################################
@@ -201,4 +203,4 @@ class SecurePinExtensionData(ExtensionData):
             if (len(reader_pin_list) > 0):
                 extension_data_dict[SecurePinExtensionData.READER_PINS_LABEL] = reader_pin_list
 
-        return extension_data_dict
+        return cbor2.dumps(extension_data_dict)

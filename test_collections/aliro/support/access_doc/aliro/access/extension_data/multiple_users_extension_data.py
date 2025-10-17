@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+import cbor2
+
 from aliro.common.extension_data import ExtensionData
 
 ################################################################################
@@ -203,4 +205,4 @@ class MultipleUsersExtensionData(ExtensionData):
         # Encode the User Limit.
         extension_data_dict[MultipleUsersExtensionData.USER_LIMIT_LABEL] = int(self.user_limit)
 
-        return extension_data_dict
+        return cbor2.dumps(extension_data_dict)
