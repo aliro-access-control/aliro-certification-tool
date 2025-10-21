@@ -31,8 +31,8 @@ class DummyExtension(ExtensionData):
     def is_valid(self) -> bool:
         return True
 
-    def to_dict(self, validate=True) -> dict:
-        return {"key": "data"}
+    def to_bytes(self, validate=True) -> bytes | None:
+        return b'ThisIsSomeData'
 
 
 class NFC_RDR_NEG_STEPUP_AD_UNKNOWN_CRITICAL_ACCESS_EXTENSION(AliroReaderTestCase, UserPromptSupport):

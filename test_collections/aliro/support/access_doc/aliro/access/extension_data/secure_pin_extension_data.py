@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+import cbor2
+
 from aliro.common.extension_data import ExtensionData
 
 ################################################################################
@@ -174,8 +176,8 @@ class SecurePinExtensionData(ExtensionData):
         return True
 
     ############################################################################
-    def to_dict(self, validate=True) -> dict:
-        '''Convert the SecurePinExtensionData to a dictionary.'''
+    def to_bytes(self, validate=True) -> bytes | None:
+        '''Convert the SecurePinExtensionData to a byte array.'''
         if validate and not self.is_valid():
             return None
 
@@ -201,4 +203,4 @@ class SecurePinExtensionData(ExtensionData):
             if (len(reader_pin_list) > 0):
                 extension_data_dict[SecurePinExtensionData.READER_PINS_LABEL] = reader_pin_list
 
-        return extension_data_dict
+        return cbor2.dumps(extension_data_dict)

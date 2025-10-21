@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+import cbor2
+
 from aliro.common.extension_data import ExtensionData
 
 ################################################################################
@@ -71,8 +73,8 @@ class ExtensionDataExample(ExtensionData):
         return True
 
     ############################################################################
-    def to_dict(self, validate=True) -> dict:
-        '''Convert the ExtensionDataExample to a dictionary.'''
+    def to_bytes(self, validate=True) -> bytes | None:
+        '''Convert the ExtensionDataExample to a byte array.'''
         if validate and not self.is_valid():
             return None
 
@@ -84,4 +86,4 @@ class ExtensionDataExample(ExtensionData):
         # Encode Value 1.
         extension_data_dict[ExtensionDataExample.VALUE_2_LABEL] = int(self.value2)
 
-        return extension_data_dict
+        return cbor2.dumps(extension_data_dict)
