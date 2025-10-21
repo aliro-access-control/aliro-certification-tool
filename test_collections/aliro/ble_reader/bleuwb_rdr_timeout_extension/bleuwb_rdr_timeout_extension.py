@@ -115,6 +115,9 @@ class BLEUWB_RDR_TIMEOUT_EXTENSION(AliroReaderTestCase, UserPromptSupport):
             state = self.userdevice.session.state
             await self.userdevice.failure_process(StatusBytes.INVALID_INSTRUCTION)
             raise SessionError("unexpected state for auth0 command: {}".format(state))
+        
+        # New user credential ephemeral key is set whenever sending an Auth0 response
+        self.userdevice.set_credential_ephemeral_key()
 
         logger.info("Handling AUTH0 Command")
         if (
