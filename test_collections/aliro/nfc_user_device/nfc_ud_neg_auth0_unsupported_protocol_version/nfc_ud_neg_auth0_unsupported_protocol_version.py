@@ -112,6 +112,8 @@ class NFC_UD_NEG_AUTH0_UNSUPPORTED_PROTOCOL_VERSION(AliroUserDeviceTestCase, Use
         self.next_step()
 
         # Test step 4
+        self.reader.set_reader_ephemeral_key()
+
         authentication_policy = random.randint(
             AuthenticationPolicy.USER_DEVICE, 
             AuthenticationPolicy.FORCE_USER_AUTHENTICATION

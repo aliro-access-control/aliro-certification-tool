@@ -108,6 +108,8 @@ class NFC_UD_NEG_AUTH0_WRONG_P1P2(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 5
+        self.reader.set_reader_ephemeral_key()
+
         try:
             data_tlv: list[tuple[int, bytes | list]] = [
                 (Auth0.COMMAND_TAG, Transaction.STANDARD.to_bytes(1, "big")),
