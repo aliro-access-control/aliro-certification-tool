@@ -5,7 +5,8 @@ from aliro_actuator.access_protocol.apdu import (
     AuthenticationPolicy,
     Transaction,
     ReaderStatus,
-    Response
+    Response,
+    S2,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -21,7 +22,7 @@ from aliro_actuator.access_protocol.encryption import (
     VerificationError,
 )
 from aliro_actuator.access_protocol.defines import Exchange
-from aliro_actuator.access_protocol.reader import Reader, ReaderState
+from aliro_actuator.access_protocol.reader import Reader, ReaderState, ReaderFailureState
 from aliro_actuator.trust_framework.key import KeyPair
 from aliro_actuator.access_protocol.tlv import TLV
 
@@ -181,7 +182,7 @@ class NFC_UD_NEG_EXCHANGE_MAILBOX_OUT_OF_BOUNDS(AliroUserDeviceTestCase, UserPro
                 "Response status does not indicate success, "
                 "status: 0x{:04x}".format(error.status)
             )
-            await self.reader.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
+            await self.reader.failure_process(S2.NONE, failure_state=ReaderFailureState.STATUS_WORD)
             raise error
         except InvalidResponseError as error:
             Global.logger.error("EXCHANGE response format invalid")
@@ -194,7 +195,7 @@ class NFC_UD_NEG_EXCHANGE_MAILBOX_OUT_OF_BOUNDS(AliroUserDeviceTestCase, UserPro
 
         Global.logger.info("Handling EXCHANGE response")
         if len(response.status_code) != 4:
-            await self.reader.failure_process(ReaderStatus.STATUS_WORD_ERROR)
+            await self.reader.failure_process(S2.NONE, failure_state=ReaderFailureState.B1_B2_ERROR)
             raise AccessProtocolError(
                 "EXCHANGE payload status has invalid length: {!r}".format(
                     response.status_code
@@ -320,9 +321,7 @@ class NFC_UD_NEG_EXCHANGE_MAILBOX_OUT_OF_BOUNDS(AliroUserDeviceTestCase, UserPro
 
         # Test step 7
         try:
-            await self.reader.handle_exchange(
-                False, reader_status=ReaderStatus.STATUS_WORD_ERROR
-            )
+            await self.reader.handle_control_flow(s2=S2.NONE)
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
