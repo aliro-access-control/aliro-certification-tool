@@ -150,7 +150,7 @@ class BLEUWB_RDR_CONTROL_FLOW_RDR_DESCRIPTOR_TAG(AliroReaderTestCase, UserPrompt
                 and self.userdevice.transport_protocol_type != TransportProtocol.SOCKET_BLE
             ):
                 state = self.userdevice.session.state
-                await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
+                await self.userdevice.failure_process(StatusBytes.INVALID_INSTRUCTION)
                 raise SessionError("unexpected state for auth0 command: {}".format(state))
 
             # New user credential ephemeral key is set whenever sending an Auth0 response
@@ -161,7 +161,7 @@ class BLEUWB_RDR_CONTROL_FLOW_RDR_DESCRIPTOR_TAG(AliroReaderTestCase, UserPrompt
                 cmds_auth0.expedited_phase_protocol_version
                 not in self.userdevice.supported_versions
             ):
-                await self.failure_process(StatusBytes.CONDITIONS_OF_USE_NOT_SATISFIED)
+                await self.userdevice.failure_process(StatusBytes.CONDITIONS_OF_USE_NOT_SATISFIED)
                 raise VersionError
             else:
                 logger.info(
