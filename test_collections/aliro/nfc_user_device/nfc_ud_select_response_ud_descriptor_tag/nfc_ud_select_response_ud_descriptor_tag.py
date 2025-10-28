@@ -96,6 +96,9 @@ class NFC_UD_SELECT_RESPONSE_UD_DESCRIPTOR_TAG(AliroUserDeviceTestCase, UserProm
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
+        if self.reader.session.user_device_descriptor is None:
+            self.mark_step_failure("User Device Descriptor TLV not found")
+            return
         self.next_step()
 
         # Test step 4
