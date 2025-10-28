@@ -119,6 +119,7 @@ class BLEUWB_RDR_NEG_FAILED_SPSM_L2CAP(AliroReaderTestCase, UserPromptSupport):
             else:
                 wrong_spsm[1] = 0x80
             logger.debug(f"Setup l2cap connection with wrong SPSM value: {hexlify(wrong_spsm)}")
+            self.userdevice.transport_protocol.spsm = wrong_spsm
             await self.userdevice.transport_protocol.driver.register_le_cb_callback()
             await self.userdevice.transport_protocol.driver.register_le_psm(wrong_spsm)
             await self.userdevice.transport_protocol.driver.connect_le_psm(

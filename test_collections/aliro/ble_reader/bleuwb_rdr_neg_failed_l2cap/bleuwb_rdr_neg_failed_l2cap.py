@@ -17,7 +17,7 @@ from aliro_actuator.transport_protocol.ble_message_format import (
 from aliro_actuator.transport_protocol import Mode, ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION
 from aliro_actuator.transport_protocol.ble_uwb import ALIRO_BLE_UWB_INVALID_VERSION
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError, TransportProtocolError
-from aliro_actuator.hw_driver.murata_driver.errors import DeviceDisconnectedError, ErrorReturnedError, NoResponseError
+from aliro_actuator.hw_driver.murata_driver.errors import DeviceDisconnectedError, ErrorReturnedError, L2CAPError
 from aliro_actuator.hw_driver.murata_driver.fsci import L2CapConnectionResult
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
@@ -96,10 +96,8 @@ class BLEUWB_RDR_NEG_FAILED_L2CAP(AliroReaderTestCase, UserPromptSupport):
                 expected_status=L2CapConnectionResult.Successful
                 )
         except ErrorReturnedError as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            logger.info(error_str)
-            logger.info(f"L2CAP connection establishment failed as expected (status={error.error_code:04X}), disconnect devices")
-            pass
+            logger.info(repr(error))
+            raise L2CAPError(error_code=error.error_code, error_mesage="L2CAP connection establishment failed as expected, disconnect devices")
 
     async def setup(self) -> None:
         logger.info("This is a test case setup")
@@ -139,6 +137,8 @@ class BLEUWB_RDR_NEG_FAILED_L2CAP(AliroReaderTestCase, UserPromptSupport):
         # Test step 2
         try:
             await self.l2cap_connection_failure()
+        except L2CAPError as error:
+            logger.info(repr(error))
         except DeviceDisconnectedError as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             logger.info(error_str)
