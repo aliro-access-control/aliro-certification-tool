@@ -114,6 +114,8 @@ class NFC_UD_NEG_AUTH0_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupport):
         self.next_step()
 
         # Test step 5
+        self.reader.set_reader_ephemeral_key()
+
         try:
             auth0_response = await self.reader.command_auth0(
                 transaction=Transaction.STANDARD,

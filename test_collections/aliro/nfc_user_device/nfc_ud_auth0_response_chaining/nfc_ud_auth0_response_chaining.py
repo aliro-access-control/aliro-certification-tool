@@ -114,6 +114,8 @@ class NFC_UD_AUTH0_RESPONSE_CHAINING(AliroUserDeviceTestCase, UserPromptSupport)
         self.next_step()
 
         # Test step 5
+        self.reader.set_reader_ephemeral_key()
+
         data_tlv: list[tuple[int, bytes | list]] = [
             (Auth0.COMMAND_TAG, Transaction.STANDARD.to_bytes(1, "big")),
             (Auth0.AUTHENTICATION_POLICY_TAG, AuthenticationPolicy.USER_DEVICE.to_bytes(1, "big")),
