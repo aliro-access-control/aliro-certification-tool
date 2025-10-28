@@ -133,7 +133,7 @@ class NFC_RDR_NEG_AUTH1_WRONG_VALUES(AliroReaderTestCase, UserPromptSupport):
                 [UserSessionState.AUTH0_FAST_DONE, UserSessionState.AUTH0_STD_DONE]
             ):
                 state = self.userdevice.session.state
-                await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
+                await self.userdevice.failure_process(StatusBytes.INVALID_INSTRUCTION)
                 raise SessionError("unexpected state for auth1 command: {}".format(state))
 
             logger.info("Handling AUTH1 Command")

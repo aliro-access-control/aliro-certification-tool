@@ -4,6 +4,7 @@ from aliro_actuator.access_protocol.apdu import (
     AuthenticationPolicy,
     Transaction,
     ReaderStatus,
+    S2,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -20,7 +21,7 @@ from aliro_actuator.access_protocol.encryption import (
     VerificationError,
     EncryptionEngine,
 )
-from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.access_protocol.reader import Reader, ReaderFailureState
 from binascii import hexlify
 
 from aliro_actuator.trust_framework.key import KeyPair
@@ -232,7 +233,7 @@ class NFC_UD_NEG_EXCHANGE_WITH_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupp
                 "Response status does not indicate success, "
                 "status: 0x{:04x}".format(error.status)
             )
-            await self.reader.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
+            await self.reader.failure_process(S2.NONE, failure_state=ReaderFailureState.STATUS_WORD)
             raise error
         except InvalidResponseError as error:
             Global.logger.error("EXCHANGE response format invalid")
@@ -245,14 +246,14 @@ class NFC_UD_NEG_EXCHANGE_WITH_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupp
         
         Global.logger.info("Handling EXCHANGE response")
         if len(response.status_code) != 4:
-            await self.reader.failure_process(ReaderStatus.STATUS_WORD_ERROR)
+            await self.reader.failure_process(S2.NONE, failure_state=ReaderFailureState.B1_B2_ERROR)
             raise AccessProtocolError(
                 "EXCHANGE payload status has invalid length: {!r}".format(
                     response.status_code
                 )
             )
         if response.status_code != bytes.fromhex("00020000"):
-            await self.reader.failure_process(ReaderStatus.STATUS_WORD_ERROR)
+            await self.reader.failure_process(S2.NONE, failure_state=ReaderFailureState.B1_B2_ERROR)
             raise AccessProtocolError(
                 "EXCHANGE returned error status at end of payload: {!r}".format(
                     response.status_code
@@ -372,7 +373,7 @@ class NFC_UD_NEG_EXCHANGE_WITH_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupp
         # Test step 7
         try:
             await self.reader.handle_exchange(
-                False, reader_status=ReaderStatus.STATUS_WORD_ERROR
+                False, reader_status=ReaderStatus.READER_STATE_UNSECURED
             )
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))

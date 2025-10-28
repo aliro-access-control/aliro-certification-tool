@@ -26,7 +26,7 @@ from aliro_actuator.access_protocol.encryption import (
     EncryptionMissingError,
     VerificationError,
 )
-from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.access_protocol.reader import Reader, ReaderFailureState
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
@@ -252,7 +252,7 @@ class NFC_UD_NEG_EXCHANGE_WITH_WRONG_LENGTH(AliroUserDeviceTestCase, UserPromptS
 
         Global.logger.info("Handling EXCHANGE response")
         if len(response.status_code) != 4:
-            await self.reader.failure_process(ReaderStatus.STATUS_WORD_ERROR)
+            await self.reader.failure_process(S2.NONE, failure_state=ReaderFailureState.B1_B2_ERROR)
             raise AccessProtocolError(
                 "EXCHANGE payload status has invalid length: {!r}".format(
                     response.status_code

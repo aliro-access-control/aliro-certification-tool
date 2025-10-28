@@ -13,7 +13,9 @@ from aliro_actuator.access_protocol.defines import (
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
+    InvalidAIDError,
     InvalidCommandError,
+    SessionError,
 )
 from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
 from aliro_actuator.trust_framework.key import KeyPair
@@ -136,7 +138,7 @@ class NFC_RDR_NEG_SEL_RSP_NO_COMMON_EXPEDITED_PROTOCOL_VERSION(AliroReaderTestCa
             else:
                 logger.warning("Invalid AID")
                 await self.userdevice.failure_process(StatusBytes.FILE_OR_APP_NOT_FOUND)
-                raise InvalidAIDError(select_command.to_bytes(), select_command.aid)
+                raise InvalidAIDError(cmds_select.to_bytes(), cmds_select.aid)
 
             select_response = self.userdevice.apdu.create_select_response(
                 cmds_select.aid,

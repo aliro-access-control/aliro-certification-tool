@@ -11,12 +11,14 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidCommandError,
+    SessionError,
 )
 from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
 from aliro_actuator.access_protocol.authentication import (
     create_user_device_authentication,
 )
 from aliro_actuator.trust_framework.key import KeyPair
+from aliro_actuator.trust_framework.errors import KeyLookupFailed
 from aliro_actuator.access_protocol.tlv import TLV
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
