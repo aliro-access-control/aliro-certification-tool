@@ -127,7 +127,7 @@ class NFC_UD_EXCHANGE_WITH_EXTENDED_LENGTH(AliroUserDeviceTestCase, UserPromptSu
         
         # Test step 6
         read_requests = [(0x00, 0x113)]  # Giving a large read request(length > 256)
-        if not self.reader.apdu.support_extended_length:
+        if not self.reader.apdu.support_extended_length_apdu:
             self.mark_step_failure("DUT does not support Extended Length APDUs")
             return
 
