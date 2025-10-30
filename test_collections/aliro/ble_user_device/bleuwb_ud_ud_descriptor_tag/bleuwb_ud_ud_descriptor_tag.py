@@ -93,6 +93,9 @@ class BLEUWB_UD_UD_DESCRIPTOR_TAG(AliroUserDeviceTestCase, UserPromptSupport):
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
+        if self.reader.session.user_device_descriptor is None:
+            self.mark_step_failure("User Device Descriptor TLV not found in Proprietary Information Attribute")
+            return
         self.next_step() 
 
         # Test step 2: Execute AUTH0, AUTH1, EXCHANGE routines
