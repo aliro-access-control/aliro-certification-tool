@@ -67,7 +67,7 @@ class NFC_UD_STANDARD_CERT_IN_AUTH1_WITH_CHAINING(AliroUserDeviceTestCase, UserP
         self.group_id = self.th_group_identifier()
         key = self.th_reader_keypair()
         cert = self.th_reader_certificate_chaining()
-        self.reader_issuer_public_key = self.th_reader_issuer_public_key()
+        self.reader_issuer_public_key = self.th_reader_issuer_public_key(chaining=True)
         self.endpoint_key = self.th_access_credential_public_key()
 
         # Initialize Aliro NFC Reader

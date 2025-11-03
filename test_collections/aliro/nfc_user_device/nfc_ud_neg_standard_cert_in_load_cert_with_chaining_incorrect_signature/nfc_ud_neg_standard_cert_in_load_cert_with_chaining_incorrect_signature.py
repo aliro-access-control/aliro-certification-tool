@@ -79,7 +79,7 @@ class NFC_UD_NEG_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING_INCORRECT_SIGNATURE(Al
             "e048ed050923e7725d36ce0221008682d7de14388208bee2790dfc6e51bd4e365bc9d594b3"
             "b7420826e593c80096"
         )
-        reader_issuer_public_key = self.th_reader_issuer_public_key()
+        reader_issuer_public_key = self.th_reader_issuer_public_key(chaining=True)
 
         # Initialize Aliro NFC Reader
         self.reader = Reader(
