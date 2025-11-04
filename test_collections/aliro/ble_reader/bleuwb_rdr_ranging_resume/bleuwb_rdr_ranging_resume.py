@@ -84,6 +84,7 @@ class BLEUWB_RDR_RANGING_RESUME(AliroReaderTestCase, UserPromptSupport):
             mailbox=0x20,
             group_resolving_key=group_resolving_key,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
+            timeout=5.0,
         )
 
     @log_errors
@@ -204,7 +205,7 @@ class BLEUWB_RDR_RANGING_RESUME(AliroReaderTestCase, UserPromptSupport):
         time.sleep(1)
         try:
             await self.userdevice.send_ranging_message_resume()
-            message = await self.userdevice.wait_for_ble_message()
+            message = await self.userdevice.wait_for_ble_message(handle_optional_reader_status_changed=True)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)

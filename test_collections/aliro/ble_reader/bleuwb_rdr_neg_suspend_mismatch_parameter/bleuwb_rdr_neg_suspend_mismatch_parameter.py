@@ -76,6 +76,7 @@ class BLEUWB_RDR_NEG_SUSPEND_MISMATCH_PARAMETER(AliroReaderTestCase, UserPromptS
             mailbox=0x20,
             group_resolving_key=group_resolving_key,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
+            timeout=5.0,
         )
 
     def create_ranging_session_suspend_request(self,
@@ -203,7 +204,7 @@ class BLEUWB_RDR_NEG_SUSPEND_MISMATCH_PARAMETER(AliroReaderTestCase, UserPromptS
         self.next_step()
         # Step6: Reader sends event General error wrong parameters
         try:
-            message_event = await self.userdevice.wait_for_message()
+            message_event = await self.userdevice.wait_for_ble_message(handle_optional_reader_status_changed=True)
             message_event.parse_payload(self.userdevice.session.get_ble_encryption())
             if message_event.id != Notification_ID.EVENT or message_event.reason_code != GeneralError_Values.WRONG_PARAMETERS:
                 self.mark_step_failure("Unexpected message received")
