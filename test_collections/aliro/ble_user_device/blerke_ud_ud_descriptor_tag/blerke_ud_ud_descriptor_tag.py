@@ -94,6 +94,9 @@ class BLERKE_UD_UD_DESCRIPTOR_TAG(AliroUserDeviceTestCase, UserPromptSupport):
         # Test step 1
         try:
             await self.reader.transaction_initiation(rke=True)
+            if self.reader.session.user_device_descriptor is None:
+                self.mark_step_failure("User Device Descriptor TLV not found in Proprietary Information Attribute")
+                return
             await self.reader.expedited_transaction_standard(
                 authentication_policy=AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
             )
