@@ -30,3 +30,6 @@ make install
 # Install ACWG Actuator python dependencies
 cd $COLLECTION_PATH/support/aliro_actuator
 poetry install --no-root
+
+# Run uci_example.py to download Murata FW
+python3 /app/test_collections/aliro/support/aliro_actuator/examples/uwb/uci_example.py
