@@ -197,9 +197,8 @@ class BLEUWB_RDR_RANGING_SUSPEND(AliroReaderTestCase, UserPromptSupport):
         # Step9: Reader sends Ranging Session Suspend Response
         try:
             message = await self.userdevice.wait_for_ble_message(handle_optional_reader_status_changed=True)
-            #check message contains correct header id and attribute for ranging suspend response
+            # check message contains correct header id and attribute for ranging suspend response
             if message.header != ProtocolType.UWB_RANGING_SERVICE or message.id != UWB_RangingService_ID.RANGING_SESSION_SUSPEND_RESPONSE:
-                #message.parse_payload(self.userdevice.session.get_ble_encryption())
                 raise UnexpectedBLEMessageError(
                     "Received unexpected ble message while waiting for "
                     "UWB Ranging Service suspend response",
