@@ -467,7 +467,6 @@ class AliroUserDeviceTestCase(AliroTestCase):
     READER_SPSM = "th_reader_spsm"
     ACCESS_CREDENTIAL_PUBLIC_KEY_KEY = "th_access_credential_public_key"
     READER_ISSUER_PUBLIC_KEY_KEY = "th_reader_issuer_public_key"
-    READER_ISSUER_PUBLIC_KEY_CHAINING_KEY = "th_reader_issuer_public_key_chaining"
     CREDENTIAL_ISSUER_PUBLIC_KEY_KEY = "dut_credential_issuer_public_key"
     ACCESS_ELEMENT_ID_KEY = "th_access_element_id"
 
@@ -488,16 +487,16 @@ class AliroUserDeviceTestCase(AliroTestCase):
             "873c5d34ee",
             self.READER_GROUP_ID_KEY: "00113344667799AA00113344667799AA",
             self.READER_SUB_GROUP_ID_KEY: "113344667799AA00113344667799AA00",
-            self.READER_CERTIFICATE_KEY: "308201513081f9a003020102020101300a06082a8648c"
+            self.READER_CERTIFICATE_KEY: "308201523081f9a003020102020101300a06082a8648c"
             "e3d0403023011310f300d06035504030c06697373756572301e170d3230303130313030303"
             "030305a170d3439303130313030303030305a30123110300e06035504030c077375626a656"
             "3743059301306072a8648ce3d020106082a8648ce3d030107034200043928f322019d47578"
             "93bde6a0fe5e13e3e537b9ca0f549c0bd2f40f79060252a0a4f291192157a95cb6eb202759"
-            "428c00cd834998c5d0eab192ee8873c5d34eea341303f301f0603551d23041830168014231"
-            "8e55671f08eae212142a817720fb817ee93bf300c0603551d130101ff04023000300e06035"
-            "51d0f0101ff040403020780300a06082a8648ce3d04030203470030440220606ddd0351bb4"
-            "7c6acccb8b94d83fe5dd18cfa1a2bbd757ccbf7ad9e1e0ba4ca02204e36051d9f93ff34e3a"
-            "d14ae5ead738e2e92a78ef4f9d384be863535484d5151",
+            "428c00cd834998c5d0eab192ee8873c5d34eea341303f301f0603551d230418301680147fc"
+            "93128a61c0cedf94e11732dbe46017c431901300c0603551d130101ff04023000300e06035"
+            "51d0f0101ff040403020780300a06082a8648ce3d0403020348003045022100f509f4e64b3"
+            "1b5c8d4152158065b4eedd31c66d6e7b1f87975f837f5a3fe1235022063ee11a312731c467"
+            "3382c7fcde101440767ff56654bf64595be802ec0ace3e1",
             self.READER_CERTIFICATE_KEY_CHAINING: "3082019a3082013fa0030201020214010451"
             "3ad4f33e92f21aa45b0001004b35602245300a06082a8648ce3d040302302b312930270603"
             "5504030c20616c69726f2d746573742d766572792d6c6f6e676e616d65642d697373756572"
@@ -512,15 +511,12 @@ class AliroUserDeviceTestCase(AliroTestCase):
             "4871e8775fe351f31e94d5ca1b4754e134bcedca890afcced544",
             self.READER_GROUP_RESOLVING_KEY: "00000000000000000000000000000000",
             self.READER_SPSM: "0080",
-            self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY: "04ed1c8b8eb7e44c2842db98730717c75cc"
-            "94c96ab9ae60f079879e756980b4003b38fb449203f7237cb9f81077b8ac49c75c8115ed40"
-            "8312222eab61e18feca17",
-            self.READER_ISSUER_PUBLIC_KEY_KEY: "04793e3a8f20428d54e7318046d75d05a8737eb"
-            "6e074e5146a207bff62dae90e24039f372814a312c3cb82a5a97bb5bfa9e623a3cc886b09d"
-            "c13d53ef0da7de7bd",
-            self.READER_ISSUER_PUBLIC_KEY_CHAINING_KEY: "043928f322019d4757893bde6a0fe5"
-            "e13e3e537b9ca0f549c0bd2f40f79060252a0a4f291192157a95cb6eb202759428c00cd834"
-            "998c5d0eab192ee8873c5d34ee",
+            self.ACCESS_CREDENTIAL_PUBLIC_KEY_KEY: "04742df736d0fc9be978c45b00e8fdf7cea"
+            "684ea105ae574c1505a2c24ab6198e3125b7f1b7e1d134c55ece69681ba8ecc18a3836dc51"
+            "99c759f31e8ccf17e3efa",
+            self.READER_ISSUER_PUBLIC_KEY_KEY: "043928f322019d4757893bde6a0fe5e13e3e5"
+            "37b9ca0f549c0bd2f40f79060252a0a4f291192157a95cb6eb202759428c00cd834998c5"
+            "d0eab192ee8873c5d34ee",
             self.CREDENTIAL_ISSUER_PUBLIC_KEY_KEY: "047BA31938492E3F5E97BC91806B5835B5D9E426609139006711E5FB7A670EE4E1"
                                                    "2FC9F25396C013CC20166029D761A105DEA5E071E84A9E499920524CE2301137",
             self.ACCESS_ELEMENT_ID_KEY: "floor1",
@@ -677,7 +673,7 @@ class AliroUserDeviceTestCase(AliroTestCase):
 
         return access_credential_public_key
 
-    def th_reader_issuer_public_key(self, *, chaining: bool = False) -> PublicKey:
+    def th_reader_issuer_public_key(self) -> PublicKey:
         """Load TH Reader issuer public key from test parameters.
         When testing a UserDevice, the TH will be the Reader. Keys for this reader
         will be configurable in test_parameters of project configuration.
@@ -688,12 +684,11 @@ class AliroUserDeviceTestCase(AliroTestCase):
         logger.info(
             "Loading Reader issuer public key for Test Harness use on simulated Reader."
         )
-        key = self.READER_ISSUER_PUBLIC_KEY_CHAINING_KEY if chaining else self.READER_ISSUER_PUBLIC_KEY_KEY
 
         # Public Key
-        logger.info(f"Loading public key from '{key}'")
+        logger.info(f"Loading public key from '{self.READER_ISSUER_PUBLIC_KEY_KEY}'")
         reader_public_key = self.public_key_from_config(
-            key
+            self.READER_ISSUER_PUBLIC_KEY_KEY
         )
         logger.info(
             f"TH Using Reader Issuer Public Key(hex): \n"
