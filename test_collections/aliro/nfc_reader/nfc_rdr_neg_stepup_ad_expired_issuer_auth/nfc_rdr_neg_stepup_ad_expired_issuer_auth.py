@@ -72,6 +72,7 @@ class NFC_RDR_NEG_STEPUP_AD_EXPIRED_ISSUER_AUTH(AliroReaderTestCase, UserPromptS
             device_public_key=access_credential_pk,
             valid_from=datetime.datetime.fromisoformat('2020-01-01 00:00:00.000+00:00'),
             valid_until=datetime.datetime.fromisoformat('2020-01-01 01:00:00.000+00:00'),  # Make invalid
+            time_verification_required=True,
         ).to_cbor(validate=False)
 
         logger.info(f"Generated Access Document: {x.hex()}")

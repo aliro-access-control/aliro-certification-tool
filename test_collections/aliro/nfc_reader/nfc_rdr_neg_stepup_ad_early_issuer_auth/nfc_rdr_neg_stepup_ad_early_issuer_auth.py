@@ -71,7 +71,8 @@ class NFC_RDR_NEG_STEPUP_AD_EARLY_ISSUER_AUTH(AliroReaderTestCase, UserPromptSup
             issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
             device_public_key=access_credential_pk,
             valid_from=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14),  # Make invalid
-            valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=28)
+            valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=28),
+            time_verification_required=True,
         ).to_cbor(validate=False)
 
         logger.info(f"Generated Access Document: {x.hex()}")
