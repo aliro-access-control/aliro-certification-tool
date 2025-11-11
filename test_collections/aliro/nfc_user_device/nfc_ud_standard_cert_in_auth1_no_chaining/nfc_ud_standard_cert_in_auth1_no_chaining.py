@@ -63,7 +63,7 @@ class NFC_UD_STANDARD_CERT_IN_AUTH1_NO_CHAINING(AliroUserDeviceTestCase, UserPro
         ]
 
     async def setup(self) -> None:
-        logger.info("NFC_UD_STANDARD_CERT_IN_AUTH1_WITH_CHAINING setup")
+        logger.info("NFC_UD_STANDARD_CERT_IN_AUTH1_NO_CHAINING setup")
         self.group_id = self.th_group_identifier()
         key = self.th_reader_keypair()
         cert = self.th_reader_certificate()
