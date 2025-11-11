@@ -5,9 +5,11 @@ from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
 )
+from aliro_actuator.access_protocol.errors import UnexpectedBLEMessageError
 from aliro_actuator.access_protocol.user_device import UserDevice
 from aliro_actuator.transport_protocol.ble_message_format import (
     Notification_ID,
+    ProtocolType,
     UWB_RangingService_ID,
 )
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
@@ -76,6 +78,7 @@ class BLEUWB_RDR_RANGING_SUSPEND(AliroReaderTestCase, UserPromptSupport):
             mailbox=0x20,
             group_resolving_key=group_resolving_key,
             ephemeral_key_list=[KeyPair(self.endpoint_ePrivK, self.endpoint_ePuBK)],
+            timeout=5.0,
         )
 
     @log_errors
@@ -193,7 +196,15 @@ class BLEUWB_RDR_RANGING_SUSPEND(AliroReaderTestCase, UserPromptSupport):
         
         # Step9: Reader sends Ranging Session Suspend Response
         try:
-            message = await self.userdevice.wait_for_ble_message()
+            message = await self.userdevice.wait_for_ble_message(handle_optional_reader_status_changed=True)
+            # check message contains correct header id and attribute for ranging suspend response
+            if message.header != ProtocolType.UWB_RANGING_SERVICE or message.id != UWB_RangingService_ID.RANGING_SESSION_SUSPEND_RESPONSE:
+                raise UnexpectedBLEMessageError(
+                    "Received unexpected ble message while waiting for "
+                    "UWB Ranging Service suspend response",
+                    message.header,
+                    message.id,
+                )
             await self.userdevice.handle_ranging_session_suspend_response(message)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
