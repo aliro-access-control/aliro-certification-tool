@@ -235,7 +235,7 @@ class NFC_UD_EXCHANGE_SET_REQUEST(AliroUserDeviceTestCase, UserPromptSupport):
         
         idx = 0
         for request_sequence in read_requests_sequence:
-            if mailbox_data_after_write[idx] != updated_mailbox[request_sequence[0]]:
+            if int.from_bytes(mailbox_data_after_write[idx], 'big') != updated_mailbox[request_sequence[0]]:
                 self.mark_step_failure("Data is not written in to mail box")
                 return
             idx += 1
