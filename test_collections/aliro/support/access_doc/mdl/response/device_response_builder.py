@@ -154,7 +154,8 @@ class DeviceResponseBuilder(object):
             x509_cert: bytes | None = None,
             validity_iteration: int = -1,
             time_verification_required: bool = False,
-            use_keyId: bool = True
+            use_keyId: bool = True,
+            signed: str | int | float | datetime.date | datetime.datetime | None = None
     ) -> Document | None:
         doc, _ = DeviceResponseBuilder.build_doc_unsigned(
             namespace=namespace,
@@ -165,7 +166,8 @@ class DeviceResponseBuilder(object):
             valid_until=valid_until,
             x509_cert=x509_cert,
             validity_iteration=validity_iteration,
-            time_verification_required=time_verification_required)
+            time_verification_required=time_verification_required,
+            signed=signed)
 
         if doc is not None:
             DeviceResponseBuilder.sign_doc(
@@ -188,7 +190,9 @@ class DeviceResponseBuilder(object):
         x509_cert: bytes | None = None,
         validity_iteration : int = -1,
         time_verification_required: bool = False,
-        validate: bool = True) -> (Document, MobileSecurityObject):
+        validate: bool = True,
+        signed: str | int | float | datetime.date | datetime.datetime | None = None
+    ) -> (Document, MobileSecurityObject):
         '''Internal method to build a Document containing the given data elements.'''
 
         if (data_elements is None) or (len(data_elements) <= 0):
@@ -217,7 +221,10 @@ class DeviceResponseBuilder(object):
             mso.device_key_info = key_info
 
         # Set the validity information.
-        mso.validity_info.signed = datetime.datetime.now(datetime.timezone.utc)
+        if signed is None:
+            mso.validity_info.signed = datetime.datetime.now(datetime.timezone.utc)
+        else:
+            mso.validity_info.signed = signed
         mso.validity_info.valid_from = valid_from
         mso.validity_info.valid_until = valid_until
         mso.validity_info.validity_iteration = validity_iteration
