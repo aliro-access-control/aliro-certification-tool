@@ -179,36 +179,28 @@ class NFC_RDR_CONTROL_FLOW_RDR_DESCRIPTOR_TAG(AliroReaderTestCase, UserPromptSup
                     "{!r}".format(hexlify(self.session.reader_group_identifier))
                 )
 
-            if self.userdevice.session.get_transaction_type() == Transaction.STANDARD:
-                logger.info("Standard transaction requested")
-                self.userdevice.session.update_state(UserSessionState.AUTH0_STD_DONE)
+            self.userdevice.session.update_state(UserSessionState.AUTH0_STD_DONE)
+            credential_epubk = self.userdevice.session.get_credential_epubkey().as_bytes()
+            data_tlv: list[tuple[int, bytes | list]] = [
+                (0x88, credential_epubk), # wrong tag
+            ]
+            data_bytes = TLV(data_tlv)
+            if hasattr(cmds_auth0, "tlv_check"):
+                status = cmds_auth0.tlv_check
+            else:
+                status = True
+            if status:
+                command_status = StatusBytes.SUCCESS
+            else:
+                command_status = StatusBytes.COMMAND_NOT_COMPLIANT
 
-                credential_epubk = self.userdevice.session.get_credential_epubkey().as_bytes()
-                data_tlv: list[tuple[int, bytes | list]] = [
-                    (0x88, credential_epubk), # wrong tag
-                ]
-                data_bytes = TLV(data_tlv)
-                if hasattr(cmds_auth0, "tlv_check"):
-                    status = cmds_auth0.tlv_check
-                else:
-                    status = True    
-                if status:
-                    command_status = StatusBytes.SUCCESS
-                else:
-                    command_status = StatusBytes.COMMAND_NOT_COMPLIANT
-                
-                auth0_response = self.userdevice.apdu.create_response(data_bytes.to_bytes(), command_status)
-                await self.userdevice.apdu.handle_chaining_send_response(
-                    auth0_response, self.userdevice.transport_protocol
-                )
+            auth0_response = self.userdevice.apdu.create_response(data_bytes.to_bytes(), command_status)
+            await self.userdevice.apdu.handle_chaining_send_response(
+                auth0_response, self.userdevice.transport_protocol
+            )
         except AccessProtocolError as error:
             self.mark_step_failure(str(error))
             return
-        if not self.userdevice.session.state_valid(UserSessionState.AUTH0_STD_DONE):
-            self.mark_step_failure(
-                "Userdevice is not in state auth0 standard done, either fast "
-                "transaction was requested or handling auth0 failed"
-            )
         self.next_step()
 
         # Test step 5 Receive/Send CONTROL FLOW command/response

@@ -1,3 +1,4 @@
+from os import urandom
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     INS,
@@ -189,37 +190,39 @@ class NFC_RDR_NEG_AUTH0_EXTRA_TAG(AliroReaderTestCase, UserPromptSupport):
                     "{!r}".format(hexlify(self.session.reader_group_identifier))
                 )
 
+            cryptogram = None
             if self.userdevice.session.get_transaction_type() == Transaction.STANDARD:
                 logger.info("Standard transaction requested")
-                self.userdevice.session.update_state(UserSessionState.AUTH0_STD_DONE)
+            elif self.userdevice.session.get_transaction_type() == Transaction.FAST:
+                logger.info("Fast transaction requested")
+                # Dont do a lookup, just return a random cryptogram to pretend we did
+                cryptogram = urandom(Auth0.CRYPTOGRAM_LEN)
+            self.userdevice.session.update_state(UserSessionState.AUTH0_STD_DONE)
 
-                credential_epubk = self.userdevice.session.get_credential_epubkey().as_bytes()
-                data_tlv: list[tuple[int, bytes | list]] = [
-                    (Auth0.CREDENTIAL_EPUBK_TAG, credential_epubk),
-                    (Auth0.UNKNOWN_TAG, bytes([0x01, 0x02, 0x03])),
-                ]
-                data_bytes = TLV(data_tlv)
-                if hasattr(cmds_auth0, "tlv_check"):
-                    status = cmds_auth0.tlv_check
-                else:
-                    status = True    
-                if status:
-                    command_status = StatusBytes.SUCCESS
-                else:
-                    command_status = StatusBytes.COMMAND_NOT_COMPLIANT
-                    
-                auth0_response = self.userdevice.apdu.create_response(data_bytes.to_bytes(), command_status)
-                await self.userdevice.apdu.handle_chaining_send_response(
-                    auth0_response, self.userdevice.transport_protocol
-                )
+            credential_epubk = self.userdevice.session.get_credential_epubkey().as_bytes()
+            data_tlv: list[tuple[int, bytes | list]] = [
+                (Auth0.CREDENTIAL_EPUBK_TAG, credential_epubk)
+            ]
+            if cryptogram is not None:
+                data_tlv.append((Auth0.CRYPTOGRAM_TAG, cryptogram))
+            data_tlv.append((Auth0.UNKNOWN_TAG, bytes([0x01, 0x02, 0x03])))
+            data_bytes = TLV(data_tlv)
+            if hasattr(cmds_auth0, "tlv_check"):
+                status = cmds_auth0.tlv_check
+            else:
+                status = True
+            if status:
+                command_status = StatusBytes.SUCCESS
+            else:
+                command_status = StatusBytes.COMMAND_NOT_COMPLIANT
+
+            auth0_response = self.userdevice.apdu.create_response(data_bytes.to_bytes(), command_status)
+            await self.userdevice.apdu.handle_chaining_send_response(
+                auth0_response, self.userdevice.transport_protocol
+            )
         except AccessProtocolError as error:
             self.mark_step_failure(str(error))
             return
-        if not self.userdevice.session.state_valid(UserSessionState.AUTH0_STD_DONE):
-            self.mark_step_failure(
-                "Userdevice is not in state auth0 standard done, either fast "
-                "transaction was requested or handling auth0 failed"
-            )
         self.next_step()
 
         # Test step 5 Receive/Send Auth1 command/response
