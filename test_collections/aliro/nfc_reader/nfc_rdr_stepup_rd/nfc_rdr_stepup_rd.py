@@ -108,6 +108,7 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revocation_element.version = 1
         revocation_element.change_mode = RevocationChangeMode.OVERWRITE
         revocation_element.entries.append(entry1)
+        signed_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(seconds=5)
 
         revoke_docs.append(
             (
@@ -117,8 +118,9 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
                     data_elements=[ResponseElement(data_element_id=self.element_id, value=revocation_element)],
                     issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
                     device_public_key=access_credential_pk,
-                    valid_from=datetime.datetime.now(datetime.timezone.utc),
-                    valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
+                    valid_from=signed_time,
+                    valid_until=signed_time + datetime.timedelta(days=14),
+                    signed=signed_time,
                 ).to_cbor(),
                 0,  # Access Credential 1 Rejected
                 1   # Access Credential 2 Accepted
@@ -130,6 +132,7 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revocation_element.version = 1
         revocation_element.change_mode = RevocationChangeMode.APPEND
         revocation_element.entries.append(entry2)
+        signed_time = signed_time + datetime.timedelta(seconds=1)
 
         revoke_docs.append(
             (
@@ -139,8 +142,9 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
                     data_elements=[ResponseElement(data_element_id=self.element_id, value=revocation_element)],
                     issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
                     device_public_key=access_credential_pk,
-                    valid_from=datetime.datetime.now(datetime.timezone.utc),
-                    valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
+                    valid_from=signed_time,
+                    valid_until=signed_time + datetime.timedelta(days=14),
+                    signed=signed_time,
                 ).to_cbor(),
                 0,  # Access Credential 1 Rejected
                 0   # Access Credential 2 Rejected
@@ -152,6 +156,7 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revocation_element.version = 1
         revocation_element.change_mode = RevocationChangeMode.APPEND
         revocation_element.entries_to_remove.append(entry1)
+        signed_time = signed_time + datetime.timedelta(seconds=1)
 
         revoke_docs.append(
             (
@@ -161,8 +166,9 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
                     data_elements=[ResponseElement(data_element_id=self.element_id, value=revocation_element)],
                     issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
                     device_public_key=access_credential_pk,
-                    valid_from=datetime.datetime.now(datetime.timezone.utc),
-                    valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
+                    valid_from=signed_time,
+                    valid_until=signed_time + datetime.timedelta(days=14),
+                    signed=signed_time,
                 ).to_cbor(),
                 1,  # Access Credential 1 Accepted
                 0   # Access Credential 2 Rejected
@@ -176,6 +182,7 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revocation_element.entries.append(entry1)
         revocation_element.entries_to_remove.append(entry1)
         revocation_element.entries_to_remove.append(entry2)
+        signed_time = signed_time + datetime.timedelta(seconds=1)
 
         revoke_docs.append(
             (
@@ -185,8 +192,9 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
                     data_elements=[ResponseElement(data_element_id=self.element_id, value=revocation_element)],
                     issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
                     device_public_key=access_credential_pk,
-                    valid_from=datetime.datetime.now(datetime.timezone.utc),
-                    valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
+                    valid_from=signed_time,
+                    valid_until=signed_time + datetime.timedelta(days=14),
+                    signed=signed_time,
                 ).to_cbor(),
                 1,  # Access Credential 1 Accepted
                 1   # Access Credential 2 Accepted
@@ -198,6 +206,7 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revocation_element.version = 1
         revocation_element.change_mode = RevocationChangeMode.OVERWRITE
         revocation_element.entries.append(entry2)
+        signed_time = signed_time + datetime.timedelta(seconds=1)
 
         revoke_docs.append(
             (
@@ -207,8 +216,9 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
                     data_elements=[ResponseElement(data_element_id=self.element_id, value=revocation_element)],
                     issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
                     device_public_key=access_credential_pk,
-                    valid_from=datetime.datetime.now(datetime.timezone.utc),
-                    valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
+                    valid_from=signed_time,
+                    valid_until=signed_time + datetime.timedelta(days=14),
+                    signed=signed_time,
                 ).to_cbor(),
                 1,  # Access Credential 1 Accepted
                 0   # Access Credential 2 Rejected
@@ -219,6 +229,7 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
         revocation_element = RevocationData()
         revocation_element.version = 1
         revocation_element.change_mode = RevocationChangeMode.OVERWRITE
+        signed_time = signed_time + datetime.timedelta(seconds=1)
 
         revoke_docs.append(
             (
@@ -228,8 +239,9 @@ class NFC_RDR_STEPUP_RD(AliroReaderTestCase, UserPromptSupport):
                     data_elements=[ResponseElement(data_element_id=self.element_id, value=revocation_element)],
                     issuer_private_key=issuer_keypair.get_private_key().as_bytes(),
                     device_public_key=access_credential_pk,
-                    valid_from=datetime.datetime.now(datetime.timezone.utc),
-                    valid_until=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)
+                    valid_from=signed_time,
+                    valid_until=signed_time + datetime.timedelta(days=14),
+                    signed=signed_time,
                 ).to_cbor(),
                 1,  # Access Credential 1 Accepted
                 1   # Access Credential 2 Accepted
