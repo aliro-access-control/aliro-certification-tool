@@ -26,6 +26,7 @@ from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
 import time
+from binascii import hexlify
 
 from ...support.aliro_test_case import AliroUserDeviceTestCase, log_errors
 
@@ -63,7 +64,7 @@ class BLEUWB_UD_NEG_TIMEOUT_BEFORE_AUTH0(AliroUserDeviceTestCase, UserPromptSupp
             TestStep("Step1: Establish L2CAP"),
             TestStep("Step2: Send Initiate AP Message ID"),
             TestStep("Step3: Wait for atleast 3 seconds"),
-            TestStep("Step4: User device sends general error"),
+            TestStep("Step4: User device performs BLE connection teardown"),
         ]
 
     def print_uwb_configuration(self, uwb_config: dict) -> None:
@@ -138,16 +139,19 @@ class BLEUWB_UD_NEG_TIMEOUT_BEFORE_AUTH0(AliroUserDeviceTestCase, UserPromptSupp
         time.sleep(3)
 
         self.next_step()
-        # Step4: User device sends general error
+        # Step4: User device disconnects
         try:
             message_event = await self.reader.wait_for_ble_message(
                 self.reader.session.get_ble_encryption()
             )
             message_event.parse_payload(self.reader.session.get_ble_encryption())
-            if message_event.id != Notification_ID.EVENT or message_event.attribute.id != Event_AttributeID.GENERAL_ERROR:
-                self.mark_step_failure("Unexpected message received")
+        except NoDeviceConnectedError:
+            logger.info("User Device disconnected as expected due to timeout waiting for Auth0")    
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
+            return
+        else:
+            self.mark_step_failure(f"Unexpected BLE message received with header: {hexlify(message_event.header)}, id: {hexlify(message_event.id)}")
             return
 
     async def cleanup(self) -> None:
