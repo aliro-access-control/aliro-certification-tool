@@ -15,6 +15,7 @@ from aliro_actuator.access_protocol.errors import (
     InvalidResponseError,
 )
 from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.transport_protocol import Mode
 from aliro_actuator.transport_protocol.ble_message_format import (
     OperationSourceInformation_Values,
     ReaderStatusInformation_Values,
@@ -95,7 +96,31 @@ class BLERKE_UD_EXPEDITED_STANDARD_PHASE(AliroUserDeviceTestCase, UserPromptSupp
         
         # Test step 1
         try:
-            await self.reader.transaction_initiation(rke=True)
+            logger.info("Setting up connection")
+            await self.reader.transport_protocol.initialization(
+                Mode.READER,
+                reader_group_identifier=self.reader.reader_group_identifier,
+                reader_group_sub_identifier=self.reader.reader_group_sub_identifier,
+                group_resolving_key=self.reader.group_resolving_key,
+                spsm=self.reader.spsm,
+                timeout=self.reader.timeout,
+                advertisement_version=self.reader.advertisement_version,
+                enable_uwb=self.reader.enable_uwb,
+                BLE_UWB_supported = False,
+                BLE_only_supported = True,
+            )
+            await self.reader.transport_protocol.wait_for_connection()
+            logger.info("Connection established")
+
+            self.reader.start_new_session()
+            # Setup UWB session id
+            logger.info(f"Transaction ID: {self.reader.session.transaction_identifier}")
+            if self.reader.enable_uwb:
+                await self.reader.transport_protocol.driver.session_init(
+                    session_id=self.reader.session.transaction_identifier[-4:]
+                )
+            await self.reader.wait_for_initiate_access_protocol_notification(rke=True)
+            logger.info("Transaction Initiation Done")
             await self.reader.expedited_transaction_standard(
                 authentication_policy=AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
             )
