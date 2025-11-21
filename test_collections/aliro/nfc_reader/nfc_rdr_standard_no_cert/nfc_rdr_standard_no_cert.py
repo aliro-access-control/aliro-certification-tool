@@ -1,4 +1,4 @@
-from aliro_actuator.access_protocol.apdu import Auth1Response, INS
+from aliro_actuator.access_protocol.apdu import Auth1Response, INS, ReaderStatus
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
@@ -133,6 +133,11 @@ class NFC_RDR_STANDARD_NO_CERT(AliroReaderTestCase, UserPromptSupport):
         if cmds_exchange.ins == INS.EXCHANGE:
             try:
                 await self.userdevice.handle_exchange(cmds_exchange)
+                if not ReaderStatus(cmds_exchange.reader_status).is_success:
+                    self.mark_step_failure(
+                        "Expected Success Reader Status (0x01..), but received {}".format(cmds_exchange.reader_status.name)
+                        )
+                    return
             except AccessProtocolError as error:
                 self.mark_step_failure(str(error))
                 return
