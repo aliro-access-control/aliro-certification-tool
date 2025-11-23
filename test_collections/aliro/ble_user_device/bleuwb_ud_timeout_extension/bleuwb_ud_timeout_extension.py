@@ -77,8 +77,11 @@ class BLEUWB_UD_TIMEOUT_EXTENSION(AliroUserDeviceTestCase, UserPromptSupport):
         logger.info("-" * 50)
 
     async def th_sleep(self, delay: float):
+        if self.reader.transport_protocol.rx_timestamp is not None:
+            delay = max(delay - (time.perf_counter() - self.reader.transport_protocol.rx_timestamp), 0.0)
         logger.info(f"Test Harness sleeping for {delay}s")
         await asyncio.sleep(delay)
+        self.reader.transport_protocol.rx_timestamp = None
         logger.info(f"Test Harness done sleeping")
         return None
 
@@ -190,7 +193,7 @@ class BLEUWB_UD_TIMEOUT_EXTENSION(AliroUserDeviceTestCase, UserPromptSupport):
             return
 
     async def cleanup(self) -> None:
-        logger.info("BLEUWB_UD_RANGING_SUSPEND Cleanup")
+        logger.info("BLEUWB_UD_TIMEOUT_EXTENSION Cleanup")
         try:
             await self.reader.transaction_termination()
         except NoDeviceConnectedError:
