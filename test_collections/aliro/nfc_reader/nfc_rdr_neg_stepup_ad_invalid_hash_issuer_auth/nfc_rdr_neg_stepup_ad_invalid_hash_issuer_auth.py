@@ -48,7 +48,9 @@ class NFC_RDR_NEG_STEPUP_AD_INVALID_HASH_ISSUER_AUTH(AliroReaderTestCase, UserPr
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD26"
             ]
         )
 

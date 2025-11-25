@@ -48,7 +48,8 @@ class NFC_UD_STANDARD_CERT_IN_AUTH1_WITH_CHAINING(AliroUserDeviceTestCase, UserP
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "NFC"
             ]
         )
 

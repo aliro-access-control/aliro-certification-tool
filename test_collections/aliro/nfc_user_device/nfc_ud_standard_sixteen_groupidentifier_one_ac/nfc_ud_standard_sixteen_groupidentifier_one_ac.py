@@ -44,7 +44,8 @@ class NFC_UD_STANDARD_SIXTEEN_GROUPIDENTIFIER_ONE_AC(AliroUserDeviceTestCase, Us
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "NFC"
             ]
         )
 

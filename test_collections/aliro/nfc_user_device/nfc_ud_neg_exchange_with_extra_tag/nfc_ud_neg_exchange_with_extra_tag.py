@@ -73,7 +73,8 @@ class NFC_UD_NEG_EXCHANGE_WITH_EXTRA_TAG(AliroUserDeviceTestCase, UserPromptSupp
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "NFC"
             ]
         )
 

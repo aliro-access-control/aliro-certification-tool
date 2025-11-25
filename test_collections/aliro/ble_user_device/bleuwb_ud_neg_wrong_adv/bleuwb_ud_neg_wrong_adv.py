@@ -61,7 +61,9 @@ class BLEUWB_UD_NEG_WRONG_ADV(AliroUserDeviceTestCase, UserPromptSupport, Murata
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "BLEUWB",
+                "UD40"
             ]
         )
 

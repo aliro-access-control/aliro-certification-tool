@@ -55,7 +55,9 @@ class NFC_UD_FAST(AliroUserDeviceTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "NFC",
+                "UD16"
             ]
         )
 

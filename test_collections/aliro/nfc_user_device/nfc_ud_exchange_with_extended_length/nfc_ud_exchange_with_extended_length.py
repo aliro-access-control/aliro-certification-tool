@@ -44,7 +44,9 @@ class NFC_UD_EXCHANGE_WITH_EXTENDED_LENGTH(AliroUserDeviceTestCase, UserPromptSu
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "NFC",
+                "UD19"
             ]
         )
 

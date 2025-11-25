@@ -48,7 +48,9 @@ class NFC_RDR_STEPUP_AD_ISSUER_CERT(AliroReaderTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD26"
             ]
         )
 

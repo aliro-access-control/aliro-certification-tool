@@ -51,7 +51,9 @@ class BLEUWB_UD_NEG_RESUME_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserPromp
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "BLEUWB",
+                "UD40"
             ]
         )
 

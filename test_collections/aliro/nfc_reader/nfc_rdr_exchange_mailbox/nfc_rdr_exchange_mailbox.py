@@ -37,7 +37,9 @@ class NFC_RDR_EXCHANGE_MAILBOX(AliroReaderTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD19"
             ]
         )
 

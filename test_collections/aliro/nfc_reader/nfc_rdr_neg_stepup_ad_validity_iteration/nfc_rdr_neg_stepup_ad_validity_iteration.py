@@ -69,7 +69,9 @@ class NFC_RDR_NEG_STEPUP_AD_VALIDITY_ITERATION(AliroReaderTestCase, UserPromptSu
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD28"
             ]
         )
 

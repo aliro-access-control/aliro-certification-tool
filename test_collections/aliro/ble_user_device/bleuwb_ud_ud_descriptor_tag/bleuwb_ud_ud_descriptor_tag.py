@@ -44,7 +44,9 @@ class BLEUWB_UD_UD_DESCRIPTOR_TAG(AliroUserDeviceTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "BLEUWB",
+                "UD32"
             ]
         )
 

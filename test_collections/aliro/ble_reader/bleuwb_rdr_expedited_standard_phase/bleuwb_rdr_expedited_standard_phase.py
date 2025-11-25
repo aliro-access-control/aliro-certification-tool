@@ -40,7 +40,9 @@ class BLEUWB_RDR_EXPEDITED_STANDARD_PHASE(AliroReaderTestCase, UserPromptSupport
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "BLEUWB",
+                "RD43"
             ]
         )
 

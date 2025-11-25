@@ -46,7 +46,9 @@ class NFC_UD_EXCHANGE_SET_REQUEST(AliroUserDeviceTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "NFC",
+                "UD29"
             ]
         )
     

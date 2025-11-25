@@ -42,7 +42,9 @@ class BLEUWB_RDR_RANGING_SUSPEND(AliroReaderTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "BLEUWB",
+                "RD43"
             ]
         )
 

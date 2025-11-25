@@ -51,7 +51,9 @@ class BLERKE_UD_EXPEDITED_STANDARD_PHASE(AliroUserDeviceTestCase, UserPromptSupp
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "BLERKE",
+                "UD47"
             ]
         )
 

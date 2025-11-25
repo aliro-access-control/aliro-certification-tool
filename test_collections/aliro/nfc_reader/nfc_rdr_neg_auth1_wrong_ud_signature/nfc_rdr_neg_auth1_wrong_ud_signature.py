@@ -50,7 +50,8 @@ class NFC_RDR_NEG_AUTH1_WRONG_UD_SIGNATURE(AliroReaderTestCase, UserPromptSuppor
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
             ]
         )
 

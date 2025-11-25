@@ -48,7 +48,9 @@ class NFC_RDR_NEG_STEPUP_AD_ISSUER_CERT_INVALID_SIGNATURE(AliroReaderTestCase, U
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD26"
             ]
         )
 

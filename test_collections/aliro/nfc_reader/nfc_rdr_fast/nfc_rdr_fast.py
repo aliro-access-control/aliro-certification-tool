@@ -46,7 +46,9 @@ class NFC_RDR_FAST(AliroReaderTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD11"
             ]
         )
 

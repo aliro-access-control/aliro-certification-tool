@@ -47,7 +47,9 @@ class NFC_RDR_NEG_STEPUP_AD_NO_ISSUER_CERT_NO_KEY_ID(AliroReaderTestCase, UserPr
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD26"
             ]
         )
 

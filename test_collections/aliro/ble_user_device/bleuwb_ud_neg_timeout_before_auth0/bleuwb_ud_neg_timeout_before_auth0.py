@@ -53,7 +53,9 @@ class BLEUWB_UD_NEG_TIMEOUT_BEFORE_AUTH0(AliroUserDeviceTestCase, UserPromptSupp
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "BLEUWB",
+                "UD40"
             ]
         )
 

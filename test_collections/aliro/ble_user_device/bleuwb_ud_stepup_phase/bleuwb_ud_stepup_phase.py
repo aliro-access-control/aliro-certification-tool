@@ -53,7 +53,9 @@ class BLEUWB_UD_STEPUP_PHASE(AliroUserDeviceTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "BLEUWB",
+                "UD40"
             ]
         )
 

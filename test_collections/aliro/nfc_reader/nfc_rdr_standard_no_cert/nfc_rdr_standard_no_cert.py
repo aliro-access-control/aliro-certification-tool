@@ -37,7 +37,8 @@ class NFC_RDR_STANDARD_NO_CERT(AliroReaderTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
             ]
         )
 

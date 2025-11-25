@@ -42,7 +42,9 @@ class BLERKE_RDR_SECURE(AliroReaderTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "BLERKE",
+                "RD50",
             ]
         )
 

@@ -47,7 +47,9 @@ class NFC_RDR_STEPUP_AD_ACCESS_RULE(AliroReaderTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD31"
             ]
         )
 

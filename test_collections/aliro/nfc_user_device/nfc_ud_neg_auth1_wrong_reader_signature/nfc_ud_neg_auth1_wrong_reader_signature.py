@@ -44,7 +44,8 @@ class NFC_UD_NEG_AUTH1_WRONG_READER_SIGNATURE(AliroUserDeviceTestCase, UserPromp
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "NFC"
             ]
         )
 

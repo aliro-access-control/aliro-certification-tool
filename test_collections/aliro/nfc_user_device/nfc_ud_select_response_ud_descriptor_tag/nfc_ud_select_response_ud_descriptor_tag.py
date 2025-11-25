@@ -44,7 +44,9 @@ class NFC_UD_SELECT_RESPONSE_UD_DESCRIPTOR_TAG(AliroUserDeviceTestCase, UserProm
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "NFC",
+                "UD32"
             ]
         )
 

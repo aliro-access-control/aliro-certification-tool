@@ -47,7 +47,8 @@ class NFC_UD_NEG_AUTH0_WRONG_P1P2(AliroUserDeviceTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "NFC"
             ]
         )
 

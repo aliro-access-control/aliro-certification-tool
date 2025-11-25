@@ -47,7 +47,9 @@ class NFC_RDR_NEG_STEPUP_AD_EXPIRED_ISSUER_AUTH(AliroReaderTestCase, UserPromptS
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD29"
             ]
         )
 

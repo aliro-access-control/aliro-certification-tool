@@ -61,7 +61,8 @@ class NFC_UD_NEG_AUTH0_CHAINING_NOT_COMPLETED(AliroUserDeviceTestCase, UserPromp
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "NFC"
             ]
         )
 
