@@ -72,13 +72,11 @@ class BLEUWB_RDR_TIMEOUT_EXTENSION(AliroReaderTestCase, UserPromptSupport):
         self.test_steps = [
             TestStep("Step1: Establish L2CAP"),
             TestStep("Step2: Send Initiate AP Message ID"),
-            TestStep("Step3: Wait for AUTH0 Command"),
-            TestStep("Step4: Wait for 1 second"),
-            TestStep("Step5: Send General error with Busy attribute"),
-            TestStep("Step6: Send AUTH0 Response after 1 second"),
-            TestStep("Step7: Handle AUTH1"),
-            TestStep("Step8: Handle EXCHANGE"),
-            TestStep("Step9: Handle AP Completed message"),
+            TestStep("Step3: Wait for 1 second after receiving AUTH0 Command"),
+            TestStep("Step4: Send General error with Busy attribute; after 1 second send AUTH0 Response"),
+            TestStep("Step5: Handle AUTH1"),
+            TestStep("Step6: Handle EXCHANGE"),
+            TestStep("Step7: Handle AP Completed message"),
         ]
 
     def print_uwb_configuration(self, uwb_config: dict) -> None:
@@ -142,10 +140,7 @@ class BLEUWB_RDR_TIMEOUT_EXTENSION(AliroReaderTestCase, UserPromptSupport):
         logger.info("Reader ephemeral key is a valid key")
 
         # Setup UWB session id
-        if (
-            self.userdevice.transport_protocol_type == TransportProtocol.BLE_UWB
-            or self.userdevice.transport_protocol_type == TransportProtocol.SOCKET_BLE
-        ):
+        if self.userdevice.transport_protocol_type in [TransportProtocol.BLE_UWB, TransportProtocol.SOCKET_BLE]:
             if self.userdevice.enable_uwb:
                 await self.userdevice.transport_protocol.driver.session_init(
                     session_id=self.userdevice.session.transaction_identifier[-4:]
@@ -253,8 +248,11 @@ class BLEUWB_RDR_TIMEOUT_EXTENSION(AliroReaderTestCase, UserPromptSupport):
         logger.info("Sending AUTH0 reponse done")
 
     async def th_sleep(self, delay: float):
+        if self.userdevice.transport_protocol.rx_timestamp is not None:
+            delay = max(delay - (time.perf_counter() - self.userdevice.transport_protocol.rx_timestamp), 0.0)
         logger.info(f"Test Harness sleeping for {delay}s")
         await asyncio.sleep(delay)
+        self.userdevice.transport_protocol.rx_timestamp = None
         logger.info(f"Test Harness done sleeping")
         return None
 
@@ -306,19 +304,11 @@ class BLEUWB_RDR_TIMEOUT_EXTENSION(AliroReaderTestCase, UserPromptSupport):
             return
 
         self.next_step()
-        # Test step 3: Wait for AUTH0 Command
+        # Test step 3: Wait for 1 second after AUTH0 Command
         try:
             cmds_auth0 = await self.userdevice.wait_for_command(
                 expected_command=INS.AUTH0
             )
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-
-        self.next_step()
-        # Test step 4: Wait for 1 second
-        try:
             response = await asyncio.gather(
                 self.th_sleep(1.0),
                 self.handle_auth0_command(cmds_auth0)          
@@ -330,21 +320,12 @@ class BLEUWB_RDR_TIMEOUT_EXTENSION(AliroReaderTestCase, UserPromptSupport):
             return
 
         self.next_step()
-        # Test step 5: Send General error with Busy attribute
+        # Test step 4: Send General error with Busy attribute; after 1 second send AUTH0 Response
         try:
             await asyncio.gather(
                 self.th_sleep(1.0),
                 self.userdevice.send_event(Event_AttributeID.BUSY, None)
                 )
-
-            # await self.userdevice.send_event(Event_AttributeID.BUSY, None)
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-
-        self.next_step()
-        # Step6: Send AUTH0 Response after 1 second
-        try:
             await self.send_auth0_response(auth0_response)
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
@@ -352,7 +333,7 @@ class BLEUWB_RDR_TIMEOUT_EXTENSION(AliroReaderTestCase, UserPromptSupport):
             return
         
         self.next_step()
-        # Step7: Handle AUTH1
+        # Step5: Handle AUTH1
         try:
             cmds_auth1 = await self.userdevice.wait_for_command(
                 expected_command=INS.AUTH1
@@ -364,7 +345,7 @@ class BLEUWB_RDR_TIMEOUT_EXTENSION(AliroReaderTestCase, UserPromptSupport):
             return
 
         self.next_step()
-        # Step8: Handle EXCHANGE
+        # Step6: Handle EXCHANGE
         try:
             cmds_exchange = await self.userdevice.wait_for_command(
                 expected_command=INS.EXCHANGE
@@ -379,7 +360,7 @@ class BLEUWB_RDR_TIMEOUT_EXTENSION(AliroReaderTestCase, UserPromptSupport):
             return
 
         self.next_step()
-        # Step9: Handle AP Completed message
+        # Step7: Handle AP Completed message
         try:
             cmds = await self.userdevice.wait_for_message()
             self.userdevice.handle_reader_status_access_protocol_completed_message(cmds)
@@ -390,7 +371,7 @@ class BLEUWB_RDR_TIMEOUT_EXTENSION(AliroReaderTestCase, UserPromptSupport):
         await self.userdevice.transaction_termination()
 
     async def cleanup(self) -> None:
-        logger.info("BLEUWB_UD_RANGING_SUSPEND Cleanup")
+        logger.info("BLEUWB_RDR_TIMEOUT_EXTENSION Cleanup")
         try:
             await self.userdevice.transaction_termination()
         except NoDeviceConnectedError:
