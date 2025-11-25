@@ -49,7 +49,9 @@ class BLEUWB_RDR_NEG_M4_MISMATCH_PARAMETER(AliroReaderTestCase, UserPromptSuppor
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "BLEUWB",
+                "RD43"
             ]
         )
 

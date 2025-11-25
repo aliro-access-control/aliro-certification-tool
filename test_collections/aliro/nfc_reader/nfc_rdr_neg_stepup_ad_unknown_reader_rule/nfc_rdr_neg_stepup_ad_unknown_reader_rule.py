@@ -47,7 +47,9 @@ class NFC_RDR_NEG_STEPUP_AD_UNKNOWN_READER_RULE(AliroReaderTestCase, UserPromptS
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD26"
             ]
         )
 

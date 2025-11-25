@@ -41,7 +41,9 @@ class BLERKE_UD_NEG_FAILED_L2CAP(AliroUserDeviceTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "BLERKE",
+                "UD47"
             ]
         )
 

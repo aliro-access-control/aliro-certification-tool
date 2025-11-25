@@ -49,7 +49,10 @@ class NFC_RDR_NEG_STEPUP_AD_SCHEDULE_IN_ACCESS_RULE_AND_READER(AliroReaderTestCa
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD30",
+                "!RD32",
             ]
         )
 

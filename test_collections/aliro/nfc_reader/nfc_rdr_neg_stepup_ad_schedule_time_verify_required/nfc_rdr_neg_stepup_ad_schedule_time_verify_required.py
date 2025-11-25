@@ -49,7 +49,10 @@ class NFC_RDR_NEG_STEPUP_AD_SCHEDULE_TIME_VERIFY_REQUIRED(AliroReaderTestCase, U
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD26",
+                "!RD29",
             ]
         )
 

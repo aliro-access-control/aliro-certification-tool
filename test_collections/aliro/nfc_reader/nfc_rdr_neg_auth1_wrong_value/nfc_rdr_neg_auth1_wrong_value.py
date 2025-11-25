@@ -52,7 +52,8 @@ class NFC_RDR_NEG_AUTH1_WRONG_VALUES(AliroReaderTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
             ]
         )
 

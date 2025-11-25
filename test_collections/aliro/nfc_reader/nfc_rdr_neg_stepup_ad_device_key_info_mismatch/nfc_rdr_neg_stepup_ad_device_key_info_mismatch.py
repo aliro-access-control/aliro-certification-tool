@@ -50,7 +50,9 @@ class NFC_RDR_NEG_STEPUP_AD_DEVICE_KEY_INFO_MISMATCH(AliroReaderTestCase, UserPr
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD26"
             ]
         )
 

@@ -64,7 +64,9 @@ class BLEUWB_RDR_TIMEOUT_EXTENSION(AliroReaderTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "BLEUWB",
+                "RD43"
             ]
         )
 

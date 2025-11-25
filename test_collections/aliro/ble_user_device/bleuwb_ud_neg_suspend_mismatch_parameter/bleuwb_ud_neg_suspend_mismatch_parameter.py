@@ -51,7 +51,9 @@ class BLEUWB_UD_NEG_SUSPEND_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserProm
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "BLEUWB",
+                "UD40"
             ]
         )
 

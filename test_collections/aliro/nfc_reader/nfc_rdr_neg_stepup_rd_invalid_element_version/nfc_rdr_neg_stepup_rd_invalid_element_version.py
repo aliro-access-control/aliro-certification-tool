@@ -47,7 +47,9 @@ class NFC_RDR_NEG_STEPUP_RD_INVALID_ELEMENT_VERSION(AliroReaderTestCase, UserPro
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD35"
             ]
         )
 

@@ -53,7 +53,9 @@ class BLEUWB_UD_NEG_M3_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserPromptSup
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "BLEUWB",
+                "UD40"
             ]
         )
 

@@ -44,7 +44,9 @@ class BLEUWB_RDR_NEG_SUSPEND_MISMATCH_PARAMETER(AliroReaderTestCase, UserPromptS
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "BLEUWB",
+                "RD43"
             ]
         )
 

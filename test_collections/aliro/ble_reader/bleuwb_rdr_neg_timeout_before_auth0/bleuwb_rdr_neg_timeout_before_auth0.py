@@ -52,7 +52,9 @@ class BLEUWB_RDR_NEG_TIMEOUT_BEFORE_AUTH0(AliroReaderTestCase, UserPromptSupport
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "BLEUWB",
+                "RD43"
             ]
         )
 

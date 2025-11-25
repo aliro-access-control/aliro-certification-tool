@@ -40,7 +40,9 @@ class NFC_RDR_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING(AliroReaderTestCase, User
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD7"
             ]
         )
 

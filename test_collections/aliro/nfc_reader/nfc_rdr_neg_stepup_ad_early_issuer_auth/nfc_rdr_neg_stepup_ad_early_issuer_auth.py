@@ -47,7 +47,9 @@ class NFC_RDR_NEG_STEPUP_AD_EARLY_ISSUER_AUTH(AliroReaderTestCase, UserPromptSup
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD29"
             ]
         )
 

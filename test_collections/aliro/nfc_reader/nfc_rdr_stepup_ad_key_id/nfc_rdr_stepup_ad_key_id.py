@@ -47,7 +47,9 @@ class NFC_RDR_STEPUP_AD_KEY_ID(AliroReaderTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD24"
             ]
         )
 

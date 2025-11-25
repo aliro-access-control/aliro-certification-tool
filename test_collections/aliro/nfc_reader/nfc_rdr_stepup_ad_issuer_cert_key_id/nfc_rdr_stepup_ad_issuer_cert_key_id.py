@@ -48,7 +48,9 @@ class NFC_RDR_STEPUP_AD_ISSUER_CERT_KEY_ID(AliroReaderTestCase, UserPromptSuppor
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD26"
             ]
         )
 

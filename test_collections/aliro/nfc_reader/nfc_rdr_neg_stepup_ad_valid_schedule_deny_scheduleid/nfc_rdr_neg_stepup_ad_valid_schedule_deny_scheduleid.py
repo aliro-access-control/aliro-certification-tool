@@ -49,7 +49,9 @@ class NFC_RDR_NEG_STEPUP_AD_VALID_SCHEDULE_DENY_SCHEDULEID(AliroReaderTestCase, 
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
+                "RD32"
             ]
         )
 

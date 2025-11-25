@@ -48,7 +48,9 @@ class BLEUWB_UD_NEG_URSK_NOT_FOUND(AliroUserDeviceTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "BLEUWB",
+                "UD40"
             ]
         )
 

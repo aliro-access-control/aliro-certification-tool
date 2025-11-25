@@ -48,7 +48,9 @@ class BLERKE_RDR_NEG_FAILED_L2CAP(AliroReaderTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "BLERKE",
+                "RD50",
             ]
         )
 

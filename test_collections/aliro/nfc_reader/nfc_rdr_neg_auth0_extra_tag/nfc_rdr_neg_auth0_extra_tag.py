@@ -54,7 +54,8 @@ class NFC_RDR_NEG_AUTH0_EXTRA_TAG(AliroReaderTestCase, UserPromptSupport):
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "RD",
+                "NFC",
             ]
         )
 

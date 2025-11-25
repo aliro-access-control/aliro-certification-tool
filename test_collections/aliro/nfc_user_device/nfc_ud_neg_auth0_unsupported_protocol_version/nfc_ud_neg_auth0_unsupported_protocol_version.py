@@ -46,7 +46,8 @@ class NFC_UD_NEG_AUTH0_UNSUPPORTED_PROTOCOL_VERSION(AliroUserDeviceTestCase, Use
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "NFC"
             ]
         )
 

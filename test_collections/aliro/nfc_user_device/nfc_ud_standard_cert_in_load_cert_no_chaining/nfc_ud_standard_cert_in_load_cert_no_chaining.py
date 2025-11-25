@@ -45,7 +45,9 @@ class NFC_UD_STANDARD_CERT_IN_LOAD_CERT_NO_CHAINING(AliroUserDeviceTestCase, Use
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "NFC",
+                "UD19"
             ]
         )
 

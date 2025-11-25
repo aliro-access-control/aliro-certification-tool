@@ -63,7 +63,9 @@ class NFC_UD_NEG_EXCHANGE_MAILBOX_OUT_OF_BOUNDS(AliroUserDeviceTestCase, UserPro
     def pics(cls) -> set[str]:
         return set(
             [
-                "",  # PICS in preparation
+                "UD",
+                "NFC",
+                "UD29"
             ]
         )
 
