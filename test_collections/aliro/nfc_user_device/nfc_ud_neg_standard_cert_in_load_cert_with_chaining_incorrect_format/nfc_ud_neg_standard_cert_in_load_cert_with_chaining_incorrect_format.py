@@ -2,6 +2,7 @@ from binascii import hexlify
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     AuthenticationPolicy,
+    INS,
     ReaderStatus,
     S2,
     Transaction,
@@ -137,21 +138,28 @@ class NFC_UD_NEG_STANDARD_CERT_IN_LOAD_CERT_WITH_CHAINING_INCORRECT_FORMAT(Aliro
         self.next_step()
 
         # Test step 5
-        compressed_cert = bytearray(self.reader.reader_cert.encode_compressed())
+        compressed_cert = self.reader.reader_cert.encode_compressed()
         logger.debug("compressed cert: {!r}".format(hexlify(compressed_cert)))
-        compressed_cert[6] = 0xFF
-        compressed_cert[5] = 0xFF
-        logger.debug(
-            "compressed cert with encoding error: {!r}".format(
-                hexlify(compressed_cert)
-            )
-        )
 
         try:
-            await self.reader.command_load_cert(bytes(compressed_cert))
+            command = self.reader.apdu.create_load_cert_command(compressed_cert)
+            cmd_bytes = bytearray(command[-1].to_bytes())
+            # Flip bits in Lc value
+            cmd_bytes[4] = cmd_bytes[4] ^ 0xFF
+            command[-1].as_bytes = bytes(cmd_bytes)
+            response = await self.reader.apdu.handle_chaining_send_command(
+                "LOAD CERT", command, self.reader.transport_protocol, timeout=self.reader.timeout
+            )
+            logger.info("Received response")
+            response = self.reader.apdu.parse_response(response, INS.LOAD_CERT)
+
         except InvalidStatusError:
             self.next_step()
         except (AccessProtocolError, InvalidResponseError, InvalidResponseDataError) as error:
+            self.mark_step_failure(str(error))
+            return
+        except TimeoutError as error:
+            await self.reader.handle_timeout()
             self.mark_step_failure(str(error))
             return
         else:
