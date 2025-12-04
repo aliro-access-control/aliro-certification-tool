@@ -56,9 +56,8 @@ class BLEUWB_UD_NEG_URSK_NOT_FOUND(AliroUserDeviceTestCase, UserPromptSupport):
 
     def create_test_steps(self) -> None:
         self.test_steps = [
-            TestStep("Step0: Prerequisites"),
-            TestStep("Step1: Suspend ranging"),
-            TestStep("Step2: Resume ranging with incorrect Session ID"),
+            TestStep("Step0: Execute Access Protocol routine, do not include tag 0x98 in EXCHANGE"),
+            TestStep("Step1: Expect General Error event with URSK_UNAVAILABLE attribute value"),
         ]
 
     def print_uwb_configuration(self, uwb_config: dict) -> None:
@@ -99,13 +98,13 @@ class BLEUWB_UD_NEG_URSK_NOT_FOUND(AliroUserDeviceTestCase, UserPromptSupport):
             )
         )
 
-        # Test step 0: Prerequisites
+        # Test step 0: Execute Access Protocol routine
         try:
             await self.reader.transaction_initiation()
             await self.reader.expedited_transaction_standard(
                 authentication_policy=AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
             )
-            await self.reader.handle_exchange(False, ursk=True)
+            await self.reader.handle_exchange(False, ursk=False)
             await self.reader.reader_status_access_protocol_completed(
                 UnsolicitedReaderStatusReporting_Values.SEND_TO_EACH_CONNECTED,
                 ReaderStatusInformation_Values.SECURED,
@@ -115,97 +114,20 @@ class BLEUWB_UD_NEG_URSK_NOT_FOUND(AliroUserDeviceTestCase, UserPromptSupport):
             self.mark_step_failure(error_str)
             return
 
-        try:
-            message = await self.reader.wait_for_ble_message(
-                self.reader.session.get_ble_encryption()
-            )
-            self.reader.handle_timesync(message)
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-
-        try:
-            message = await self.reader.wait_for_ble_message(
-                self.reader.session.get_ble_encryption()
-            )
-            await self.reader.handle_initiate_ranging(message)
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-
-        try:
-            message = await self.reader.wait_for_ble_message(
-                self.reader.session.get_ble_encryption()
-            )
-            await self.reader.handle_ranging_setup_m2(message)
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-
-        try:
-            message = await self.reader.wait_for_ble_message(
-                self.reader.session.get_ble_encryption()
-            )
-            await self.reader.handle_ranging_setup_m4(message)
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-
-        try:
-            await self.reader.transport_protocol.start_ranging()
-            range = await self.reader.transport_protocol.get_ranging_data()
-            logger.info(f"Ranging value is: {range}")
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-
-        # Print UWB configuration
-        try:
-            uwb_configuration = (
-                await self.reader.transport_protocol.get_uwb_configuration()
-            )
-            self.print_uwb_configuration(uwb_configuration)
-        except Exception as error:
-            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
-            self.mark_step_failure(error_str)
-            return
-
         self.next_step()
-        # Test step 1: Reader sends Ranging Session Suspend Request
+
+        # Test step 1: Expect General Error event with URSK_UNAVAILABLE attribute value
         try:
-            await self.reader.send_ranging_session_suspend_request()
-            message = await self.reader.wait_for_ble_message(
+            message_event = await self.reader.wait_for_ble_message(
                 self.reader.session.get_ble_encryption()
             )
-            await self.reader.handle_ranging_session_suspend_response(message)
+            message_event.parse_payload(self.reader.session.get_ble_encryption())
+            if message_event.id != Notification_ID.EVENT or message_event.reason_code != GeneralError_Values.URSK_UNAVAILABLE:
+                self.mark_step_failure("Unexpected message received")
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
-
-        self.next_step()
-        # Test step 2: Resume ranging with incorrect Session ID
-        logger.info("Sending ranging session resume request ble message")
-        uwb_session_id = self.reader.transport_protocol.get_uwb_session_id()
-
-        # Corrupt session ID and expect General Error with URSK not found
-        message = BleMessage.create_ranging_session_resume_request(
-            uwb_session_id + 1,
-            self.reader.session.get_ble_encryption(),
-        )
-        await self.reader.transport_protocol.send_message(message)
-
-        message_event = await self.reader.wait_for_ble_message(
-            self.reader.session.get_ble_encryption()
-        )
-        message_event.parse_payload(self.reader.session.get_ble_encryption())
-        if message_event.id != Notification_ID.EVENT or message_event.reason_code != GeneralError_Values.URSK_UNAVAILABLE:
-            self.mark_step_failure("Unexpected message received")
 
     async def cleanup(self) -> None:
         logger.info("BLEUWB_UD_RANGING_SUSPEND Cleanup")
