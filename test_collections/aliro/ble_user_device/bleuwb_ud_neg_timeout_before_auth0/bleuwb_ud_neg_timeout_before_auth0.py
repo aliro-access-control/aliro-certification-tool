@@ -153,7 +153,7 @@ class BLEUWB_UD_NEG_TIMEOUT_BEFORE_AUTH0(AliroUserDeviceTestCase, UserPromptSupp
             self.mark_step_failure(str(error))
             return
         else:
-            self.mark_step_failure(f"Unexpected BLE message received with header: {hexlify(message_event.header)}, id: {hexlify(message_event.id)}")
+            self.mark_step_failure(f"Unexpected BLE message received with header: {message_event.header:#x}, id: {message_event.id:#x}")
             return
 
     async def cleanup(self) -> None:
