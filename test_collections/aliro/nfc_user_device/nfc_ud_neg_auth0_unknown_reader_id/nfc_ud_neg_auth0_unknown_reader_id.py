@@ -12,6 +12,7 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseError,
+    InvalidStatusError,
 )
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair
@@ -58,7 +59,7 @@ class NFC_UD_NEG_AUTH0_UNKNOWN_READER_ID(AliroUserDeviceTestCase, UserPromptSupp
             TestStep("Step2: Set to polling mode"),
             TestStep("Step3: Transaction initiation"), #include select command and response
             TestStep("Step4: Send/Receive AUTH0 command (with unknown reader_identifier)/response"),
-            TestStep("Step5: Send/Receive CONTROL FLOW command/response"),
+            TestStep("Step5: Send/Receive AUTH1 command (reader_cert not present)/response and handle CONTROL FLOW"),
         ]
 
     async def setup(self) -> None:
@@ -77,7 +78,6 @@ class NFC_UD_NEG_AUTH0_UNKNOWN_READER_ID(AliroUserDeviceTestCase, UserPromptSupp
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
         )
-        self.reader.reader_identifier = self.unknown_reader_identifier #overriding the known reader_identifier with unknown_reader_identifier
 
     @log_errors
     async def execute(self) -> None:
@@ -108,18 +108,28 @@ class NFC_UD_NEG_AUTH0_UNKNOWN_READER_ID(AliroUserDeviceTestCase, UserPromptSupp
             AuthenticationPolicy.FORCE_USER_AUTHENTICATION
         )
         try:
+            self.reader_identifier = self.reader.reader_identifier
+            # Overriding the known reader_identifier with unknown_reader_identifier for auth0 command
+            self.reader.reader_identifier = self.unknown_reader_identifier 
             await self.reader.handle_auth0(
                 transaction_type=Transaction.STANDARD,
                 authentication_policy=AuthenticationPolicy(authentication_policy),
             )
+            self.reader.reader_identifier = self.reader_identifier
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
         self.next_step()
-        
+
         # Test step 5
         try:
-            await self.reader.handle_control_flow(S2.NONE)
+            await self.reader.handle_auth1(
+                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY,
+                certificate=False
+            )
+        except InvalidStatusError as error:
+            logger.info("Status word returned in AUTH1 routine does not indicate success: 0x{:04x}, as expected".format(error.status))
+            pass
         except (AccessProtocolError, InvalidResponseError) as error:
             self.mark_step_failure(str(error))
             return
