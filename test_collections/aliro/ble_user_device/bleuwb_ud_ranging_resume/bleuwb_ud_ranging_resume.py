@@ -216,8 +216,8 @@ class BLEUWB_UD_RANGING_RESUME(AliroUserDeviceTestCase, UserPromptSupport):
             )
             message_event.parse_payload(self.reader.session.get_ble_encryption())
             if not (
-                (message.header == ProtocolType.NOTIFICATION and message_event.id == Notification_ID.RANGING) or 
-                (message.header == ProtocolType.UWB_RANGING_SERVICE and message.id == UWB_RangingService_ID.RANGING_SESSION_RESUME_RESPONSE)
+                (message_event.header == ProtocolType.NOTIFICATION and message_event.id == Notification_ID.RANGING) or 
+                (message_event.header == ProtocolType.UWB_RANGING_SERVICE and message_event.id == UWB_RangingService_ID.RANGING_SESSION_RESUME_RESPONSE)
                 ):
                 self.mark_step_failure("Unexpected message received")
                 return
