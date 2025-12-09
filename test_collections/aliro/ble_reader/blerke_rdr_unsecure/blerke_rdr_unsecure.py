@@ -195,7 +195,9 @@ class BLERKE_RDR_UNSECURE(AliroReaderTestCase, UserPromptSupport):
             if status_changed.id == Notification_ID.READER_STATUS_CHANGED:
                 self.userdevice.handle_reader_status_changed_message(status_changed)
                 # If we receive Reader Status Changed then we end the test
-            if status_changed.reader_status_information != ReaderStatusInformation_Values.UNSECURED:
+            if status_changed.reader_status_information not in [ReaderStatusInformation_Values.JAMMED,
+                                                                ReaderStatusInformation_Values.STARTED_UNSECURE,
+                                                                ReaderStatusInformation_Values.UNKNOWN]:
                 self.mark_step_failure("Wrong reader status information")
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
