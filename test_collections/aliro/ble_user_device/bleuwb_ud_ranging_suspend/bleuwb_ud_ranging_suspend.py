@@ -11,7 +11,9 @@ from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.transport_protocol.ble_message_format import (
     OperationSourceInformation_Values,
     ReaderStatusInformation_Values,
+    ProtocolType,
     UnsolicitedReaderStatusReporting_Values,
+    UWB_RangingService_ID, 
 )
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
@@ -61,7 +63,8 @@ class BLEUWB_UD_RANGING_SUSPEND(AliroUserDeviceTestCase, UserPromptSupport):
             TestStep("Step5: Reader sends AP message: RSS-M3"),
             TestStep("Step6: User Device sends AP message: RSS-M4"),
             TestStep("Step7: Reader acquires UWB ranging result"),
-            TestStep("Step 8: Reader sends Ranging Session Suspend Request"),
+            TestStep("Step8: Reader sends Ranging Session Suspend Request"),
+            TestStep("Step9: User Device sends Ranging Session Suspend Response"),
         ]
 
     def print_uwb_configuration(self, uwb_config: dict) -> None:
@@ -201,6 +204,33 @@ class BLEUWB_UD_RANGING_SUSPEND(AliroUserDeviceTestCase, UserPromptSupport):
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
             return
+        self.next_step()
+
+        # Test step 9: User device sends Ranging Session Suspend Response
+        try:
+            message = await self.reader.wait_for_ble_message(
+                self.reader.session.get_ble_encryption()
+            )
+            message.parse_payload(self.reader.session.get_ble_encryption())
+            if message.header != ProtocolType.UWB_RANGING_SERVICE or message.id != UWB_RangingService_ID.RANGING_SESSION_SUSPEND_RESPONSE:
+                self.mark_step_failure("Unexpected message received")
+                return
+            if message.status.value[0] not in [0, 1]:
+                self.mark_step_failure("Unexpected ranging suspend status")
+                return
+            self.reader.transport_protocol.driver.dh
+        except Exception as error:
+            error_str = "{}: {}".format(error.__class__.__name__, repr(error))
+            self.mark_step_failure(error_str)
+            return
+        try:
+            range = await self.reader.transport_protocol.get_ranging_data()
+        except AttributeError as error:
+            if "no attribute 'fields'" in error.args[0]:
+                logger.info("No UWB ranging notification data received")
+            else:
+                self.mark_step_failure("UWB ranging notifcation data received after suspend")
+                return
         self.next_step()
 
     async def cleanup(self) -> None:
