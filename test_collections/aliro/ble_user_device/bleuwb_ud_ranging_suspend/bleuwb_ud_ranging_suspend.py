@@ -229,8 +229,10 @@ class BLEUWB_UD_RANGING_SUSPEND(AliroUserDeviceTestCase, UserPromptSupport):
             if "no attribute 'fields'" in error.args[0]:
                 logger.info("No UWB ranging notification data received")
             else:
-                self.mark_step_failure("UWB ranging notifcation data received after suspend")
-                return
+                raise
+        else:
+            self.mark_step_failure("UWB ranging notifcation data received after suspend")
+            return
         self.next_step()
 
     async def cleanup(self) -> None:
