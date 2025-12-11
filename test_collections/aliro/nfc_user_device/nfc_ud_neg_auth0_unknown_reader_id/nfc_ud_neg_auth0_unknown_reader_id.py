@@ -14,7 +14,7 @@ from aliro_actuator.access_protocol.errors import (
     InvalidResponseError,
     InvalidStatusError,
 )
-from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.access_protocol.reader import Reader, ReaderMode
 from aliro_actuator.trust_framework.key import KeyPair
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
@@ -77,6 +77,7 @@ class NFC_UD_NEG_AUTH0_UNKNOWN_READER_ID(AliroUserDeviceTestCase, UserPromptSupp
             reader_key=key,
             transaction_identifier_list=[self.transaction_identifier],
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
+            mode=ReaderMode.READER,
         )
 
     @log_errors
