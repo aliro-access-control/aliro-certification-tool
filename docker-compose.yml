@@ -95,7 +95,7 @@ services:
       - traefik.http.services.${STACK_NAME?Variable not set}-backend.loadbalancer.server.port=80
 
   frontend:
-    image: 'ghcr.io/project-chip/csa-certification-tool-frontend:980df53'
+    image: 'ghcr.io/bogdan-sandu/csa-certification-tool-frontend:5ac6d88'
     labels:
       - traefik.enable=true
       - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
