@@ -100,6 +100,7 @@ class NFC_RDR_STANDARD_CERT_IN_AUTH1_NO_CHAINING(AliroReaderTestCase, UserPrompt
                 options={"OK": 1},
             )
         )
+        self.userdevice.apdu.set_extended_length(512, 512)
         try:
             await self.userdevice.transaction_initiation()  # including select
         except (AccessProtocolError, InvalidCommandError) as error:
