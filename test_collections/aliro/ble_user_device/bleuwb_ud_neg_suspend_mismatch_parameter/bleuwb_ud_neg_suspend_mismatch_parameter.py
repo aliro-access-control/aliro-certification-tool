@@ -94,19 +94,18 @@ class BLEUWB_UD_NEG_SUSPEND_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserProm
             group_resolving_key=group_resolving_key,
             ephemeral_key_list=[KeyPair(self.reader_ePrivK, self.reader_ePuBK)],
         )
+    
+    async def send_ranging_session_suspend_request_wrong_uwb_session_id(self) -> None:
+        logger.info("Sending ranging session suspend request ble message")
+        uwb_session_id = self.reader.transport_protocol.get_uwb_session_id()
+        # Flip uwb_session_id value
+        uwb_session_id ^= 0xFFFFFFFF
 
-    def create_ranging_session_suspend_request(self,
-        ble_encryption: EncryptionEngine | None = None,
-    ) -> BleMessage:
-        payload = bytearray()
-
-        message = BleMessage(
-            ProtocolType.UWB_RANGING_SERVICE,
-            UWB_RangingService_ID.RANGING_SESSION_SUSPEND_REQUEST,
-            payload,
+        message = BleMessage.create_ranging_session_suspend_request(
+            uwb_session_id,
+            self.reader.session.get_ble_encryption(),
         )
-        message._encrypt(ble_encryption)
-        return message
+        await self.reader.transport_protocol.send_message(message, timeout=self.reader.timeout)
 
     @log_errors
     async def execute(self) -> None:
@@ -216,11 +215,7 @@ class BLEUWB_UD_NEG_SUSPEND_MISMATCH_PARAMETER(AliroUserDeviceTestCase, UserProm
 
         # Test step 8: Reader sends Ranging Session Suspend Request with incorrect session ID
         try:
-            logger.info("Sending ranging session suspend request ble message")
-            message = self.create_ranging_session_suspend_request(
-                self.reader.session.get_ble_encryption(),
-            )
-            await self.reader.transport_protocol.send_message(message)
+            await self.send_ranging_session_suspend_request_wrong_uwb_session_id()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)

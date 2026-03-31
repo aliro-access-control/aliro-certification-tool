@@ -10,8 +10,12 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.transport_protocol.ble_message_format import (
     OperationSourceInformation_Values,
+    Notification_ID,
+    ProtocolType,
     ReaderStatusInformation_Values,
     UnsolicitedReaderStatusReporting_Values,
+    UWB_RangingService_ID,
+    RangingMessage_AttributeID, 
 )
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.key import KeyPair
@@ -198,10 +202,19 @@ class BLEUWB_UD_RANGING_RESUME(AliroUserDeviceTestCase, UserPromptSupport):
         # Test step 8: Reader sends Ranging Message ID carrying Ranging Session Suspended Attribute ID
         try:
             await self.reader.send_ranging_message_suspended()
-            message = await self.reader.wait_for_ble_message()
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)
+            return
+        try:
+            range = await self.reader.transport_protocol.get_ranging_data()
+        except AttributeError as error:
+            if "no attribute 'fields'" in error.args[0]:
+                logger.info("No UWB ranging notification data received")
+            else:
+                raise
+        else:
+            self.mark_step_failure("UWB ranging notifcation data received after suspend")
             return
         self.next_step()
 
@@ -209,7 +222,19 @@ class BLEUWB_UD_RANGING_RESUME(AliroUserDeviceTestCase, UserPromptSupport):
         time.sleep(1)
         try:
             await self.reader.send_ranging_session_resume_request()
-            
+            message_event = await self.reader.wait_for_ble_message(
+                self.reader.session.get_ble_encryption()
+            )
+            message_event.parse_payload(self.reader.session.get_ble_encryption())
+            if not (
+                (message_event.header == ProtocolType.NOTIFICATION and 
+                 message_event.id == Notification_ID.RANGING and 
+                 message_event.attribute.id == RangingMessage_AttributeID.INITIATE_RANGING_SESSION_RESUME_LATER) or 
+                (message_event.header == ProtocolType.UWB_RANGING_SERVICE and 
+                 message_event.id == UWB_RangingService_ID.RANGING_SESSION_RESUME_RESPONSE)
+                ):
+                self.mark_step_failure("Unexpected message received")
+                return
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))
             self.mark_step_failure(error_str)

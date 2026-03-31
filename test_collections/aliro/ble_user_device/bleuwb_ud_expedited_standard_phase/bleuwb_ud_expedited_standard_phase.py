@@ -197,8 +197,8 @@ class BLEUWB_UD_EXPEDITED_STANDARD_PHASE(AliroUserDeviceTestCase, UserPromptSupp
         # Test step 8: Reader sends AP message: Status changed
         try:
             await self.reader.reader_status_status_changed(
-                ReaderStatusInformation_Values.UNSECURED,
-                OperationSourceInformation_Values.UNSPECIFIED,
+                operation_source_information=OperationSourceInformation_Values.THIS_USER_BLE_UWB,
+                reader_status_information=ReaderStatusInformation_Values.UNSECURED,
             )
         except Exception as error:
             error_str = "{}: {}".format(error.__class__.__name__, repr(error))

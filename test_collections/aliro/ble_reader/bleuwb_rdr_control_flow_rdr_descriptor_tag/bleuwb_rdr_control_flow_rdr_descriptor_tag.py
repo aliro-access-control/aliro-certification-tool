@@ -72,7 +72,7 @@ class BLEUWB_RDR_CONTROL_FLOW_RDR_DESCRIPTOR_TAG(AliroReaderTestCase, UserPrompt
             [
                 "RD",
                 "BLEUWB",
-                "RD43"
+                "RD22"
             ]
         )
 

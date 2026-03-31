@@ -8,6 +8,7 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.user_device import UserDevice
 from aliro_actuator.transport_protocol.ble_message_format import (
     Notification_ID,
+    ReaderStatusInformation_Values,
     UWB_RangingService_ID,
 )
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
@@ -189,6 +190,11 @@ class BLEUWB_RDR_EXPEDITED_STANDARD_PHASE(AliroReaderTestCase, UserPromptSupport
                 if message.id == Notification_ID.READER_STATUS_CHANGED:
                     self.userdevice.handle_reader_status_changed_message(message)
                     # If we receive Reader Status Changed then we end the test
+                    if message.reader_status_information not in [ReaderStatusInformation_Values.UNSECURED,
+                                                                 ReaderStatusInformation_Values.JAMMED,
+                                                                 ReaderStatusInformation_Values.STARTED_UNSECURE,
+                                                                 ReaderStatusInformation_Values.UNKNOWN]:
+                        self.mark_step_failure("Wrong reader status information")
                     break
                 elif (
                     message.id == UWB_RangingService_ID.RANGING_SESSION_SUSPEND_REQUEST

@@ -223,7 +223,7 @@ class NFC_RDR_CONTROL_FLOW_RDR_DESCRIPTOR_TAG(AliroReaderTestCase, UserPromptSup
         if cmds_controlflow.s2 != S2.NONE:
             self.mark_step_failure("S2 value of CONTROL FLOW not '0x00 no information'")
         if cmds_controlflow.reader_descriptor is None:
-            self.mark_step_failure("CONTROL FLOW Tag 0x43 with Reader Descriptor TLV not found")
+            self.mark_step_failure("CONTROL FLOW Tag 0x63 with Reader Descriptor TLV not found")
         self.next_step()
 
     async def cleanup(self) -> None:
