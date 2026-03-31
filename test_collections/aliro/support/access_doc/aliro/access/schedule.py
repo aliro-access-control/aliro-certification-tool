@@ -21,7 +21,7 @@ from enum import IntFlag
 
 from .recurrence_rule import RecurrenceRule
 
-from utility import Utility
+from access_doc.utility import Utility
 
 ################################################################################
 class ScheduleFlagBits(IntFlag):

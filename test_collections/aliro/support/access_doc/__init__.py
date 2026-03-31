@@ -14,4 +14,23 @@
 # limitations under the License.
 #
 
+"""Access Document package for Aliro Certification Tool.
+
+This package provides utilities for working with Aliro access documents,
+including Mobile Driver's License (MDL) functionality.
+"""
+
 from .utility import Utility
+
+# Version
+__version__ = "0.1.0"
+
+# Expose submodules for convenient access
+# Note: Submodules should be imported explicitly when needed:
+#   from access_doc.mdl import DeviceResponse
+#   from access_doc.aliro.access import AccessData
+
+__all__ = [
+    "Utility",
+    "__version__",
+]

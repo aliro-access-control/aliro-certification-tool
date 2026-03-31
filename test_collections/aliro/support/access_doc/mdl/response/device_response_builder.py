@@ -33,11 +33,11 @@ from .mobile_security_object import MobileSecurityObject
 from .device_key_info import DeviceKeyInfo
 from .sig_structure import Sig_structure
 
-from aliro.access.access_data import AccessData
-from aliro.revocation.revocation_data import RevocationData
+from access_doc.aliro.access.access_data import AccessData
+from access_doc.aliro.revocation.revocation_data import RevocationData
 
-from mdl.common.doc_types import DocTypes
-from mdl.common.issuer_namespaces import IssuerNamespaces
+from access_doc.mdl.common.doc_types import DocTypes
+from access_doc.mdl.common.issuer_namespaces import IssuerNamespaces
 
 ################################################################################
 class ResponseElement(object):

@@ -15,26 +15,16 @@
 #
 
 import os
-import sys
 
-# Get the directory in which this file is located.
-current_file_dir_path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-
-# Get the directory in which the source code is located.
-source_dir_path = os.path.abspath(os.path.join(current_file_dir_path, '..'))
-
-# Append the parent path to the system paths, so the code in the directory
-# above may be imported.
-sys.path.append(source_dir_path)
 
 # Change the working directory to the directory above the 'examples' directory.
 os.chdir(source_dir_path)
 
-from mdl.request.device_request import DeviceRequest
-from mdl.request.device_request_builder import RequestElement
-from mdl.request.device_request_builder import DeviceRequestBuilder
+from access_doc.mdl.request.device_request import DeviceRequest
+from access_doc.mdl.request.device_request_builder import RequestElement
+from access_doc.mdl.request.device_request_builder import DeviceRequestBuilder
 
-from utility import Utility
+from access_doc.utility import Utility
 
 # Create an Access Data Element request.
 access_request = RequestElement(data_element_id='b1.f2', intent_to_retain=False)

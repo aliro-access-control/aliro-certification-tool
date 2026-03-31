@@ -18,7 +18,7 @@ import cbor2
 
 from enum import IntFlag
 
-from aliro.common.extension_data import ExtensionData
+from access_doc.aliro.common.extension_data import ExtensionData
 
 ################################################################################
 class CriticalityBits(IntFlag):

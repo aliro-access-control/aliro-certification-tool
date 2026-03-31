@@ -15,30 +15,19 @@
 #
 
 import datetime
-import os
-import sys
 
-# Get the directory in which this file is located.
-current_file_dir_path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
-# Get the directory in which the source code is located.
-source_dir_path = os.path.abspath(os.path.join(current_file_dir_path, '..'))
-
-# Append the parent path to the system paths, so the code in the directory
-# above may be imported.
-sys.path.append(source_dir_path)
-
-from aliro.revocation.revocation_data import RevocationData
-from aliro.revocation.revocation_data import RevocationChangeMode
-from aliro.revocation.revocation_entry import RevocationEntry
-from aliro.revocation.revocation_extension import RevocationExtension
+from access_doc.aliro.revocation.revocation_data import RevocationData
+from access_doc.aliro.revocation.revocation_data import RevocationChangeMode
+from access_doc.aliro.revocation.revocation_entry import RevocationEntry
+from access_doc.aliro.revocation.revocation_extension import RevocationExtension
 from extension_data_example import ExtensionDataExample
 
-from utility import Utility
+from access_doc.utility import Utility
 
-from mdl.response.device_response_builder import DeviceResponseBuilder
-from mdl.response.device_response_builder import ResponseElement
-from mdl.response.device_response import DeviceResponse
+from access_doc.mdl.response.device_response_builder import DeviceResponseBuilder
+from access_doc.mdl.response.device_response_builder import ResponseElement
+from access_doc.mdl.response.device_response import DeviceResponse
 
 # Setup the root revocation data object.
 revocation_data = RevocationData()
