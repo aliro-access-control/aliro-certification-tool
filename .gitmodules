@@ -1,4 +1,3 @@
 [submodule "test_collections/aliro/support/aliro-actuator"]
 	path = test_collections/aliro/support/aliro_actuator
-	url = git@github.com:csa-access-control/aliro-actuator.git
-	branch = 11-add-disconnect-method-to-nfc-driver
+	url = git@github.com:aliro-access-control/aliro-actuator.git
