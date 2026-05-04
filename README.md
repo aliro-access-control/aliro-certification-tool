@@ -1,109 +1,113 @@
 # Aliro Certification Tool
-A test harness and tooling designed to simplify development, testing, and certification for devices, guided by the Connectivity Standards Alliance - ACWG.
-
+A Test Harness and tooling designed to simplify development, testing, and certification for devices, guided by the Connectivity Standards Alliance - Aliro Working Group.
 
 > [!NOTE]
-> The tool is a complete reuse from CSA - Matter, and UI is still showing a number of unrelated Matter information. This will be fixed eventually.
+> The tool is a complete reuse from CSA - Matter, and the UI still shows a lot of unrelated Matter-specific content. This will be fixed eventually.
 
 This version of the Aliro Certification Tool uses:
-* Aliro Specification Version 0.9.5.2
-* Aliro CSG TT Test Plan Version 0.9.0s
+* Aliro Specification Version 1.0
+* Aliro CSG TT Test Plan Version for Aliro 1.0
 
 # Setup Instructions
-Following this section should take a couple hours, mostly depending on internet speed.
+Following this section should take a couple of hours, mostly depending on internet speed.
 
 ## Requirements
-* Computer with SD-reader
-* Raspberry pi 4 Model B - 8GB preferred (4GB might work)
-    * power adapter for raspberry pi
-    * micro SD card (16 GB or more)
-* NFC interface OM27160B1EVK (SPI based) or OM27160A1EVK (I2C based) 
-* Ethernet network cable (UDP cable) (optional)
-* LAN/Wi-Fi Network with internet access
-* Murata LBUA0VG2BP-EVK-P (BLE/UWB interface)
-* Micro USB male to USB A male cable (for connecting the Murata)
+* Computer with micro SD-reader (or micro SD-to-USB adapter if your computer does not have such a reader).
+* Raspberry Pi 4 Model B - 8GB preferred (4GB might work).
+    * Power adapter for Raspberry Pi.
+    * Micro SD card (16 GB or more).
+* NFC interface OM27160B1EVK (SPI based) or OM27160A1EVK (I2C based).
+* Ethernet network cable (optional).
+* LAN/Wi-Fi network with internet access.
+* Murata LBUA0VG2BP-EVK-P (BLE/UWB interface) for BLE/UWB transport testing.
+* Micro USB male to USB A male cable (for connecting the Murata BLE/UWB board).
 
 > [!TIP] 
-> It is possible to setup the TH entirely over SSH. Alternatively, access the Raspberry Pi directly using:
-> * micro HDMI to HDMI cable
-> * pc monitor
-> * usb keyboard
+> It is possible to set up the TH entirely over SSH. Alternatively, access the Raspberry Pi directly using:
+> * Micro HDMI to HDMI cable.
+> * PC monitor.
+> * USB keyboard.
 
 > [!IMPORTANT]
-> See https://github.com/csa-access-control/aliro-actuator/tree/27-add-uwb-support/third_party for instructions on updating the murata FW. 
-
+> See https://github.com/aliro-access-control/aliro-actuator/tree/release/aliro-sve-v1.0/third_party for instructions on updating the Murata FW.
 
 ## A - Installing Ubuntu on SD-Card
 
-1. Download and run Raspberry Pi Imager on you computer. 
-    * Available at https://www.raspberrypi.com/software/
-2. CHOOSE DEVICE under "Raspberry Pi Device" 
-    * Select "Raspberry Pi 4"
-3. CHOOSE OS under "Operating System"
-    1. Select "Other general-purpose OS"
-    2. Select "Ubuntu" 
-    3. Select "Ubuntu Server 22.04.3 LTS (64-bit)" or "Ubuntu Server 22.04.4 LTS (64-bit)" or "Ubuntu Server 22.04.5 LTS (64-bit)"
+1. Download and run Raspberry Pi Imager on your computer.
+    * Available at https://www.raspberrypi.com/software/.
+2. Click CHOOSE DEVICE under "Raspberry Pi Device".
+    * Select "Raspberry Pi 4".
+3. Click CHOOSE OS under "Operating System":
+    1. Select "Other general-purpose OS".
+    2. Select "Ubuntu".
+    3. Depending on the version of Raspberry Pi Imager, pick exactly one of the following distributions:
+      * "Ubuntu Server 22.04.3 LTS (64-bit)".
+      * "Ubuntu Server 22.04.4 LTS (64-bit)".
+      * "Ubuntu Server 22.04.5 LTS (64-bit)".
 
-> [!IMPORTANT]
-> You must pick exactly "Ubuntu Server 22.04.3 LTS (64-bit)" or "Ubuntu Server 22.04.4 LTS (64-bit)" or "Ubuntu Server 22.04.5 LTS (64-bit)"
-
-4. CHOOSE STORAGE under "Storage"
-    * Insert the micro sd card, and select in the list.
-5. NEXT
+4. Click CHOOSE STORAGE under "Storage":
+    * Select the microSD card that was previously inserted into your PC.
+5. Click NEXT.
 
 ![Screenshot of Raspberry Pi imager](images/raspberry-pi-imager.png)
 
-6. EDIT SETTINGS under "Would you like to apply OS customisation settings?"
+6. Click EDIT SETTINGS under "Would you like to apply OS customisation settings?":
     * Under GENERAL Tab:
-        * Set hostname. Must be unique per TH setup. Eg. `aliro-th-pi1`.local
-        * Set username and password
-        * *Optionally configure Wi-Fi if not using an ethernet cable.* (Only password protected Wi-Fi is supported)
+        * Set hostname. Must be unique per TH setup. Eg. `aliro-th-pi1`.local.
+        * Set username and password.
+        * *Optionally configure wireless LAN if not using an Ethernet cable. (Only password-protected Wi-Fi networks are supported)*.
     * Under SERVICES Tab:
-        * "Enable SSH" and choose "Use password Authentication"
+        * "Enable SSH" and choose "Use password authentication".
 
 ![Alt text](images/raspberry-pi-imager-os-customizations.png)
 
-7. SAVE on "OS Customisation" modal
-8. YES on "Would you like to apply OS customisation settings?"
-9.  Continue to write Ubuntu OS to micro SD-card
+7. Click SAVE on "OS Customisation" modal window.
+8. Select YES on "Would you like to apply OS customisation settings?".
+9. Continue to write Ubuntu OS to micro SD-card.
 10. Wait for writing and verification of SD-card to complete.
-
 
 ## B - Assembling Raspberry Pi
 
 > [!TIP] 
 > Start this with the Raspberry Pi disconnected from power.
 
-1. Attach OM27160B1EVK to Raspberry Pi
-2. Connect the Murata LBUA0VG2BP-EVK-P to the Raspberry Pi using the micro usb cable.
-3. Insert micro SD-card
-4. [Optional] Attach ethernet cable
-5. [Optional] Connect monitor and keyboard
-6. Power on raspberry Pi
+1. Attach OM27160B1EVK or OM27160A1EVK NFC board to the Raspberry Pi.
+2. [Optional] Connect the Murata LBUA0VG2BP-EVK-P to the Raspberry Pi using the micro-USB cable.
+
+> [!NOTE]
+> The Murata board is not needed if you only run NFC transport tests.
+
+3. Insert micro SD-card.
+4. [Optional] Attach Ethernet cable.
+5. [Optional] Connect monitor and keyboard.
+6. Power on Raspberry Pi.
 
 ## C - Connecting to Raspberry Pi
-There's a couple different ways you can connect to the Raspberry Pi,
+There are several ways you can connect to the Raspberry Pi.
 
 ### Connecting via SSH using hostname
-> [!NOTE] 
-> Hostname access might not be supported on all computers and networks, if this fails, please try using IP address directly. See below.
-1. Wait for Raspberry Pi to boot
-2. Connect from terminal on PC via ssh using username and hostname `ssh <username>@<hostname>.local`.
+
+> [!NOTE]
+> Hostname access might not be supported on all computers and networks. If this fails, please try using the IP address directly. See below.
+
+1. Wait for Raspberry Pi to boot.
+2. Connect from terminal on PC via SSH using username and hostname assigned during OS configuration: `ssh <username>@<hostname>.local`.
     
     Example:
     ```
     ssh ubuntu@aliro-th-pi1.local
     ```
 
-3. Enter password when prompted
+3. Enter password when prompted.
 
 ### Connecting via SSH using IP Address
-1. Wait for Raspberry Pi to boot
-2. Connect from terminal on PC via ssh using username and hostname `ssh <username>@<hostname>.local`.
+
+1. Wait for Raspberry Pi to boot.
+2. Connect from terminal on PC via SSH using username and IP address `ssh <username>@<ip-address>`.
     
     Example:
     ```
-    ssh ubuntu@<ip-address>
+    ssh ubuntu@192.168.1.50
     ```
 
 3. Enter password when prompted
@@ -112,101 +116,112 @@ There's a couple different ways you can connect to the Raspberry Pi,
 > If you don't know the IP address you can discover it from another machine on the LAN:
 > - On Linux and macOS (might require `net-tools` installed)
 >     ```
->     arp -na | grep -i  "b8:27:eb\|dc:a6:32\|e4:5f:01"
+>     arp -na | grep -i  "b8:27:eb\|dc:a6:32\|e4:5f:01\|<other_raspberry_pi_foundation_mac_prefix>"
 >     ```
 > - On Windows:
 >     ```
->     arp -a | findstr b8-27-eb dc-a6-32 e4-5f-01
+>     arp -a | findstr b8-27-eb dc-a6-32 e4-5f-01 <other_raspberry_pi_foundation_mac_prefix>
+>     ```
+> Note that your Raspberry Pi may use a MAC address prefix that is not among those listed above.
+> In such a case, replace `<other_raspberry_pi_foundation_mac_prefix>` in the command with the MAC prefix (OUI) for your Raspberry Pi.
 
 ### Connecting using Monitor and Keyboard
 
-This is mostly a backup, if you need to configure network or find IP address.
+This is mostly a backup if you need to configure the network or find the IP address.
 
-1. Simply login with the chosen username and password. 
-
-> [!TIP] 
-> Default credentials are username: `ubuntu` and password: `ubuntu`.
+1. Simply log in with the chosen username and password.
 
 ## D - Installing Aliro Test Harness on Raspberry Pi
 
-1. Create an SSH key-pair to access GitHub Repository
+1. On your Raspberry Pi, create an SSH key pair to access the GitHub repository.
     
     ```sh
     ssh-keygen -t ed25519 -C "<your github email>"
     ``` 
     
-> [!NOTE] 
-> Default file location, no passphrase required, just press enter
+> [!NOTE]
+> Use default file location, and set no passphrase, just press enter.
 
-2. Copy public ssh key
+2. Copy the full output of the command below (your SSH public key):
 
     ```sh
     cat /home/ubuntu/.ssh/id_ed25519.pub
     ```
 
-3. Add SSH Key to your account on GitHub 
+3. Add SSH Key to your account on GitHub:
    
-   * https://github.com/settings/ssh/new
-   * Alternatively, click profile picture, then settings, then "ssh and GPG keys" and finally "new ssh key".
+   * Follow https://github.com/settings/ssh/new.
+   * Alternatively:
+     - Click your profile picture, then Settings, then "SSH and GPG keys" and finally "New SSH key".
+     - Set the "Title" of the key.
+     - Paste the key into the "Key" field.
+     - Click "Add SSH key".
    
-4. Get Aliro Certification Tool code from GitHub
+4. Get the Aliro Certification Tool code from GitHub:
 
-    * Clone repository in home directory
+    * Clone the repository in your home directory:
         ```sh
         cd ~
-        git clone git@github.com:csa-access-control/aliro-certification-tool.git
+        git clone git@github.com:aliro-access-control/aliro-certification-tool.git
         ```
 
         * When asked if you trust the connection, please type `yes` and hit enter.
 
 > [!TIP]
-> You can check out a specific release. Eg. `release/test_event3-2024-aliro_specification_v0.7.4-v1.2`
+> You can check out a specific release, e.g. `aliro-sve-v1.0`.
 > 
 >   ```sh
->   cd  ~/aliro-certification-tool  
->   git checkout release/test_event3-2024-aliro_specification_v0.7.4-v1.2  
+>   cd  ~/aliro-certification-tool
+>   git checkout aliro-sve-v1.0
 >   ```
 
-6. Auto install Aliro Certification tool    
-   * Run auto installer script
+6. Auto-install Aliro Certification Tool:
+   * Run auto installer script:
     
         ```sh
         cd  ~/aliro-certification-tool
         ./scripts/pi-setup/auto-install.sh
         ```
 
-        * When prompted by `[sudo]` for user password, please type in password and hit enter.
+   * When prompted by `[sudo]` for user password, please type in password and hit enter.
+   * When asked *"The HEAD is detached from a branch. Should it checkout to develop before proceeding?"*, please select "Yes" and hit enter.
    * When completed, script will prompt you to restart.
-     * Type `1`  and press enter to reboot raspberry Pi.
+     * Type `1`  and press enter to reboot Raspberry Pi.
   
-> [!NOTE] 
-> The auto installer is mostly hand-off, but can take more than an hour depending on you internet connection.
+> [!NOTE]
+> The auto installer is mostly hands-off, but can take more than an hour depending on your internet connection.
 
-> [!NOTE] 
-> First reboot after the auto installer might take 5 minutes or more, as several updates are applied.
+> [!NOTE]
+> The first reboot after the auto installer might take 5 minutes or more, as several updates are applied.
 
 ## E - Starting the Aliro Test Harness on Raspberry Pi
-1. Initialize the submodules 
+
+1. Initialize the submodules:
 
     ```sh
     cd  ~/aliro-certification-tool
     git submodule update --init --recursive
     ```
 
-2. Setup the Test Harness
-    > **_NOTE:_** by default `setup.sh` script will build NXP libraries for SPI version of [PN7160 evaluation kit](https://www.nxp.com/docs/en/application-note/AN12991.pdf)
+2. Set up the Test Harness:
+
+    * Run the setup script (note that it may take several minutes):
+    > **_NOTE:_** By default, the `setup.sh` script will build NXP libraries for the SPI version of the [PN7160 evaluation kit](https://www.nxp.com/docs/en/application-note/AN12991.pdf).
     ```sh
     cd  ~/aliro-certification-tool/test_collections/aliro
     ./setup.sh
     ```
-    > **_NOTE:_** for I2C based evaluation kit run the script with `NXP_TRANSPORT=I2C` variable configured
+    > **_NOTE:_** For an I2C-based evaluation kit, run the script with the `NXP_TRANSPORT=I2C` environment variable set.
     ```sh
     cd  ~/aliro-certification-tool/test_collections/aliro
     NXP_TRANSPORT=I2C ./setup.sh
     ```
+    * When prompted by `[sudo]` for user password, please type in password and hit enter.
 
-3. Start the Test Harness
 
+3. Start the Test Harness:
+
+    * Run the following commands:
     ```sh
     cd  ~/aliro-certification-tool
     ./scripts/start.sh
@@ -214,34 +229,32 @@ This is mostly a backup, if you need to configure network or find IP address.
 
 # Usage Instructions
 
-> [!NOTE] 
+> [!NOTE]
 > The Test Harness will start automatically upon booting the Raspberry Pi.
 
 ## A - Opening the GUI
-The UI of the tool is accessed via a Web Browser from a computer on the same LAN.
 
-In a browser, set as address: `http://<raspberry-pi-ip-address>`
-
-For example: http://192.168.2.9
+The UI of the tool is accessible via HTTP from a computer on the same LAN.
+It can be opened by entering your Raspberry Pi's IP address in the web browser: `http://<raspberry-pi-ip-address>` (for example: http://192.168.2.9).
 
 ![Alt text](images/create_project.png)
-
-> [!TIP]
-> You need to wait a couple minutes after booting the Raspberry Pi, before attempting to connect.
 
 > [!TIP]
 > You can view the IP address of the Raspberry Pi by running
 > `hostname -I` in a terminal on the Raspberry Pi.
 
+> [!TIP]
+> You need to wait a couple minutes after booting the Raspberry Pi, before attempting to connect.
+
 ## B - Configuring a Test Project
 
-1. Start by clicking "Create Project"
-2. Give the Project a name
-3. Configure Parameters
-    * Click "Edit"
+1. Start by clicking "Create Project".
+2. Give the project a name.
+3. Configure Parameters:
+    * Click "Edit" in the "Project Config" window.
     * In the JSON, locate the `test_parameters` section.
-    * It will be set to `null` by default.
-    * Set the test parameters as needed for you testing.
+    * It will be set to default configuration.
+    * Set the test parameters as needed for your testing.
 
         Example:
         ```json
@@ -253,34 +266,38 @@ For example: http://192.168.2.9
             "dut_reader_group_resolving_key":"00000000000000000000000000000000"
         }
         ```
-        Full description of [Test Parameters](#test-parameters) in a section later.
+        A full description of [Test Parameters](#test-parameters) is given in a later section.
 
         ![Example of project creation page.](<images/new_project_test_parameters.png>)
 
-    * Click "Update" to save configuration change
-    * Click "Create"
-
+    * Click "Update" to save your configuration.
+    * Click "Create" to finish creating the project.
 
 ## C - Creating a Test Run (Running test scripts)
 
-1. Click the '▶️' button ("Go To Test-Run") button next to the project.
+1. Click the '▶️' ("Go To Test-Run") button next to the project.
 
     ![Screenshot showing go to test run button](images/go-to-test-run.png)
 
-2. Click "Create new Test Run"
+2. Click "Create new Test Run".
 
     ![Screenshot showing example of how to configure new test run](images/new-test-run.png)
 
-3. Select "Operator Name" in the top right corner.
-   - Must be created on first use.
-4. Select Test Suite or Test Cases. Multiple test cases can be selected.
-5. Click "Start"
+3. Select "Operator Name" in the top right corner (it must be created on first use).
+4. Select the whole Test Suite or specific Test Cases. Multiple test cases can be selected.
+
+> [!NOTE]
+> The Test Harness groups tests into suites by transport type and device role.
+> Choose the suite that matches your use case.
+> For example, to exercise a Reader with BLE/UWB, select the "BLE Reader" suite.
+
+5. Click "Start".
 
     ![Screenshot showing a test run being executed](images/executing-test-run.png)
   
 # Test Parameters
 
-You can edit test parameters for a Project during project creation, but you can also click the "Edit" Pencil icon on the row of the Project later.
+You can edit test parameters for a Project during project creation, but you can also click the "Edit" pencil icon on the row of the Project later.
 
 ## Test Parameters for Reader Tests
 
@@ -319,8 +336,8 @@ for certificate verification.
 
 ## Test Parameters for User Device Tests
 
-> [!NOTE] 
-> Private and Public keys must match, and either none of both parameters should be set.
+> [!NOTE]
+> Private and Public keys must match, and either none or both parameters should be set.
 
 * `th_reader_private_key` Private key for the Reader, simulated by the tool. 
   * Supported Format: 
@@ -367,12 +384,12 @@ for key generation, when certificates are used.
 
 Whenever there's an update to the tool, it can simply be updated by running these steps on the Raspberry Pi.
 
-1. Check out the version of the tool you're updating to, eg. `release/test_event1-2024`
+1. Check out the version of the tool you're updating to, eg. `aliro-sve-v1.0`
 
     ```sh
     cd  ~/aliro-certification-tool
     git fetch
-    git checkout release/test_event1-2024 
+    git checkout aliro-sve-v1.0
     ```
 
 2. Run the update script:
@@ -385,27 +402,28 @@ Whenever there's an update to the tool, it can simply be updated by running thes
 
 Test Harness will be started automatically when booting up the Raspberry Pi.
 
-To **manually stop** TH run the command below in `aliro-certification-tool` folder 
+To **manually stop** the TH, run the command below in the `aliro-certification-tool` folder:
 ```sh
 ./scripts/stop.sh
 ```
 
-To **manually start** TH run the command below in `aliro-certification-tool` folder 
+To **manually start** the TH, run the command below in the `aliro-certification-tool` folder:
 ```sh
 ./scripts/start.sh
 ```
 
-To **access logs** from TH run the command below in `aliro-certification-tool` folder 
+To **access logs** from the TH, run the command below in the `aliro-certification-tool` folder:
 ```sh
 docker compose logs
 ```
 
-Autostart on bootup can be disabled using
+Autostart on bootup can be disabled using the following command:
 ```sh
 systemctl disable aliro-th
 ```
 
-#### Configuring Raspberry Pi to connect to a Wi-Fi without password
+#### Configuring Raspberry Pi to connect to a Wi-Fi network without a password
+
 Perform the following steps on the Raspberry Pi.
 
 1. In `/etc/netplan/50-cloud-init.yaml`, add under `network`:
@@ -417,7 +435,7 @@ Perform the following steps on the Raspberry Pi.
                 access-points:
                     "<network_name>": {}
     ```
-2. Apply changes and reboot 
+2. Apply changes and reboot:
     ```
     sudo netplan apply
     sudo reboot
@@ -425,11 +443,10 @@ Perform the following steps on the Raspberry Pi.
 
 #### Configuring Raspberry Pi to support link-local address
 
-In some cases, it may be useful to connect to the Raspberry Pi over a local link. This
-can be enabled by updating the `netplan` configuration.
+In some cases, it may be useful to connect to the Raspberry Pi over a local link.
+This can be enabled by updating the `netplan` configuration:
 
 1. In `/etc/netplan/50-cloud-init.yaml`, add under `network`:
-
     ```yaml
     # /etc/netplan/50-cloud-init.yaml
     # network:
@@ -441,8 +458,7 @@ can be enabled by updating the `netplan` configuration.
               link-local: [ ipv4, ipv6 ]
     ```
 
-2. Apply changes and reboot
-
+2. Apply changes and reboot:
     ```sh
     sudo netplan try # optional
     sudo netplan apply
@@ -451,31 +467,34 @@ can be enabled by updating the `netplan` configuration.
 
 ## Authoring Test Scripts
 
-Aliro test scripts are located in `test_collections/aliro`. They must be located as the same file structure as the current `sample_collection` with `SampleSuite` and `SampleTestCase`. This ensures, that the Test Harness can automatically discover the tests on launch.
+If you want to contribute to the Aliro Test Harness, please follow the guidelines from [CONTRIBUTION.md](CONTRIBUTION.md).
 
-After changing/adding test scripts, the test harness backend must be restarted. This can be done using this command:
+Aliro test scripts are located in `aliro-certification-tool/test_collections/aliro`.
+After changing/adding test scripts, the Test Harness backend must be restarted. This can be done using this command:
 
 ```sh
-docker restart aliro-certification-tool_backend_1
+docker restart aliro-certification-tool-backend-1
 ```
 
 Test Harness backend logs can be streamed using this command:
 ```sh
-docker restart aliro-certification-tool_backend_1
+docker compose logs -f backend
 ```
 
-## Step-up provisioning
-For the step-up phase we have three components:
+## Step-up phase provisioning
+
+For the Step-up phase we have three components:
 - Access Document
 - Device Request
 - Device Response
 
-Based on the `Device Request` a `Device Response` is constructed from the `Access Document`.
-In order for a test setup to be validate for the step-up we need to first have inside the DUT the correct `Access Document`.
+Based on the `Device Request`, a `Device Response` is constructed from the `Access Document`.
+In order for a test setup to validate the Step-up phase, you need to have the correct `Access Document` available on the DUT first.
 
-For this purpose we have create a provision script that can be run to get the components used inside the certification test, to be able to load the correct `Access Document` in the DUT.
-
-This script is located at this location:
+For this purpose we have created a provisioning script that can be run to obtain the components used in the certification test and to load the correct `Access Document` onto the DUT.
+This script is located at:
 ```
-test_collections\aliro\support\access_doc\step-up\step_up_provision.py
+aliro-certification-tool/test_collections/aliro/support/access_doc/step-up/step_up_provision.py
 ```
+> [!NOTE]
+> You might need to install missing Python packages before the script can run successfully.
