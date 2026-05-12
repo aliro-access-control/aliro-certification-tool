@@ -27,7 +27,7 @@ from .recurrence_rule import RecurrenceRuleMaskBits_Months
 from .recurrence_rule import RecurrenceRuleMaskBits_Dates
 from .schedule import Schedule
 
-from utility import Utility
+from access_doc.utility import Utility
 
 class ScheduleConverter(object):
     '''

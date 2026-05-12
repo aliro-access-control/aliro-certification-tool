@@ -16,40 +16,29 @@
 
 import datetime
 import hashlib
-import os
-import sys
 
-# Get the directory in which this file is located.
-current_file_dir_path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
-# Get the directory in which the source code is located.
-source_dir_path = os.path.abspath(os.path.join(current_file_dir_path, '..'))
+from access_doc.aliro.access.access_data import AccessData
+from access_doc.aliro.access.access_extension import AccessExtension
+from access_doc.aliro.access.access_rule import AccessRule
+from access_doc.aliro.access.access_rule import AccessRuleCapabilitiesBits
+from access_doc.aliro.access.access_rule import AccessRuleScheduleIds
+from access_doc.aliro.access.access_rule import AccessRuleScheduleIdsBits
+from access_doc.aliro.access.non_access_extension import NonAccessExtension
+from access_doc.aliro.access.recurrence_rule import RecurrenceRuleMaskBits_Weekdays
+from access_doc.aliro.access.recurrence_rule import RecurrenceRulePatternType
+from access_doc.aliro.access.schedule import Schedule
+from access_doc.aliro.access.schedule import ScheduleFlagBits
+from access_doc.utility import Utility
 
-# Append the parent path to the system paths, so the code in the directory
-# above may be imported.
-sys.path.append(source_dir_path)
+from access_doc.aliro.access.extension_data.secure_pin_extension_data import ReaderPin
+from access_doc.aliro.access.extension_data.secure_pin_extension_data import SecurePinExtensionData
 
-from aliro.access.access_data import AccessData
-from aliro.access.access_extension import AccessExtension
-from aliro.access.access_rule import AccessRule
-from aliro.access.access_rule import AccessRuleCapabilitiesBits
-from aliro.access.access_rule import AccessRuleScheduleIds
-from aliro.access.access_rule import AccessRuleScheduleIdsBits
-from aliro.access.non_access_extension import NonAccessExtension
-from aliro.access.recurrence_rule import RecurrenceRuleMaskBits_Weekdays
-from aliro.access.recurrence_rule import RecurrenceRulePatternType
-from aliro.access.schedule import Schedule
-from aliro.access.schedule import ScheduleFlagBits
-from utility import Utility
+from access_doc.aliro.access.extension_data.multiple_users_extension_data import MultipleUsersExtensionData
 
-from aliro.access.extension_data.secure_pin_extension_data import ReaderPin
-from aliro.access.extension_data.secure_pin_extension_data import SecurePinExtensionData
-
-from aliro.access.extension_data.multiple_users_extension_data import MultipleUsersExtensionData
-
-from mdl.response.device_response_builder import DeviceResponseBuilder
-from mdl.response.device_response_builder import ResponseElement
-from mdl.response.device_response import DeviceResponse
+from access_doc.mdl.response.device_response_builder import DeviceResponseBuilder
+from access_doc.mdl.response.device_response_builder import ResponseElement
+from access_doc.mdl.response.device_response import DeviceResponse
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec

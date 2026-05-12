@@ -18,7 +18,7 @@ import cbor2
 import copy
 import typing
 
-from mdl.common.doc_types import DocTypes
+from access_doc.mdl.common.doc_types import DocTypes
 
 from .namespaces import Namespaces
 

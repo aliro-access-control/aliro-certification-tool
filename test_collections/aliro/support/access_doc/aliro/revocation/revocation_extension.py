@@ -16,7 +16,7 @@
 
 import cbor2
 
-from aliro.common.extension_data import ExtensionData
+from access_doc.aliro.common.extension_data import ExtensionData
 
 ################################################################################
 class RevocationExtension(object):

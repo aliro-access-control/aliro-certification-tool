@@ -17,7 +17,7 @@
 import cbor2
 import datetime
 
-from utility import Utility
+from access_doc.utility import Utility
 
 ################################################################################
 class RevocationEntry(object):

@@ -17,8 +17,8 @@
 from .device_request import DeviceRequest
 from .doc_request import DocRequest
 
-from mdl.common.doc_types import DocTypes
-from mdl.common.issuer_namespaces import IssuerNamespaces
+from access_doc.mdl.common.doc_types import DocTypes
+from access_doc.mdl.common.issuer_namespaces import IssuerNamespaces
 
 ################################################################################
 class RequestElement(object):

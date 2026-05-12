@@ -30,12 +30,12 @@ from cryptography.hazmat.primitives.serialization import load_der_public_key
 from cryptography.hazmat.primitives.serialization import PublicFormat
 from cryptography.exceptions import InvalidSignature
 
-from mdl.common.doc_types import DocTypes
-from mdl.response.mobile_security_object import MobileSecurityObject
-from mdl.response.issuer_signed_item import IssuerSignedItem
-from mdl.response.cose_key import COSE_Key
+from access_doc.mdl.common.doc_types import DocTypes
+from access_doc.mdl.response.mobile_security_object import MobileSecurityObject
+from access_doc.mdl.response.issuer_signed_item import IssuerSignedItem
+from access_doc.mdl.response.cose_key import COSE_Key
 
-from utility import Utility
+from access_doc.utility import Utility
 
 ################################################################################
 class Document(object):

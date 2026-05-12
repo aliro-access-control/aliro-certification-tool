@@ -17,8 +17,8 @@
 import cbor2
 import secrets
 
-from aliro.access.access_data import AccessData
-from aliro.revocation.revocation_data import RevocationData
+from access_doc.aliro.access.access_data import AccessData
+from access_doc.aliro.revocation.revocation_data import RevocationData
 
 ################################################################################
 class IssuerSignedItem(object):

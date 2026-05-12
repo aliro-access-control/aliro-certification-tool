@@ -16,3 +16,16 @@ docker-stack.yml
 *.sw*
 .env
 
+# Compiled Python files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+*.so
+
+# Build files
+*.egg
+*.egg-info/
+.eggs/
+dist/
+build/
