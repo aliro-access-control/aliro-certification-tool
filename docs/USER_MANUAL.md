@@ -179,6 +179,8 @@ For example, `http://192.168.2.9`.
 
    > **Note:** Test suites are grouped by transport type (NFC, BLE/UWB) and device role (Reader, User Device). To exercise a Reader over BLE/UWB, choose the "BLE Reader" suite.
 
+   > **Tip:** Test selection can also be driven by PICS. Each test case declares the PICS items it requires — device role (`RD`/`UD`), transport (`NFC`, `BLEUWB`, `BLERKE`), and individual test-case identifiers — and importing your DUT's PICS into the project selects the applicable test cases automatically, based on the features the DUT supports.
+
 5. Click **Start**.
 
    ![Executing test run](images/executing-test-run.png)
@@ -187,7 +189,7 @@ For example, `http://192.168.2.9`.
 
 Parameters are set per project. All HEX values are case-insensitive. Where a key supports PEM format, use a literal `\n` for line breaks inside the JSON string.
 
-The tables below describe the parameters most commonly adjusted for certification runs. The complete default set — including credential-issuer keys, certificate chaining, and access-element identifiers — is what the Project Config editor preloads, and lives in [`test_collections/aliro/default_project.config`](../test_collections/aliro/default_project.config).
+The tables below cover the full parameter set. The defaults preloaded by the Project Config editor live in [`test_collections/aliro/default_project.config`](../test_collections/aliro/default_project.config).
 
 ### 4.1 Parameters for Reader Tests
 
@@ -201,6 +203,11 @@ The tables below describe the parameters most commonly adjusted for certificatio
 | `th_access_credential_private_key`    | Private key for the user access credential simulated by the tool.                 | DER-HEX or PEM string              |
 | `th_access_credential_public_key`     | Public key for the user access credential simulated by the tool.                  | DER-HEX or PEM string              |
 | `dut_reader_issuer_public_key`        | Reader System Issuer CA certificate public key, used for certificate verification.| DER-HEX or PEM string              |
+| `th_credential_issuer_private_key`    | Private key of the credential issuer simulated by the tool.                       | DER-HEX or PEM string              |
+| `th_credential_issuer_public_key`     | Public key of the credential issuer simulated by the tool.                        | DER-HEX or PEM string              |
+| `th_credential_issuer_ca_private_key` | Private key of the CA for the credential issuer simulated by the tool.            | DER-HEX or PEM string              |
+| `th_credential_issuer_ca_public_key`  | Public key of the CA for the credential issuer simulated by the tool.             | DER-HEX or PEM string              |
+| `dut_access_element_id`               | Access element identifier used in Access Documents for Step-up tests (default `floor1`). | String                      |
 
 ### 4.2 Parameters for User Device Tests
 
@@ -214,10 +221,13 @@ The tables below describe the parameters most commonly adjusted for certificatio
 | `th_reader_group_identifier`     | Group identifier for the simulated Reader.                                                         | HEX string                               |
 | `th_reader_sub_group_identifier` | Sub-group identifier for the simulated Reader.                                                     | HEX string                               |
 | `th_reader_certificate`          | Reader certificate sent during `LOAD_CERT` and `AUTH1` commands.                                   | HEX string                               |
+| `th_reader_certificate_chaining` | Reader certificate with a chained issuer, used by the certificate-chaining test cases.             | HEX string                               |
 | `th_reader_group_resolving_key`  | Group resolving key, used for BLE tests during dynamic tag generation.                             | HEX string                               |
 | `th_reader_spsm`                 | SPSM (Simplified Protocol / Service Multiplexer) for the BLE Reader Protocol Version Characteristic.| HEX string                               |
 | `th_access_credential_public_key`| Access credential public key for the tool's key-slot lookup table.                                 | DER-HEX or PEM string                    |
 | `th_reader_issuer_public_key`    | Reader System Issuer CA certificate public key, used for key generation with certificates.        | DER-HEX or PEM string                    |
+| `dut_credential_issuer_public_key`| Public key of the credential issuer for the User Device DUT.                                      | DER-HEX or PEM string                    |
+| `th_access_element_id`           | Access element identifier used by the simulated Reader in Access Documents for Step-up tests (default `floor1`). | String                    |
 
 ## 5. Updating the Tool
 
