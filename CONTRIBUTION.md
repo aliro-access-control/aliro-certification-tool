@@ -10,7 +10,7 @@ project guidelines for contributing code.
 
 # Contributing as an Open Source Contributor
 
-As an open source contributor you can report bugs and request features in the Issue Tracker, as well 
+As an open source contributor you can report bugs and request features in the GitHub Issues as well 
 as contribute bug fixes and features that do not impact Aliro specification as
 a pull request. For example: ports of Aliro to add APIs to alternative
 programming languages (e.g. Java, JS), hardware ports, or an optimized
