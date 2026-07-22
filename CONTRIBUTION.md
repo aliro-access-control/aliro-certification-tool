@@ -176,7 +176,7 @@ branch and update.
 
 #### Merge Requirements
 
--   Github Workflows pass
+-   GitHub Workflows pass
 -   Builds pass
 -   Tests pass
 -   Linting passes
