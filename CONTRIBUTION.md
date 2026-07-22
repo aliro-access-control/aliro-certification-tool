@@ -230,7 +230,7 @@ can be fast tracked immediately. Examples:
 -   Code readability refactors:
     -   renaming enum/classes/structure members
     -   moving constant header location
-    -   Obviously trivial build rule changes (e.g. adding missing files to build
+    -   obviously trivial build rule changes (e.g. adding missing files to build
         rules)
     -   Changing comments
     -   Adding/removing includes (include what you need and only what you need
