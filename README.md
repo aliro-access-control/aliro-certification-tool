@@ -1,5 +1,5 @@
 # Aliro Certification Tool
-A Test Harness and tooling designed to simplify development, testing, and certification for devices, guided by the Connectivity Standards Alliance - Aliro Working Group.
+A Test Harness and tooling designed to simplify the testing and certification of Aliro devices, guided by the Connectivity Standards Alliance - Aliro Working Group.
 
 > [!NOTE]
 > The tool is a complete reuse from CSA - Matter, and the UI still shows a lot of unrelated Matter-specific content. This will be fixed eventually.
