@@ -241,7 +241,7 @@ can be fast tracked immediately. Examples:
 -   Most changes to existing docker files (pulling new versions, reorganizing)
 -   Most changes to new dockerfile version in workflows
 
-#### Fast track changes
+### Fast track changes
 
 Larger functionality changes are allowed to be fast tracked with these
 requirements/restrictions:
