@@ -15,7 +15,7 @@ as contribute bug fixes and features that do not impact Aliro specification as
 a pull request. For example: ports of Aliro to add APIs to alternative
 programming languages (e.g. Java, JS), hardware ports, or an optimized
 implementation of existing functionality. For features that impact the
-specification, please join Aliro work group within the Connectivity Standards
+specification, please join Aliro Working Group within the Connectivity Standards
 Alliance. The requirements to become an open source contributor of the
 [Aliro Repository](https://github.com/aliro-access-control) are:
 
