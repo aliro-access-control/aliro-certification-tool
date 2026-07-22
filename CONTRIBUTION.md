@@ -223,7 +223,7 @@ can be fast tracked immediately. Examples:
     -   stability tests
     -   integration tests
     -   functional tests
-    -   Test scripts
+    -   test scripts
     -   Additional tests following a pattern (e.g. YAML tests)
 -   Adding/updating/fixing tooling to aid in development
 -   Re-running code generation
