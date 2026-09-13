@@ -20,11 +20,11 @@ from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestStep
 from app.user_prompt_support import OptionsSelectPromptRequest, UserPromptSupport
 
-from ...support.access_doc.mdl.common import IssuerNamespaces, DocTypes
-from ...support.access_doc.mdl.request import DeviceRequest
-from ...support.access_doc.mdl.response import DeviceResponse
-from ...support.access_doc.aliro.revocation import RevocationData, RevocationChangeMode, RevocationEntry
-from ...support.access_doc.mdl.response.device_response_builder import DeviceResponseBuilder, ResponseElement
+from aliro_actuator.access_document.mdl.common import IssuerNamespaces, DocTypes
+from aliro_actuator.access_document.mdl.request import DeviceRequest
+from aliro_actuator.access_document.mdl.response import DeviceResponse
+from aliro_actuator.access_document.aliro.revocation import RevocationData, RevocationChangeMode, RevocationEntry
+from aliro_actuator.access_document.mdl.response.device_response_builder import DeviceResponseBuilder, ResponseElement
 from ...support.aliro_test_case import AliroReaderTestCase, log_errors
 
 
