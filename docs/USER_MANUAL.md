@@ -23,7 +23,7 @@ A Test Harness and tooling designed to simplify development, testing, and certif
 
 | Component                  | Version                              |
 | -------------------------- | ------------------------------------ |
-| Tool release tag           | `aliro-sve-v1.0`                     |
+| Tool release tag           | `aliro-v1.0`                     |
 | Aliro Specification        | 1.0                                  |
 | Aliro CSG TT Test Plan     | 1.0 (for Aliro 1.0)                  |
 | Ubuntu Server (TH host)    | 22.04.3 / 22.04.4 / 22.04.5 LTS (64-bit) |
@@ -91,7 +91,7 @@ This manual covers day-to-day operation of an installed Test Harness: running te
 | Aliro Certification Tool (this repo) | https://github.com/aliro-access-control/aliro-certification-tool |
 | Aliro Actuator (firmware-side)       | https://github.com/aliro-access-control/aliro-actuator           |
 | CSA Matter Test Harness (upstream)   | https://github.com/project-chip/certification-tool               |
-| Contribution guide                   | [CONTRIBUTION.md](../CONTRIBUTION.md)                               |
+| Contribution guide                   | [CONTRIBUTING.md](../CONTRIBUTING.md)                               |
 
 ### 2.3 NXP NFC Front End (PN7160)
 
@@ -289,7 +289,7 @@ Re-enable with `sudo systemctl enable aliro-th`.
 
 ## 7. Authoring Test Scripts
 
-If you would like to contribute to the Aliro Test Harness, follow the workflow in [CONTRIBUTION.md](../CONTRIBUTION.md). For the design context behind the layered structure of the actuator, see [ARCHITECTURE.md](ARCHITECTURE.md).
+If you would like to contribute to the Aliro Test Harness, follow the workflow in [CONTRIBUTING.md](../CONTRIBUTING.md). For the design context behind the layered structure of the actuator, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 Aliro test scripts live in `test_collections/aliro/`. After changing or adding a test script, restart the backend so the new code is picked up:
 
