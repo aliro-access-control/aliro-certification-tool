@@ -28,7 +28,7 @@ The tool reuses the CSA Matter Test Harness frontend, backend, and reverse-proxy
 | **[SETUP.md](docs/SETUP.md)**                          | First-time setup: hardware, SD-card flashing, assembly, install, and first start.              |
 | **[USER_MANUAL.md](docs/USER_MANUAL.md)**              | Operating guide: GUI walkthrough, test parameters, updating, troubleshooting.                  |
 | **[ARCHITECTURE.md](docs/ARCHITECTURE.md)**            | Internal design: deployment stack, actuator layering, test collections, hardware integration.  |
-| **[CONTRIBUTION.md](CONTRIBUTION.md)**            | How to propose changes, the Tiger Team review process, and PR requirements.                    |
+| **[CONTRIBUTING.md](CONTRIBUTING.md)**            | How to propose changes, the Tiger Team review process, and PR requirements.                    |
 | **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)**      | Community guidelines.                                                                          |
 | **[LICENSE](LICENSE)**                            | Apache 2.0 license terms.                                                                      |
 
@@ -36,7 +36,7 @@ The tool reuses the CSA Matter Test Harness frontend, backend, and reverse-proxy
 
 | Component                  | Version                                       |
 | -------------------------- | --------------------------------------------- |
-| Tool release tag           | `aliro-sve-v1.0`                              |
+| Tool release tag           | `aliro-v1.0`                              |
 | Aliro Specification        | 1.0                                           |
 | Aliro CSG TT Test Plan     | 1.0 (for Aliro 1.0)                           |
 | Host OS                    | Ubuntu Server 22.04.x LTS (64-bit)            |
