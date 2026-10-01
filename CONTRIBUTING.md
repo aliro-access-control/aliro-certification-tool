@@ -156,7 +156,7 @@ Aim to make pull requests easy to read both when viewed in a list (title only)
 as well as clear in content within the description.
 
 Pull request guidelines are described in detail
-[here](./docs/contributing/pull_request_guidelines.md)
+[here](https://docs.github.com/en/pull-requests)
 
 ### Review Requirements
 
