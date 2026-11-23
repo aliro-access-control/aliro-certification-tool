@@ -136,7 +136,8 @@ class NFC_UD_STANDARD_SIXTEEN_GROUPIDENTIFIER_ONE_AC(AliroUserDeviceTestCase, Us
 
             # Initialize Aliro NFC Reader
             self.reader = Reader(
-                transport_protocol=TransportProtocol.NFC,
+                transport_protocol=self.th_nfc_transport_protocol(),
+            transport_override=self.th_nfc_transport_override(),
                 reader_group_identifier=bytes.fromhex(group_id[i]),
                 reader_group_sub_identifier=bytes.fromhex(sub_group_id),
                 reader_key=key,

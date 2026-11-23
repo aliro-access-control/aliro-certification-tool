@@ -73,7 +73,8 @@ class NFC_UD_STANDARD_CERT_IN_AUTH1_WITH_CHAINING(AliroUserDeviceTestCase, UserP
 
         # Initialize Aliro NFC Reader
         self.reader = Reader(
-            transport_protocol=TransportProtocol.NFC,
+            transport_protocol=self.th_nfc_transport_protocol(),
+            transport_override=self.th_nfc_transport_override(),
             reader_group_identifier=self.group_id,
             reader_key=key,
             reader_cert=cert,

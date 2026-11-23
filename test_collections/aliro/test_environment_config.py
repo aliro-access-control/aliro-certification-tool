@@ -28,3 +28,23 @@ class TestEnvironmentConfigAliro(TestEnvironmentConfig):
 
             if not test_parameters:
                 raise
+
+            nfc_backend = test_parameters.get("th_nfc_backend")
+            if nfc_backend is not None:
+                if not isinstance(nfc_backend, str):
+                    raise ValueError("th_nfc_backend must be a string.")
+                if nfc_backend.lower() not in {"pn7160", "simulator", "pcsc"}:
+                    raise ValueError(
+                        "th_nfc_backend must be one of 'pn7160', 'simulator', or 'pcsc'."
+                    )
+
+            nfc_sim_port = test_parameters.get("th_nfc_sim_port")
+            if nfc_sim_port is not None:
+                if not isinstance(nfc_sim_port, str):
+                    raise ValueError("th_nfc_sim_port must be a string.")
+                try:
+                    port = int(nfc_sim_port)
+                except ValueError as error:
+                    raise ValueError("th_nfc_sim_port must be an integer string.") from error
+                if port < 1 or port > 65535:
+                    raise ValueError("th_nfc_sim_port must be in range 1..65535.")

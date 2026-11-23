@@ -228,6 +228,13 @@ The tables below cover the full parameter set. The defaults preloaded by the Pro
 | `th_reader_issuer_public_key`    | Reader System Issuer CA certificate public key, used for key generation with certificates.        | DER-HEX or PEM string                    |
 | `dut_credential_issuer_public_key`| Public key of the credential issuer for the User Device DUT.                                      | DER-HEX or PEM string                    |
 | `th_access_element_id`           | Access element identifier used by the simulated Reader in Access Documents for Step-up tests (default `floor1`). | String                    |
+| `th_nfc_backend`                 | NFC backend for User Device suites. Use `pn7160` (default), `simulator`, or `pcsc`.              | String                                    |
+| `th_nfc_sim_host`                | Simulator host when `th_nfc_backend=simulator` (default `localhost`).                             | String                                    |
+| `th_nfc_sim_port`                | Simulator port when `th_nfc_backend=simulator` (default `9025`).                                  | Integer string                            |
+| `th_nfc_pcsc_reader`             | Optional exact PC/SC reader name when `th_nfc_backend=pcsc` (empty = first reader).              | String                                    |
+
+> [!NOTE]
+> The `pcsc` backend uses the built-in lightweight ctypes bridge in `test_collections/aliro/support/scard` and does not require `pyscard`.
 
 ## 5. Updating the Tool
 

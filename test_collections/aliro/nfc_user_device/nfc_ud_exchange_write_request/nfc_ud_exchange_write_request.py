@@ -72,7 +72,8 @@ class NFC_UD_EXCHANGE_WRITE_REQUEST(AliroUserDeviceTestCase, UserPromptSupport):
 
         # Initialize Aliro NFC Reader
         self.reader = Reader(
-            transport_protocol=TransportProtocol.NFC,
+            transport_protocol=self.th_nfc_transport_protocol(),
+            transport_override=self.th_nfc_transport_override(),
             reader_group_identifier=group_id,
             reader_group_sub_identifier=sub_group_id,
             reader_key=key,

@@ -16,10 +16,14 @@
 
 from typing import Any, Awaitable, Callable
 
+from aliro_actuator.access_protocol.defines import TransportProtocol
+from aliro_actuator.transport_protocol import TransportProtocolBase
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.key import KeyPair, PrivateKey, PublicKey
 from app.test_engine.logger import test_engine_logger as logger
 from app.test_engine.models import TestCase
+
+from .nfc_apdu_transport import NFCCardTransport
 
 
 class AliroTestParameterError(Exception):
@@ -469,6 +473,10 @@ class AliroUserDeviceTestCase(AliroTestCase):
     READER_ISSUER_PUBLIC_KEY_KEY = "th_reader_issuer_public_key"
     CREDENTIAL_ISSUER_PUBLIC_KEY_KEY = "dut_credential_issuer_public_key"
     ACCESS_ELEMENT_ID_KEY = "th_access_element_id"
+    NFC_BACKEND_KEY = "th_nfc_backend"
+    NFC_SIM_HOST_KEY = "th_nfc_sim_host"
+    NFC_SIM_PORT_KEY = "th_nfc_sim_port"
+    NFC_PCSC_READER_KEY = "th_nfc_pcsc_reader"
 
     @classmethod
     def default_test_parameters(self) -> dict[str, Any]:
@@ -520,7 +528,72 @@ class AliroUserDeviceTestCase(AliroTestCase):
             self.CREDENTIAL_ISSUER_PUBLIC_KEY_KEY: "047BA31938492E3F5E97BC91806B5835B5D9E426609139006711E5FB7A670EE4E1"
                                                    "2FC9F25396C013CC20166029D761A105DEA5E071E84A9E499920524CE2301137",
             self.ACCESS_ELEMENT_ID_KEY: "floor1",
+            self.NFC_BACKEND_KEY: "pn7160",
+            self.NFC_SIM_HOST_KEY: "localhost",
+            self.NFC_SIM_PORT_KEY: "9025",
+            self.NFC_PCSC_READER_KEY: "",
         }
+
+    def th_nfc_backend(self) -> str:
+        backend = self.test_parameters.get(self.NFC_BACKEND_KEY, "pn7160")
+        if not isinstance(backend, str):
+            raise AliroTestParameterError(
+                f"Test Parameter '{self.NFC_BACKEND_KEY}' must be a string."
+            )
+        backend = backend.lower().strip()
+        if backend not in {"pn7160", "simulator", "pcsc"}:
+            raise AliroTestParameterError(
+                f"Test Parameter '{self.NFC_BACKEND_KEY}' must be one of "
+                "'pn7160', 'simulator', 'pcsc'."
+            )
+        return backend
+
+    def th_nfc_transport_protocol(self) -> TransportProtocol:
+        # Keep NFC APDU semantics across all backends.
+        return TransportProtocol.NFC
+
+    def th_nfc_transport_override(self) -> TransportProtocolBase | None:
+        backend = self.th_nfc_backend()
+        if backend == "pn7160":
+            logger.info("Using default PN7160 NFC backend")
+            return None
+
+        sim_host = self.test_parameters.get(self.NFC_SIM_HOST_KEY, "localhost")
+        sim_port_raw = self.test_parameters.get(self.NFC_SIM_PORT_KEY, "9025")
+        pcsc_reader = self.test_parameters.get(self.NFC_PCSC_READER_KEY, "")
+
+        if not isinstance(sim_host, str):
+            raise AliroTestParameterError(
+                f"Test Parameter '{self.NFC_SIM_HOST_KEY}' must be a string."
+            )
+        if not isinstance(sim_port_raw, str):
+            raise AliroTestParameterError(
+                f"Test Parameter '{self.NFC_SIM_PORT_KEY}' must be a string."
+            )
+        if not isinstance(pcsc_reader, str):
+            raise AliroTestParameterError(
+                f"Test Parameter '{self.NFC_PCSC_READER_KEY}' must be a string."
+            )
+
+        try:
+            sim_port = int(sim_port_raw)
+        except ValueError as error:
+            raise AliroTestParameterError(
+                f"Test Parameter '{self.NFC_SIM_PORT_KEY}' must be an integer string."
+            ) from error
+
+        reader_name = pcsc_reader.strip() or None
+        logger.info(f"Using external NFC backend '{backend}'")
+        if backend == "simulator":
+            logger.info(f"Simulator endpoint {sim_host}:{sim_port}")
+        elif reader_name is not None:
+            logger.info(f"PC/SC reader: {reader_name}")
+        return NFCCardTransport(
+            backend=backend,
+            sim_host=sim_host,
+            sim_port=sim_port,
+            pcsc_reader=reader_name,
+        )
 
     def th_reader_keypair(self) -> KeyPair:
         """Load TH Reader keys from test parameters.
@@ -724,3 +797,9 @@ class AliroUserDeviceTestCase(AliroTestCase):
         )
 
         return issuer_public_key, element_id
+
+    async def send_prompt_request(self, *args, **kwargs):
+        if self.th_nfc_backend() == "simulator":
+            logger.info("Skipping user prompt for simulator backend")
+            return
+        return await super().send_prompt_request(*args, **kwargs)
